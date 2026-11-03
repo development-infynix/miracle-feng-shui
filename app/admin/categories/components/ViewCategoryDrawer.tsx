@@ -203,8 +203,12 @@ export default function ViewCategoryDrawer({
               <section>
                 <dl className="divide-y divide-stone-100 rounded-lg border border-stone-200 bg-white px-4">
                   <div className="grid grid-cols-[7rem_1fr] items-center gap-3 py-3 text-sm">
-                    <dt className="text-stone-500">Products</dt>
-                    <dd className="font-medium text-stone-900">{category.productCount}</dd>
+                    <dt className="text-stone-500">Active products</dt>
+                    <dd className="font-medium text-stone-900">{category.activeCount}</dd>
+                  </div>
+                  <div className="grid grid-cols-[7rem_1fr] items-center gap-3 py-3 text-sm">
+                    <dt className="text-stone-500">Inactive products</dt>
+                    <dd className="font-medium text-stone-900">{category.inactiveCount}</dd>
                   </div>
                   <div className="grid grid-cols-[7rem_1fr] items-center gap-3 py-3 text-sm">
                     <dt className="text-stone-500">Slug</dt>

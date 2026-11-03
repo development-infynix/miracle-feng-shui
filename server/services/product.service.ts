@@ -95,27 +95,41 @@ export const productService = {
   },
 
   async getAdminCategories(query: { q?: string; page: number; pageSize: number }) {
-    const [result, all] = await Promise.all([
+    const [result, all, productCounts] = await Promise.all([
       productRepository.findCategoriesPage(query),
       productRepository.findAllCategories(),
+      productRepository.countProductsByCategoryAndStatus(),
     ]);
 
+    const countFor = (categoryId: string, isActive: boolean) =>
+      productCounts.find((row) => row.categoryId === categoryId && row.isActive === isActive)?.count ?? 0;
+    const totalFor = (isActive: boolean) =>
+      productCounts.filter((row) => row.isActive === isActive).reduce((sum, row) => sum + row.count, 0);
+
     return {
-      categories: result.items.map((c) => ({
-        id: c.id,
-        name: c.name,
-        slug: c.slug,
-        image: c.image || '',
-        description: c.description || '',
-        productCount: c._count.products,
-      })),
+      categories: result.items.map((c) => {
+        const activeCount = countFor(c.id, true);
+        const inactiveCount = countFor(c.id, false);
+        return {
+          id: c.id,
+          name: c.name,
+          slug: c.slug,
+          image: c.image || '',
+          description: c.description || '',
+          activeCount,
+          inactiveCount,
+          // Every linked product, which is what moves when the category is deleted.
+          productCount: activeCount + inactiveCount,
+        };
+      }),
       total: result.total,
       page: result.page,
       totalPages: result.totalPages,
       // Whole-catalog figures, unaffected by the search or the current page.
       stats: {
         totalCategories: all.length,
-        assignedProducts: all.reduce((sum, c) => sum + c._count.products, 0),
+        activeProducts: totalFor(true),
+        inactiveProducts: totalFor(false),
       },
       // Every category is a valid target when reassigning products on delete.
       categoryOptions: all.map((c) => ({ id: c.id, name: c.name })),

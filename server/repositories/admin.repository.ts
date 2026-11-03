@@ -5,6 +5,19 @@ import {
   CreateProductInput,
   UpdateProductInput,
 } from '../validators/admin.validator';
+import { ApiError } from '../utils/ApiError';
+
+/** Accepts a category id or exact name. Products can only join a category that already exists. */
+async function resolveCategoryId(identifier: string) {
+  const category = await prisma.category.findFirst({
+    where: { OR: [{ id: identifier }, { name: identifier }] },
+    select: { id: true },
+  });
+  if (!category) {
+    throw ApiError.badRequest(`Category "${identifier}" does not exist.`);
+  }
+  return category.id;
+}
 
 export const adminRepository = {
   async getDashboardStats() {
@@ -144,28 +157,7 @@ export const adminRepository = {
   },
 
   async createProduct(data: CreateProductInput) {
-    let resolvedCategoryId = data.categoryId;
-
-    // Check if categoryId is a name instead of an id
-    const existingCategory = await prisma.category.findFirst({
-      where: {
-        OR: [{ id: data.categoryId }, { name: data.categoryId }],
-      },
-    });
-
-    if (existingCategory) {
-      resolvedCategoryId = existingCategory.id;
-    } else {
-      // Create category if doesn't exist
-      const slug = data.categoryId.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-      const newCat = await prisma.category.create({
-        data: {
-          name: data.categoryId,
-          slug,
-        },
-      });
-      resolvedCategoryId = newCat.id;
-    }
+    const resolvedCategoryId = await resolveCategoryId(data.categoryId);
 
     const baseSlug = (data.slug || data.title)
       .toLowerCase()
@@ -213,19 +205,10 @@ export const adminRepository = {
   },
 
   async updateProduct(id: string, data: UpdateProductInput) {
-    let resolvedCategoryId = data.categoryId;
-
-    if (data.categoryId || data.category) {
-      const catIdentifier = data.categoryId || data.category;
-      const existingCategory = await prisma.category.findFirst({
-        where: {
-          OR: [{ id: catIdentifier }, { name: catIdentifier }],
-        },
-      });
-      if (existingCategory) {
-        resolvedCategoryId = existingCategory.id;
-      }
-    }
+    const categoryIdentifier = data.categoryId || data.category;
+    const resolvedCategoryId = categoryIdentifier
+      ? await resolveCategoryId(categoryIdentifier)
+      : undefined;
 
     return prisma.product.update({
       where: { id },

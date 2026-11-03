@@ -2,7 +2,8 @@
 
 import React from 'react';
 import ImageUploadField from '@/components/admin/ImageUploadField';
-import { LuPlus, LuX } from 'react-icons/lu';
+import { LuX } from 'react-icons/lu';
+import ItemDetailsField from './ItemDetailsField';
 import { Product } from '@/lib/placeholder-data';
 
 interface AddProductModalProps {
@@ -36,9 +37,6 @@ export default function AddProductModal({
   isSubmitting,
 }: AddProductModalProps) {
   if (!open) return null;
-
-  // Always show at least one input. Blank rows are dropped on submit.
-  const detailRows = formData.itemDetails?.length ? formData.itemDetails : [''];
 
   return (
     <div className="fixed inset-0 z-50">
@@ -100,40 +98,10 @@ export default function AddProductModal({
                   className={inputClass}
                 />
               </div>
-              <div>
-                <label className={labelClass}>Item Details</label>
-                <div className="space-y-2">
-                  {detailRows.map((detail, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        aria-label={`Item detail ${index + 1}`}
-                        placeholder="e.g. Hand-hammered 7-metal bronze alloy"
-                        autoFocus={index > 0 && index === detailRows.length - 1}
-                        value={detail}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            itemDetails: detailRows.map((d, i) => (i === index ? e.target.value : d)),
-                          })
-                        }
-                        className={inputClass}
-                      />
-                      {index === detailRows.length - 1 && (
-                        <button
-                          type="button"
-                          aria-label="Add another item detail"
-                          title="Add another item detail"
-                          onClick={() => setFormData({ ...formData, itemDetails: [...detailRows, ''] })}
-                          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-stone-900 text-white transition-colors hover:bg-stone-700 cursor-pointer"
-                        >
-                          <LuPlus className="h-4 w-4" />
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <ItemDetailsField
+                value={formData.itemDetails || []}
+                onChange={(itemDetails) => setFormData({ ...formData, itemDetails })}
+              />
             </section>
 
             <section>
@@ -274,7 +242,7 @@ export default function AddProductModal({
             </button>
             <button
               type="submit"
-              disabled={isSubmitting || !formData.name.trim() || !formData.price || formData.price <= 0 || formData.discount == null || String(formData.discount).trim() === '' || formData.stock == null || String(formData.maker || '').trim() === ''}
+              disabled={isSubmitting || !formData.category || !formData.name.trim() || !formData.price || formData.price <= 0 || formData.discount == null || String(formData.discount).trim() === '' || formData.stock == null || String(formData.maker || '').trim() === ''}
               className="inline-flex h-10 items-center justify-center rounded-md bg-stone-900 px-5 text-sm font-medium text-white transition-colors hover:bg-stone-700 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {isSubmitting ? (editingProduct ? 'Saving...' : 'Adding...') : (editingProduct ? 'Save Changes' : 'Add to Catalog')}

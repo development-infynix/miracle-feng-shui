@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { LuFolderOpen } from 'react-icons/lu';
+import { LuImageOff, LuFolderOpen } from 'react-icons/lu';
 import { MdKeyboardDoubleArrowRight } from 'react-icons/md';
 import { CategoryItem } from '../types';
 
@@ -15,8 +15,8 @@ export default function CategoryCard({ category, onView }: CategoryCardProps) {
   const showImage = category.image && !imageFailed;
 
   return (
-    <div className="bg-white rounded-lg border border-gray-100 shadow-2xs overflow-hidden flex flex-col">
-      <div className="relative w-full h-36 bg-gray-100">
+    <div className="bg-white rounded-lg border border-gray-200 shadow-2xs overflow-hidden flex flex-col">
+      <div className="relative w-full h-36 bg-gray-50">
         {showImage ? (
           <img
             src={category.image}
@@ -25,8 +25,26 @@ export default function CategoryCard({ category, onView }: CategoryCardProps) {
             onError={() => setImageFailed(true)}
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-300">
-            <LuFolderOpen className="h-9 w-9" aria-hidden="true" />
+          <div
+            role="img"
+            aria-label={imageFailed ? 'Image failed to load' : 'No image available'}
+            className="absolute inset-2 rounded-md border-2 border-dashed border-gray-300 bg-gray-100/60 flex flex-col items-center justify-center gap-1.5 text-center px-3"
+          >
+            <div className="w-11 h-11 rounded-full bg-white flex items-center justify-center text-gray-400 shadow-2xs">
+              {imageFailed ? (
+                <LuFolderOpen className="h-5 w-5" aria-hidden="true" />
+              ) : (
+                <LuImageOff className="h-5 w-5" aria-hidden="true" />
+              )}
+            </div>
+            <span className="text-[11px] font-semibold text-gray-600 leading-tight">
+              {imageFailed ? 'Image could not load' : 'No image available'}
+            </span>
+            <span className="text-[10px] text-gray-400 leading-tight">
+              {imageFailed
+                ? 'Check the image URL or re-upload'
+                : 'Add an image to preview this category'}
+            </span>
           </div>
         )}
       </div>
@@ -41,9 +59,16 @@ export default function CategoryCard({ category, onView }: CategoryCardProps) {
         </div>
       </div>
       <div className="flex items-center justify-between gap-2 px-3 py-2 border-t border-gray-100 bg-gray-50">
-        <span className="font-bold text-gray-900 text-sm whitespace-nowrap">
-          {category.productCount} {category.productCount === 1 ? 'item' : 'items'}
-        </span>
+        <div className="min-w-0">
+          <span className="font-bold text-gray-900 text-sm whitespace-nowrap block leading-tight">
+            {category.activeCount} {category.activeCount === 1 ? 'item' : 'items'}
+          </span>
+          {category.inactiveCount > 0 && (
+            <span className="text-[10.5px] text-gray-500 whitespace-nowrap block leading-tight">
+              {category.inactiveCount} inactive
+            </span>
+          )}
+        </div>
         <button
           type="button"
           onClick={() => onView(category)}

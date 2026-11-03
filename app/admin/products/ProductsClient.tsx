@@ -63,20 +63,32 @@ export default function ProductsClient({
 
   const [searchQuery, setSearchQuery] = useState(searchProp || '');
   const [selectedCategory, setSelectedCategory] = useState(serverCategory || 'All');
-  const isFirstSearchRender = useRef(true);
+  const urlSearch = searchProp || '';
+  const urlCategory = serverCategory || 'All';
 
+  // The URL is the source of truth, so a sidebar link or the back button also updates the controls.
   useEffect(() => {
-    if (isFirstSearchRender.current) { isFirstSearchRender.current = false; return; }
+    setSearchQuery(urlSearch);
+    setSelectedCategory(urlCategory);
+  }, [urlSearch, urlCategory]);
+
+  const productsUrl = (nextPage: number, nextSearch: string, nextCategory: string) => {
+    const params = new URLSearchParams({ page: String(nextPage) });
+    if (nextSearch) params.set('q', nextSearch);
+    if (nextCategory !== 'All') params.set('category', nextCategory);
+    return '/admin/products?' + params.toString();
+  };
+
+  // Only navigate when the controls differ from the URL, so a page load keeps its page number.
+  useEffect(() => {
+    const term = searchQuery.trim();
+    if (term === urlSearch && selectedCategory === urlCategory) return;
     const t = setTimeout(() => {
       setIsNavigating(true);
-      const params = new URLSearchParams();
-      params.set('page', '1');
-      if (searchQuery.trim()) params.set('q', searchQuery.trim());
-      if (selectedCategory && selectedCategory !== 'All') params.set('category', selectedCategory);
-      router.replace('/admin/products?' + params.toString());
+      router.replace(productsUrl(1, term, selectedCategory));
     }, 400);
     return () => clearTimeout(t);
-  }, [searchQuery, selectedCategory, router]);
+  }, [searchQuery, selectedCategory, urlSearch, urlCategory, router]);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -126,17 +138,6 @@ export default function ProductsClient({
     errors: Array<{ row: number; title?: string; message: string }>;
   } | null>(null);
 
-  // Read URL query parameter if redirected from banner search
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      const q = params.get('q');
-      if (q) {
-        setSearchQuery(q);
-      }
-    }
-  }, []);
-
   // Clean Form State for Adding New Products
   const emptyProductForm: Omit<Product, 'id'> = {
     name: '',
@@ -150,7 +151,7 @@ export default function ProductsClient({
     freeShipping: true,
     rating: 5,
     reviewCount: 0,
-    category: 'Feng Shui Decor',
+    category: '',
     images: [],
     description: '',
     itemDetails: [],
@@ -315,7 +316,11 @@ export default function ProductsClient({
 
   const openAddModal = () => {
     setEditingProduct(null);
-    setFormData(emptyProductForm);
+    // Default to a category that really exists, so the form can't submit a deleted one.
+    setFormData({
+      ...emptyProductForm,
+      category: [...availableCategories].find((c) => c !== 'All') || '',
+    });
     setModalOpen(true);
   };
 
@@ -482,6 +487,21 @@ export default function ProductsClient({
           )}
         </div>
 
+        {selectedCategory !== 'All' && (
+          <div className="inline-flex h-9 max-w-[14rem] items-center gap-2 rounded-lg border border-gray-300 bg-white pl-3 pr-1 text-xs font-semibold text-gray-800">
+            <span className="truncate" title={selectedCategory}>{selectedCategory}</span>
+            <button
+              type="button"
+              onClick={() => setSelectedCategory('All')}
+              aria-label={`Clear category filter: ${selectedCategory}`}
+              title="Clear category filter"
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-900 cursor-pointer"
+            >
+              <i className="fa-solid fa-xmark text-xs" />
+            </button>
+          </div>
+        )}
+
         <div className="relative">
           <button
             type="button"
@@ -586,7 +606,7 @@ export default function ProductsClient({
           <span className="text-xs text-gray-500">Page {page} of {Math.max(1, totalPages)} · {total} items</span>
           <div className="flex items-center gap-2">
             {page > 1 ? (
-              <Link href={"/admin/products?page=" + (page - 1)} onClick={() => setIsNavigating(true)} className="px-3 py-1.5 text-xs font-semibold rounded-md border bg-white text-gray-700 border-gray-200 hover:bg-gray-100">
+              <Link href={productsUrl(page - 1, urlSearch, urlCategory)} onClick={() => setIsNavigating(true)} className="px-3 py-1.5 text-xs font-semibold rounded-md border bg-white text-gray-700 border-gray-200 hover:bg-gray-100">
                 Prev
               </Link>
             ) : (
@@ -595,7 +615,7 @@ export default function ProductsClient({
               </span>
             )}
             {page < Math.max(1, totalPages) ? (
-              <Link href={"/admin/products?page=" + (page + 1)} onClick={() => setIsNavigating(true)} className="px-3 py-1.5 text-xs font-semibold rounded-md border bg-[#040404] text-white border-[#040404] hover:bg-black" style={{ color: "#ffffff" }}>
+              <Link href={productsUrl(page + 1, urlSearch, urlCategory)} onClick={() => setIsNavigating(true)} className="px-3 py-1.5 text-xs font-semibold rounded-md border bg-[#040404] text-white border-[#040404] hover:bg-black" style={{ color: "#ffffff" }}>
                 Next
               </Link>
             ) : (

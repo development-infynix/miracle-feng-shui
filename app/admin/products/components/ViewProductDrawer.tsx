@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { LuChevronLeft, LuChevronRight, LuPencil, LuTrash2, LuX } from 'react-icons/lu';
 import { useStore } from '@/context/StoreContext';
 import Alert from '@/app/components/alert';
+import ItemDetailsField from './ItemDetailsField';
 
 interface ViewProductDrawerProps {
   open: boolean;
@@ -298,15 +299,12 @@ export default function ViewProductDrawer({ open, product, categories, loading, 
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
               />
-              <label className="block text-xs font-semibold text-stone-500 mb-1.5 mt-3">Item Details (one per line)</label>
-              <textarea
-                aria-label="Item details"
-                rows={4}
-                className={inputClass}
-                placeholder="Hand-hammered 7-metal bronze alloy\nDual-end suede rosewood mallet\n..."
-                value={Array.isArray(form.itemDetails) ? form.itemDetails.join('\n') : (form.itemDetails || '')}
-                onChange={(e) => setForm({ ...form, itemDetails: e.target.value.split('\n') })}
-              />
+              <div className="mt-3">
+                <ItemDetailsField
+                  value={form.itemDetails || []}
+                  onChange={(itemDetails) => setForm({ ...form, itemDetails })}
+                />
+              </div>
             </section>
           )}
 

@@ -3,6 +3,7 @@
 import React from 'react';
 import ImageUploadField from '@/components/admin/ImageUploadField';
 import { Product } from '@/lib/placeholder-data';
+import ItemDetailsField from './ItemDetailsField';
 
 interface AddProductModalProps {
   open: boolean;
@@ -94,18 +95,10 @@ export default function AddProductModal({
             />
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1">
-              Item Details (one per line)
-            </label>
-            <textarea
-              rows={3}
-              value={(formData.itemDetails || []).join('\n')}
-              onChange={(e) => setFormData({ ...formData, itemDetails: e.target.value.split('\n') })}
-              placeholder="Hand-hammered 7-metal bronze alloy\nDual-end suede rosewood mallet\n..."
-              className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-200 focus:outline-hidden focus:border-black"
-            />
-          </div>
+          <ItemDetailsField
+            value={formData.itemDetails || []}
+            onChange={(itemDetails) => setFormData({ ...formData, itemDetails })}
+          />
 
           <div className="grid grid-cols-2 gap-3">
             <div>

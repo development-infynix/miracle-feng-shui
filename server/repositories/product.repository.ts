@@ -137,6 +137,18 @@ export const productRepository = {
     return { items, total, page, totalPages };
   },
 
+  async countProductsByCategoryAndStatus() {
+    const rows = await prisma.product.groupBy({
+      by: ['categoryId', 'isActive'],
+      _count: { _all: true },
+    });
+    return rows.map((row) => ({
+      categoryId: row.categoryId,
+      isActive: row.isActive,
+      count: row._count._all,
+    }));
+  },
+
   async findAllCategories(tx?: Prisma.TransactionClient) {
     const client = tx || prisma;
     return client.category.findMany({

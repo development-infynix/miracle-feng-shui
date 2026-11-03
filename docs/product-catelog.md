@@ -13,7 +13,7 @@ How the `Product` table and the `/admin/products` page work in the **Miracle Fen
 
 | Area | Status |
 |---|---|
-| List, search, category filter | Works on page 1. Pagination drops the filters (T-07) |
+| List, search, category filter | Works, including across pages |
 | Create product | Saves, but drops most form fields (T-05) |
 | Edit product | Saves, but resets unrelated fields (T-04) |
 | Delete product | Hard delete only. Fails for products with orders (T-06) |
@@ -81,14 +81,14 @@ Routes marked **None** rely only on `middleware.ts`, which can be bypassed (§9)
 
 **`POST /api/admin/products`**
 
-- Accepts a category id or name, and **creates the category if neither matches**.
+- Accepts a category id or exact name, and returns 400 if neither matches. Only CSV import creates categories automatically.
 - De-duplicates the slug by adding a numeric suffix.
 - `readyToShip`, `returnsAccepted` and `makerLocation` pass validation but have no columns, so they are silently dropped.
 
 **`PATCH /api/admin/products/[id]`**
 
 - **Not a true partial update**: see T-04.
-- An unknown category is silently ignored rather than created or rejected, unlike POST.
+- An unknown category returns 400, the same as POST.
 
 **`DELETE /api/admin/products/[id]`**
 
@@ -115,8 +115,6 @@ Routes marked **None** rely only on `middleware.ts`, which can be bypassed (§9)
 
 **Unused code here:** `EditProductDrawer` rendering, `openEditModal`, `handleDelete`, the `selectedStockFilter` state (no control sets it) and the `ImageUploadField` import (T-16).
 
-**Possible dev-only bug [not run]:** Strict Mode runs effects twice on mount, which defeats the `isFirstSearchRender` guard. Opening `?page=3` directly in development may jump back to page 1 after 400 ms.
-
 ## 5. Product Card — `components/ProductCard.tsx`
 
 - Responsive grid of 1 / 2 / 3 / 4 / 5 columns (set by `ProductsClient`).
@@ -142,6 +140,7 @@ Routes marked **None** rely only on `middleware.ts`, which can be bypassed (§9)
 
 - Opens instantly with card data, then loads the full product from `/detail`.
 - Edit mode covers title, description, item details, pricing, stock, category, maker and badges.
+- Item Details uses the shared `ItemDetailsField` in both the Add drawer and edit mode: one input per detail, with a **+** button on the last row. Enter adds a row from the last input, and pasting a multi-line list makes one row per line.
 - **Images can't be changed here**: they are not in the edit form or the save payload (T-17).
 - **Maker and free-shipping edits are lost** (T-04).
 - Delete asks for confirmation through `Alert`, then always uses `?hard=true` (T-06).
@@ -246,7 +245,6 @@ Claims from earlier versions of this doc, or assumptions the code invites.
 | "`PATCH` — partial update" | Omitted fields are reset to their defaults **[ran]** |
 | `isActive` provides soft delete | The admin UI always hard-deletes. Soft delete is only reachable by calling the API directly |
 | `status=all` returns all products | It returns active products only |
-| "Search and category are server-side" | True, but Prev/Next links lose both |
 | "Total Catalog" stat shows the catalog size | It counts the current page, at most 20 |
 | `EditProductDrawer` is a working flow | It can't be reached |
 | Add form "maker" and "badges" are saved | They are never sent to the API |
@@ -278,7 +276,7 @@ Claims from earlier versions of this doc, or assumptions the code invites.
 
 ### P1 — Page behaviour
 
-- [ ] **T-07: Keep `q` and `category` in the Prev/Next links** (`ProductsClient.tsx:611`, `:620`).
+- [x] **T-07: Keep `q` and `category` in the Prev/Next links.** Done. The search box and category filter also follow the URL now, and the active category shows as a removable chip in the toolbar.
 - [ ] **T-08: Make `status=all` return all products,** and add an active/inactive filter plus a way to restore soft-deleted products. Depends on T-06.
 - [ ] **T-09: Serve catalog stats from the server,** using count queries rather than the current page.
 - [ ] **T-10: Pick one low-stock threshold** and share it across the repository, dashboard, card and stats.

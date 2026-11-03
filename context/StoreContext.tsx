@@ -911,7 +911,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           comparePrice: newProd.originalPrice,
           originalPrice: newProd.originalPrice,
           discount: newProd.discount ? newProd.discount.trim() : null,
-          categoryId: newProd.category || 'Feng Shui Decor',
+          categoryId: newProd.category,
           images: newProd.images?.length
             ? newProd.images
             : ['https://images.unsplash.com/photo-1518895949257-7621c3c786d7?auto=format&fit=crop&w=800&q=80'],

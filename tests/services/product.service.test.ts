@@ -70,16 +70,28 @@ describe('ProductService', () => {
       { id: 'c1', name: 'Zen', _count: { products: 2 } },
       { id: 'c2', name: 'Decor', _count: { products: 16 } },
     ] as any);
+    const countSpy = vi.spyOn(productRepository, 'countProductsByCategoryAndStatus').mockResolvedValueOnce([
+      { categoryId: 'c1', isActive: true, count: 1 },
+      { categoryId: 'c1', isActive: false, count: 1 },
+      { categoryId: 'c2', isActive: true, count: 16 },
+    ]);
 
     const result = await productService.getAdminCategories({ q: 'zen', page: 1, pageSize: 20 });
 
     expect(result.categories).toHaveLength(1);
-    expect(result.categories[0]).toMatchObject({ image: '', description: '', productCount: 2 });
-    expect(result.stats).toEqual({ totalCategories: 2, assignedProducts: 18 });
+    expect(result.categories[0]).toMatchObject({
+      image: '',
+      description: '',
+      activeCount: 1,
+      inactiveCount: 1,
+      productCount: 2,
+    });
+    expect(result.stats).toEqual({ totalCategories: 2, activeProducts: 17, inactiveProducts: 1 });
     expect(result.categoryOptions).toHaveLength(2);
 
     pageSpy.mockRestore();
     allSpy.mockRestore();
+    countSpy.mockRestore();
   });
 
   describe('category slugs', () => {
