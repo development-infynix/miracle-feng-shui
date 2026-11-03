@@ -104,6 +104,39 @@ export const productRepository = {
     });
   },
 
+  async findCategoryBySlug(slug: string, tx?: Prisma.TransactionClient) {
+    const client = tx || prisma;
+    return client.category.findUnique({ where: { slug } });
+  },
+
+  async findCategoriesPage(query: { q?: string; page: number; pageSize: number }) {
+    const term = query.q?.trim();
+    const where: Prisma.CategoryWhereInput = term
+      ? {
+          OR: [
+            { name: { contains: term, mode: 'insensitive' } },
+            { slug: { contains: term, mode: 'insensitive' } },
+            { description: { contains: term, mode: 'insensitive' } },
+          ],
+        }
+      : {};
+
+    const total = await prisma.category.count({ where });
+    const totalPages = Math.ceil(total / query.pageSize);
+    // Stay in range, e.g. after deleting the only category on the last page.
+    const page = Math.min(Math.max(1, query.page), Math.max(1, totalPages));
+
+    const items = await prisma.category.findMany({
+      where,
+      orderBy: { name: 'asc' },
+      skip: (page - 1) * query.pageSize,
+      take: query.pageSize,
+      include: { _count: { select: { products: true } } },
+    });
+
+    return { items, total, page, totalPages };
+  },
+
   async findAllCategories(tx?: Prisma.TransactionClient) {
     const client = tx || prisma;
     return client.category.findMany({

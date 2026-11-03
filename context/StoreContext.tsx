@@ -916,6 +916,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             ? newProd.images
             : ['https://images.unsplash.com/photo-1518895949257-7621c3c786d7?auto=format&fit=crop&w=800&q=80'],
           stock: newProd.stock !== undefined ? newProd.stock : 50,
+          itemDetails: newProd.itemDetails ?? [],
           isFeatured: true,
         }),
       });
@@ -964,6 +965,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           etsyPick: updated.etsyPick,
           discount: updated.discount ?? null,
           itemDetails: updated.itemDetails,
+          materials: updated.materials,
         }),
       });
       if (!res.ok) {

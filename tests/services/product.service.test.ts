@@ -58,4 +58,73 @@ describe('ProductService', () => {
       'Product not found'
     );
   });
+
+  it('should keep category stats catalog-wide when a search narrows the page', async () => {
+    const pageSpy = vi.spyOn(productRepository, 'findCategoriesPage').mockResolvedValueOnce({
+      items: [{ id: 'c1', name: 'Zen', slug: 'zen', image: null, description: null, _count: { products: 2 } }],
+      total: 1,
+      page: 1,
+      totalPages: 1,
+    } as any);
+    const allSpy = vi.spyOn(productRepository, 'findAllCategories').mockResolvedValueOnce([
+      { id: 'c1', name: 'Zen', _count: { products: 2 } },
+      { id: 'c2', name: 'Decor', _count: { products: 16 } },
+    ] as any);
+
+    const result = await productService.getAdminCategories({ q: 'zen', page: 1, pageSize: 20 });
+
+    expect(result.categories).toHaveLength(1);
+    expect(result.categories[0]).toMatchObject({ image: '', description: '', productCount: 2 });
+    expect(result.stats).toEqual({ totalCategories: 2, assignedProducts: 18 });
+    expect(result.categoryOptions).toHaveLength(2);
+
+    pageSpy.mockRestore();
+    allSpy.mockRestore();
+  });
+
+  describe('category slugs', () => {
+    const createdSlug = async (name: string, takenSlugs: string[] = []) => {
+      const findSpy = vi
+        .spyOn(productRepository, 'findCategoryBySlug')
+        .mockImplementation(async (slug) =>
+          takenSlugs.includes(slug) ? ({ id: 'existing', slug } as any) : null
+        );
+      const createSpy = vi
+        .spyOn(productRepository, 'createCategory')
+        .mockResolvedValueOnce({ id: 'new' } as any);
+
+      await productService.createCategory({ name });
+      const slug = createSpy.mock.calls[0][0].slug;
+
+      findSpy.mockRestore();
+      createSpy.mockRestore();
+      return slug;
+    };
+
+    it('should generate the slug from the name', async () => {
+      expect(await createdSlug('Incense & Singing Bowls')).toBe('incense-singing-bowls');
+    });
+
+    it('should add a number when the slug is already taken', async () => {
+      expect(await createdSlug('Zen Meditation', ['zen-meditation'])).toBe('zen-meditation-2');
+      expect(
+        await createdSlug('Zen Meditation', ['zen-meditation', 'zen-meditation-2'])
+      ).toBe('zen-meditation-3');
+    });
+
+    it('should fall back when the name has no usable characters', async () => {
+      expect(await createdSlug('&&&')).toBe('category');
+    });
+
+    it('should not change the slug when a category is renamed', async () => {
+      const updateSpy = vi
+        .spyOn(productRepository, 'updateCategory')
+        .mockResolvedValueOnce({ id: 'cat-1' } as any);
+
+      await productService.updateCategory('cat-1', { name: 'New Name' });
+
+      expect(updateSpy.mock.calls[0][1]).not.toHaveProperty('slug');
+      updateSpy.mockRestore();
+    });
+  });
 });

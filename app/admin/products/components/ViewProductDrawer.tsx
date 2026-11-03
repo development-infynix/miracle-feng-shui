@@ -125,7 +125,8 @@ export default function ViewProductDrawer({ open, product, categories, loading, 
         discount: String(form.discount || '').trim(),
         stock: Number(form.stock) || 0,
         category: form.category,
-        itemDetails: form.itemDetails,
+        itemDetails: (form.itemDetails || []).map((v: string) => v.trim()).filter(Boolean),
+        materials: product.materials,
         maker: String(form.maker || '').trim(),
         bestseller: !!form.bestseller,
         etsyPick: !!form.etsyPick,
@@ -304,7 +305,7 @@ export default function ViewProductDrawer({ open, product, categories, loading, 
                 className={inputClass}
                 placeholder="Hand-hammered 7-metal bronze alloy\nDual-end suede rosewood mallet\n..."
                 value={Array.isArray(form.itemDetails) ? form.itemDetails.join('\n') : (form.itemDetails || '')}
-                onChange={(e) => setForm({ ...form, itemDetails: e.target.value.split('\n').map((v) => v.trim()).filter(Boolean) })}
+                onChange={(e) => setForm({ ...form, itemDetails: e.target.value.split('\n') })}
               />
             </section>
           )}
@@ -318,6 +319,16 @@ export default function ViewProductDrawer({ open, product, categories, loading, 
                 </p>
               ) : (
                 <p className="text-sm text-stone-400">No description.</p>
+              )}
+              <h5 className="text-xs font-semibold text-stone-500 mb-1.5 mt-4">Item Details</h5>
+              {Array.isArray(product.itemDetails) && product.itemDetails.length > 0 ? (
+                <ul className="list-disc space-y-1 rounded-lg border border-stone-200 bg-white px-8 py-3 text-sm text-stone-700">
+                  {product.itemDetails.map((d: string, i: number) => (
+                    <li key={i}>{d}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-stone-400">No item details.</p>
               )}
             </section>
           )}
@@ -512,16 +523,6 @@ export default function ViewProductDrawer({ open, product, categories, loading, 
 
           {!editing && (
             <>
-              {Array.isArray(product.itemDetails) && product.itemDetails.length > 0 && (
-                <section>
-                  <ul className="list-disc space-y-1 rounded-lg border border-stone-200 bg-white px-8 py-3 text-sm text-stone-700">
-                    {product.itemDetails.map((d: string, i: number) => (
-                      <li key={i}>{d}</li>
-                    ))}
-                  </ul>
-                </section>
-              )}
-
               {Array.isArray(product.materials) && product.materials.length > 0 && (
                 <section>
                   <div className="flex flex-wrap gap-2">

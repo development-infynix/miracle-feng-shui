@@ -76,61 +76,102 @@ export default function AdminLayout({
     return pathname.startsWith(item.href);
   };
 
+  const brand = (
+    <div className="flex items-center gap-3 min-w-0">
+      <div className="w-10 h-10 rounded-full overflow-hidden border border-gray-200 shrink-0">
+        <img src="/images/logofull.svg" alt="Miracle" className="w-full h-full object-cover" />
+      </div>
+      <div className="min-w-0">
+        <span className="font-extrabold text-sm text-gray-900 block leading-tight truncate">Miracles Feng Shui</span>
+        <span className="text-[10px] text-gray-500 font-medium block truncate">Admin Panel</span>
+      </div>
+    </div>
+  );
+
+  // Text colour sits on an inner span because the global `a { color: inherit }` rule
+  // overrides Tailwind colour utilities placed on the link itself.
+  const renderNav = (onNavigate?: () => void) => (
+    <nav aria-label="Admin" className="flex-1 min-h-0 overflow-y-auto">
+      <div className="divide-y divide-gray-200 border-b border-gray-200">
+        {navItems.map((item) => {
+          const active = isActive(item);
+          return (
+            <Link
+              key={item.name}
+              href={item.href}
+              target={item.isExternal ? '_blank' : undefined}
+              onClick={onNavigate}
+              aria-current={active ? 'page' : undefined}
+              title={item.name}
+              className={`group block transition-colors duration-150 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-gray-900 ${
+                active ? 'bg-[#040404]' : 'hover:bg-gray-50'
+              }`}
+            >
+              <span
+                className={`flex items-center gap-3 px-5 py-3.5 text-[13px] font-semibold ${
+                  active ? 'text-white' : 'text-gray-600 group-hover:text-gray-900'
+                }`}
+              >
+                <i
+                  className={`fa-solid ${item.icon} w-4 text-center text-sm shrink-0 transition-colors duration-150 ${
+                    active ? 'text-white' : 'text-gray-400 group-hover:text-gray-700'
+                  }`}
+                />
+                <span className="truncate flex-1">{item.name}</span>
+                {item.isExternal && (
+                  <i className="fa-solid fa-arrow-up-right-from-square text-[10px] text-gray-400 group-hover:text-gray-700 transition-colors duration-150" />
+                )}
+              </span>
+            </Link>
+          );
+        })}
+      </div>
+    </nav>
+  );
+
+  const todayLabel = new Date().toLocaleDateString('en-US', {
+    month: 'long',
+    day: '2-digit',
+    year: 'numeric',
+  });
+
+  const footer = (
+    <div className="flex flex-col gap-3 px-5 py-4 border-t border-gray-200">
+      <div className="flex items-center justify-center gap-2 rounded-md bg-gray-100 py-2.5 text-[11px] font-bold tracking-wide text-gray-700 tabular-nums">
+        <i className="fa-solid fa-calendar-day text-xs text-gray-500" aria-hidden="true" />
+        <span>{todayLabel}</span>
+      </div>
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-10 h-10 rounded-full bg-[#040404] text-white font-bold flex items-center justify-center text-sm shrink-0">
+            {adminUser.charAt(0).toUpperCase()}
+          </div>
+          <div className="min-w-0">
+            <span className="text-[13px] font-bold text-gray-900 block truncate leading-tight">{adminUser.split('@')[0]}</span>
+            <span className="text-[11px] text-gray-500 block truncate">Admin</span>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={handleSignOut}
+          aria-label="Sign out"
+          title="Sign Out"
+          className="w-9 h-9 flex items-center justify-center rounded-md border border-gray-200 text-gray-600 hover:text-gray-900 hover:bg-gray-100 text-xs cursor-pointer transition-colors shrink-0"
+        >
+          <i className="fa-solid fa-arrow-right-from-bracket" />
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <div style={{ fontFamily: "Montserrat, sans-serif" }} className="admin-portal min-h-screen bg-[#F2F3F7] text-gray-900 flex antialiased w-full overflow-x-hidden">
 
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex flex-col shrink-0 w-60 p-0 sticky top-0 h-screen z-30">
-        <div className="flex flex-col h-full bg-white rounded-none border border-gray-200/80 shadow-sm p-5 gap-5">
-          <div className="flex items-center gap-3 px-1">
-            <div className="w-10 h-10 rounded-full overflow-hidden border border-gray-200 shrink-0">
-              <img src="/images/logofull.svg" alt="Miracle" className="w-full h-full object-cover" />
-            </div>
-            <div className="min-w-0">
-              <span className="font-extrabold text-sm text-gray-900 block leading-tight truncate">Miracles Feng Shui</span>
-              <span className="text-[10px] text-gray-400 font-medium block truncate">Admin Panel</span>
-              <span className="text-[9px] text-gray-400 font-mono tracking-wide">{new Date().toLocaleDateString('en-US', { month: 'long', day: '2-digit', year: 'numeric' }).toUpperCase()}</span>
-            </div>
-          </div>
-          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Navigation</p>
-          <nav className="flex flex-col gap-1.5 flex-1">
-            {navItems.map((item) => {
-              const active = isActive(item);
-              return (
-                <Link key={item.name} href={item.href} target={item.isExternal ? '_blank' : undefined}
-                  style={{ textDecoration: 'none', color: active ? '#ffffff' : '#4B5563', backgroundColor: active ? '#040404' : '' }}
-                  className={`flex items-center justify-between px-4 py-3 rounded-full text-xs font-semibold transition-all ${active ? 'shadow-sm' : 'bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50'}`}
-                  title={item.name}
-                >
-                  <div className="flex items-center gap-3">
-                    <i className={`fa-solid ${item.icon} text-sm shrink-0`} style={{ color: active ? '#ffffff' : '#9CA3AF' }} />
-                    <span className="truncate">{item.name}</span>
-                  </div>
-                  {item.isExternal && <i className="fa-solid fa-arrow-up-right-from-square text-[9px]" style={{ color: active ? 'rgba(255,255,255,0.6)' : '#D1D5DB' }} />}
-                </Link>
-              );
-            })}
-          </nav>
-          <div className="flex flex-col gap-3 pt-3 border-t border-gray-100">
-            <Link href="/admin/products" style={{ color: '#ffffff', textDecoration: 'none', backgroundColor: '#040404' }} className="w-full py-2.5 font-bold text-[11px] tracking-wider rounded-full text-center transition-all cursor-pointer block">
-              + New Product
-            </Link>
-            <div className="flex items-center justify-between gap-2 px-1">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-8 h-8 rounded-full bg-gray-100 border border-gray-200 text-gray-700 font-bold flex items-center justify-center text-xs shrink-0">
-                  {adminUser.charAt(0).toUpperCase()}
-                </div>
-                <div className="min-w-0">
-                  <span className="text-xs font-bold text-gray-800 block truncate leading-tight">{adminUser.split('@')[0]}</span>
-                  <span className="text-[10px] text-gray-400 block truncate">Admin</span>
-                </div>
-              </div>
-              <button type="button" onClick={handleSignOut} className="text-gray-400 hover:text-gray-700 text-xs cursor-pointer p-1.5 rounded-full hover:bg-gray-100 transition-colors" title="Sign Out">
-                <i className="fa-solid fa-arrow-right-from-bracket" />
-              </button>
-            </div>
-          </div>
-        </div>
+      <aside className="hidden lg:flex flex-col shrink-0 w-60 sticky top-0 h-screen z-30 bg-white border-r border-gray-200">
+        <div className="px-5 py-4 border-b border-gray-200">{brand}</div>
+        {renderNav()}
+        {footer}
       </aside>
 
       {/* Main Content */}
@@ -143,45 +184,20 @@ export default function AdminLayout({
 
         {mobileMenuOpen && (
           <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex animate-in fade-in duration-150">
-            <div className="w-72 bg-[#F2F3F7] h-full p-0 flex flex-col shadow-2xl animate-in slide-in-from-left duration-200">
-              <div className="bg-white rounded-none border border-gray-200 shadow-sm p-5 flex flex-col gap-5 h-full">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full overflow-hidden border border-gray-200 shrink-0">
-                      <img src="/images/logofull.svg" alt="Miracle" className="w-full h-full object-cover" />
-                    </div>
-                    <span className="font-extrabold text-sm text-gray-900 leading-tight">Miracles Feng Shui</span>
-                    <span className="text-[9px] text-gray-400 font-mono tracking-wide">{new Date().toLocaleDateString('en-US', { month: 'long', day: '2-digit', year: 'numeric' }).toUpperCase()}</span>
-                  </div>
-                  <button type="button" onClick={() => setMobileMenuOpen(false)} className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-500 cursor-pointer transition-colors">
-                    <i className="fa-solid fa-xmark text-sm" />
-                  </button>
-                </div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Navigation</p>
-                <nav className="flex flex-col gap-1.5 flex-1">
-                  {navItems.map((item) => {
-                    const active = isActive(item);
-                    return (
-                      <Link key={item.name} href={item.href} onClick={() => setMobileMenuOpen(false)}
-                        style={{ textDecoration: 'none', color: active ? '#ffffff' : '#4B5563', backgroundColor: active ? '#040404' : '' }}
-                        className={`flex items-center gap-3 px-4 py-3 rounded-full text-xs font-semibold transition-all ${active ? 'shadow-sm' : 'bg-white border border-gray-200 hover:bg-gray-50'}`}
-                      >
-                        <i className={`fa-solid ${item.icon} text-sm shrink-0`} style={{ color: active ? '#ffffff' : '#9CA3AF' }} />
-                        <span>{item.name}</span>
-                      </Link>
-                    );
-                  })}
-                </nav>
-                <div className="pt-3 border-t border-gray-100 flex flex-col gap-2.5">
-                  <Link href="/admin/products" onClick={() => setMobileMenuOpen(false)} style={{ color: '#ffffff', textDecoration: 'none', backgroundColor: '#040404' }} className="w-full py-2.5 font-bold text-[11px] tracking-wider rounded-full text-center block">
-                    + New Product
-                  </Link>
-                  <button type="button" onClick={handleSignOut} className="w-full py-2.5 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-full text-xs font-semibold cursor-pointer transition-colors flex items-center justify-center gap-2">
-                    <i className="fa-solid fa-arrow-right-from-bracket text-xs" />
-                    <span>Sign Out</span>
-                  </button>
-                </div>
+            <div className="w-72 bg-white h-full flex flex-col shadow-2xl animate-in slide-in-from-left duration-200">
+              <div className="flex items-center justify-between gap-2 px-5 py-4 border-b border-gray-200">
+                {brand}
+                <button
+                  type="button"
+                  onClick={() => setMobileMenuOpen(false)}
+                  aria-label="Close navigation menu"
+                  className="w-9 h-9 rounded-md hover:bg-gray-100 flex items-center justify-center text-gray-500 cursor-pointer transition-colors shrink-0"
+                >
+                  <i className="fa-solid fa-xmark text-sm" />
+                </button>
               </div>
+              {renderNav(() => setMobileMenuOpen(false))}
+              {footer}
             </div>
             <div className="flex-1" onClick={() => setMobileMenuOpen(false)} />
           </div>

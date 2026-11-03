@@ -18,6 +18,8 @@ export interface AlertProps {
   actions?: AlertAction[];
   tone?: 'danger' | 'info' | 'warning';
   onClose?: () => void;
+  /** Optional extra content, shown between the description and the actions. */
+  children?: React.ReactNode;
 }
 
 const toneIcon: Record<string, string> = {
@@ -42,6 +44,7 @@ export default function Alert({
   actions = [],
   tone = 'info',
   onClose,
+  children,
 }: AlertProps) {
   const [mounted, setMounted] = React.useState(false);
   React.useEffect(() => setMounted(true), []);
@@ -85,6 +88,7 @@ export default function Alert({
             )}
           </div>
         </div>
+        {children && <div className="mt-4">{children}</div>}
         {actions.length > 0 && (
           <div className="mt-5 flex items-center justify-end gap-2">
             {actions.map((action) => (

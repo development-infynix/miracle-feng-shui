@@ -101,7 +101,7 @@ export default function AddProductModal({
             <textarea
               rows={3}
               value={(formData.itemDetails || []).join('\n')}
-              onChange={(e) => setFormData({ ...formData, itemDetails: e.target.value.split('\n').map((v) => v.trim()).filter(Boolean) })}
+              onChange={(e) => setFormData({ ...formData, itemDetails: e.target.value.split('\n') })}
               placeholder="Hand-hammered 7-metal bronze alloy\nDual-end suede rosewood mallet\n..."
               className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-200 focus:outline-hidden focus:border-black"
             />

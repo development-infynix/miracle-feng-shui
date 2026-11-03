@@ -2,7 +2,7 @@
 
 import React from 'react';
 import ImageUploadField from '@/components/admin/ImageUploadField';
-import { LuX } from 'react-icons/lu';
+import { LuPlus, LuX } from 'react-icons/lu';
 import { Product } from '@/lib/placeholder-data';
 
 interface AddProductModalProps {
@@ -36,6 +36,9 @@ export default function AddProductModal({
   isSubmitting,
 }: AddProductModalProps) {
   if (!open) return null;
+
+  // Always show at least one input. Blank rows are dropped on submit.
+  const detailRows = formData.itemDetails?.length ? formData.itemDetails : [''];
 
   return (
     <div className="fixed inset-0 z-50">
@@ -98,14 +101,38 @@ export default function AddProductModal({
                 />
               </div>
               <div>
-                <label className={labelClass}>Item Details (one per line)</label>
-                <textarea
-                  rows={4}
-                  value={(formData.itemDetails || []).join('\n')}
-                  onChange={(e) => setFormData({ ...formData, itemDetails: e.target.value.split('\n').map((v) => v.trim()).filter(Boolean) })}
-                  placeholder="Hand-hammered 7-metal bronze alloy\nDual-end suede rosewood mallet\n..."
-                  className={inputClass}
-                />
+                <label className={labelClass}>Item Details</label>
+                <div className="space-y-2">
+                  {detailRows.map((detail, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        aria-label={`Item detail ${index + 1}`}
+                        placeholder="e.g. Hand-hammered 7-metal bronze alloy"
+                        autoFocus={index > 0 && index === detailRows.length - 1}
+                        value={detail}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            itemDetails: detailRows.map((d, i) => (i === index ? e.target.value : d)),
+                          })
+                        }
+                        className={inputClass}
+                      />
+                      {index === detailRows.length - 1 && (
+                        <button
+                          type="button"
+                          aria-label="Add another item detail"
+                          title="Add another item detail"
+                          onClick={() => setFormData({ ...formData, itemDetails: [...detailRows, ''] })}
+                          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-stone-900 text-white transition-colors hover:bg-stone-700 cursor-pointer"
+                        >
+                          <LuPlus className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             </section>
 

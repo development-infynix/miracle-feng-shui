@@ -80,7 +80,6 @@ export default function ProductsClient({
 
   const [modalOpen, setModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [addMenuOpen, setAddMenuOpen] = useState(false);
   const [categoryMenuOpen, setCategoryMenuOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -321,7 +320,6 @@ export default function ProductsClient({
   };
 
   const openImportModal = () => {
-    setAddMenuOpen(false);
     setImportModalOpen(true);
     setCsvFile(null);
     setPreviewRows([]);
@@ -346,6 +344,7 @@ export default function ProductsClient({
       images: prod.images?.length ? prod.images : [],
       description: prod.description || '',
       itemDetails: prod.itemDetails?.length ? prod.itemDetails : [],
+      materials: prod.materials?.length ? prod.materials : [],
     });
     setModalOpen(true);
   };
@@ -374,7 +373,7 @@ export default function ProductsClient({
       stock: formData.stock !== undefined ? Number(formData.stock) : 50,
       images: formData.images && formData.images.length > 0 ? formData.images : ['/images/miracle.jpeg'],
       description: formData.description ? formData.description.trim() : '',
-      itemDetails: formData.itemDetails?.length ? formData.itemDetails : ['Temple blessed authentic talisman', 'Purified with sandalwood incense before delivery'],
+      itemDetails: (formData.itemDetails || []).map((v) => v.trim()).filter(Boolean),
     };
 
     if (editingProduct) {
@@ -486,7 +485,7 @@ export default function ProductsClient({
         <div className="relative">
           <button
             type="button"
-            onClick={() => { setCategoryMenuOpen((v) => !v); setAddMenuOpen(false); setInfoOpen(false); }}
+            onClick={() => { setCategoryMenuOpen((v) => !v); setInfoOpen(false); }}
             title="Filter by category"
             className="w-9 h-9 rounded-lg bg-[#040404] text-white hover:bg-black cursor-pointer flex items-center justify-center shadow-2xs"
           >
@@ -516,40 +515,19 @@ export default function ProductsClient({
         <div className="relative">
           <button
             type="button"
-            onClick={() => { setAddMenuOpen((v) => !v); setCategoryMenuOpen(false); setInfoOpen(false); }}
+            onClick={() => { setCategoryMenuOpen(false); setInfoOpen(false); openAddModal(); }}
             style={{ backgroundColor: '#040404', color: '#ffffff' }}
             className="text-white text-xs font-bold px-4 py-2 rounded-lg transition-all shadow-md hover:bg-black cursor-pointer inline-flex items-center gap-2 h-9"
           >
             <i className="fa-solid fa-plus text-xs" />
             <span className="hidden sm:inline">Add Product</span>
-            <i className="fa-solid fa-chevron-down text-[10px] text-white/70 hidden sm:inline" />
           </button>
-          {addMenuOpen && (
-            <div className="absolute right-0 top-full mt-2 z-[1000] w-44 rounded-lg border border-gray-200 bg-white shadow-xl overflow-hidden">
-              <button
-                type="button"
-                onClick={() => { setAddMenuOpen(false); openAddModal(); }}
-                className="w-full px-4 py-2.5 text-left text-xs font-semibold text-gray-700 hover:bg-gray-100 flex items-center gap-2 cursor-pointer"
-              >
-                <i className="fa-solid fa-pen-to-square text-gray-500" />
-                <span>Manual Entry</span>
-              </button>
-              <button
-                type="button"
-                onClick={openImportModal}
-                className="w-full px-4 py-2.5 text-left text-xs font-semibold text-gray-700 hover:bg-gray-100 flex items-center gap-2 border-t border-gray-100 cursor-pointer"
-              >
-                <i className="fa-solid fa-file-import text-gray-500" />
-                <span>Import Data</span>
-              </button>
-            </div>
-          )}
         </div>
 
         <div className="relative">
           <button
             type="button"
-            onClick={() => { setInfoOpen((v) => !v); setCategoryMenuOpen(false); setAddMenuOpen(false); }}
+            onClick={() => { setInfoOpen((v) => !v); setCategoryMenuOpen(false); }}
             title="Catalog stats"
             className="w-9 h-9 rounded-lg bg-[#040404] text-white hover:bg-black cursor-pointer flex items-center justify-center shadow-2xs"
           >

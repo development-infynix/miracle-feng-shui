@@ -94,9 +94,36 @@ export const productService = {
     }));
   },
 
+  async getAdminCategories(query: { q?: string; page: number; pageSize: number }) {
+    const [result, all] = await Promise.all([
+      productRepository.findCategoriesPage(query),
+      productRepository.findAllCategories(),
+    ]);
+
+    return {
+      categories: result.items.map((c) => ({
+        id: c.id,
+        name: c.name,
+        slug: c.slug,
+        image: c.image || '',
+        description: c.description || '',
+        productCount: c._count.products,
+      })),
+      total: result.total,
+      page: result.page,
+      totalPages: result.totalPages,
+      // Whole-catalog figures, unaffected by the search or the current page.
+      stats: {
+        totalCategories: all.length,
+        assignedProducts: all.reduce((sum, c) => sum + c._count.products, 0),
+      },
+      // Every category is a valid target when reassigning products on delete.
+      categoryOptions: all.map((c) => ({ id: c.id, name: c.name })),
+    };
+  },
+
   async createCategory(data: {
     name: string;
-    slug?: string;
     description?: string;
     imageUrl?: string;
   }) {
@@ -104,13 +131,21 @@ export const productService = {
       throw ApiError.badRequest('Category name is required');
     }
     const cleanName = data.name.trim();
-    const slug =
-      data.slug?.trim() ||
+
+    // The slug is always generated from the name, using a numeric suffix if taken.
+    // Names with no usable characters (e.g. "&&&") fall back to "category".
+    const baseSlug =
       cleanName
         .toLowerCase()
         .replace(/[^\w\s-]/g, '')
         .replace(/[\s_-]+/g, '-')
-        .replace(/^-+|-+$/g, '');
+        .replace(/^-+|-+$/g, '') || 'category';
+    let slug = baseSlug;
+    let counter = 2;
+    while (await productRepository.findCategoryBySlug(slug)) {
+      slug = `${baseSlug}-${counter}`;
+      counter++;
+    }
 
     return productRepository.createCategory({
       name: cleanName,
@@ -124,25 +159,13 @@ export const productService = {
     id: string,
     data: {
       name?: string;
-      slug?: string;
       description?: string;
       imageUrl?: string;
     }
   ) {
-    const slug = data.slug
-      ? data.slug.trim()
-      : data.name
-      ? data.name
-          .toLowerCase()
-          .trim()
-          .replace(/[^\w\s-]/g, '')
-          .replace(/[\s_-]+/g, '-')
-          .replace(/^-+|-+$/g, '')
-      : undefined;
-
+    // The slug is fixed at creation, so renaming a category keeps its URL.
     return productRepository.updateCategory(id, {
       name: data.name?.trim(),
-      slug,
       description: data.description?.trim(),
       imageUrl: data.imageUrl?.trim(),
     });
