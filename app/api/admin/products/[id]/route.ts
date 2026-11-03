@@ -1,0 +1,27 @@
+import { NextRequest } from 'next/server';
+import { handleError } from '@/server/middlewares/handleError';
+import { adminController } from '@/server/controllers/admin.controller';
+
+export const PATCH = async (
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) => {
+  try {
+    const resolvedParams = await context.params;
+    return await adminController.updateProduct(req, resolvedParams);
+  } catch (error) {
+    return handleError(error);
+  }
+};
+
+export const DELETE = async (
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) => {
+  try {
+    const resolvedParams = await context.params;
+    return await adminController.deleteProduct(req, resolvedParams);
+  } catch (error) {
+    return handleError(error);
+  }
+};
