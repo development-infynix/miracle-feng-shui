@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
+import { canResizeImage } from '@/lib/images';
 import Alert from '@/app/components/alert';
 import ImageUploadField from '@/components/admin/ImageUploadField';
 import { FaArrowUpRightFromSquare } from 'react-icons/fa6';
@@ -181,7 +183,16 @@ export default function ViewCategoryDrawer({
             <>
               <div className="rounded-lg overflow-hidden border border-stone-200 bg-white">
                 {category.image ? (
-                  <img src={category.image} alt={category.name} className="w-full h-64 object-cover" />
+                  <div className="relative w-full h-64">
+                    <Image
+                      src={category.image}
+                      alt={category.name}
+                      fill
+                      sizes="(min-width: 640px) 576px, 100vw"
+                      unoptimized={!canResizeImage(category.image)}
+                      className="object-cover"
+                    />
+                  </div>
                 ) : (
                   <div className="w-full h-40 flex items-center justify-center text-stone-300">
                     <LuFolderOpen className="h-12 w-12" aria-hidden="true" />

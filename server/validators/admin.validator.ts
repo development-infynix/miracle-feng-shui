@@ -6,7 +6,7 @@ export const adminProductQuerySchema = z.object({
   q: z.string().optional(),
   category: z.string().optional(),
   status: z.enum(['all', 'active', 'inactive']).default('all'),
-  lowStock: z.coerce.boolean().optional(),
+  lowStock: z.stringbool().optional(),
 });
 
 export type AdminProductQueryInput = z.infer<typeof adminProductQuerySchema>;

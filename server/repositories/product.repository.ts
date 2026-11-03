@@ -1,6 +1,7 @@
 import prisma from '@/lib/prisma';
 import { Prisma } from '@/app/generated/prisma/client';
 import { ProductQueryInput } from '../validators/product.validator';
+import { ApiError } from '../utils/ApiError';
 
 export const productRepository = {
   async findMany(query: ProductQueryInput, tx?: Prisma.TransactionClient) {
@@ -104,6 +105,11 @@ export const productRepository = {
     });
   },
 
+  async findCategoryById(id: string, tx?: Prisma.TransactionClient) {
+    const client = tx || prisma;
+    return client.category.findUnique({ where: { id } });
+  },
+
   async findCategoryBySlug(slug: string, tx?: Prisma.TransactionClient) {
     const client = tx || prisma;
     return client.category.findUnique({ where: { slug } });
@@ -200,24 +206,31 @@ export const productRepository = {
     reassignToCategoryId?: string,
     tx?: Prisma.TransactionClient
   ) {
-    const client = tx || prisma;
-    const productCount = await client.product.count({ where: { categoryId: id } });
-    if (productCount > 0) {
-      if (reassignToCategoryId) {
-        // Reassign existing products to the target category
+    // The move and the delete succeed or fail together.
+    const run = async (client: Prisma.TransactionClient) => {
+      const productCount = await client.product.count({ where: { categoryId: id } });
+      if (productCount > 0) {
+        if (!reassignToCategoryId) {
+          throw ApiError.badRequest(
+            `Cannot delete category with ${productCount} assigned products. Please select a category to reassign them to.`
+          );
+        }
+        if (reassignToCategoryId === id) {
+          throw ApiError.badRequest('Products cannot be moved to the category being deleted.');
+        }
+        const target = await client.category.findUnique({ where: { id: reassignToCategoryId } });
+        if (!target) {
+          throw ApiError.badRequest('The category selected for these products does not exist.');
+        }
         await client.product.updateMany({
           where: { categoryId: id },
           data: { categoryId: reassignToCategoryId },
         });
-      } else {
-        throw new Error(
-          `Cannot delete category with ${productCount} assigned products. Please select a category to reassign them to.`
-        );
       }
-    }
-    return client.category.delete({
-      where: { id },
-    });
+      return client.category.delete({ where: { id } });
+    };
+
+    return tx ? run(tx) : prisma.$transaction(run);
   },
 
   async updateRating(

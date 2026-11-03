@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
+import { ADMIN_CARD_IMAGE_SIZES, canResizeImage } from '@/lib/images';
 import { LuImageOff, LuFolderOpen } from 'react-icons/lu';
 import { MdKeyboardDoubleArrowRight } from 'react-icons/md';
 import { CategoryItem } from '../types';
@@ -18,10 +20,13 @@ export default function CategoryCard({ category, onView }: CategoryCardProps) {
     <div className="bg-white rounded-lg border border-gray-200 shadow-2xs overflow-hidden flex flex-col">
       <div className="relative w-full h-36 bg-gray-50">
         {showImage ? (
-          <img
+          <Image
             src={category.image}
             alt={category.name}
-            className="w-full h-full object-cover"
+            fill
+            sizes={ADMIN_CARD_IMAGE_SIZES}
+            unoptimized={!canResizeImage(category.image)}
+            className="object-cover"
             onError={() => setImageFailed(true)}
           />
         ) : (

@@ -20,6 +20,8 @@ export default async function AdminProductsPage({
     status: 'all',
   } as any);
 
+  const stockStats = await adminService.getProductStockStats();
+
   const cats = await prisma.category.findMany({
     select: { name: true },
     orderBy: { name: 'asc' },
@@ -36,6 +38,7 @@ export default async function AdminProductsPage({
       pageSize={data.pageSize}
       totalPages={data.totalPages}
       categories={categories}
+      stockStats={stockStats}
     />
   );
 }

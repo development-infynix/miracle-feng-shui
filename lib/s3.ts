@@ -28,6 +28,12 @@ export async function uploadToS3(key: string, body: Buffer, contentType?: string
   return key;
 }
 
+export async function getObjectStream(key: string) {
+  const object = await s3.send(new GetObjectCommand({ Bucket: S3_BUCKET, Key: key }));
+  if (!object.Body) throw new Error(`Empty object: ${key}`);
+  return { body: object.Body.transformToWebStream(), contentLength: object.ContentLength };
+}
+
 export async function signedGetUrl(key: string, expiresIn = 3600) {
   return getSignedUrl(s3, new GetObjectCommand({ Bucket: S3_BUCKET, Key: key }), { expiresIn });
 }

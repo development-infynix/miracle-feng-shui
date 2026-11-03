@@ -73,14 +73,18 @@ export const adminService = {
   },
 
   async getProducts(query: AdminProductQueryInput) {
-    const { items, total } = await adminRepository.findProducts(query);
+    const { items, total, page, totalPages } = await adminRepository.findProducts(query);
     return {
       products: items.map(this.formatProductCard),
       total,
-      page: query.page,
+      page,
       pageSize: query.pageSize,
-      totalPages: Math.ceil(total / query.pageSize),
+      totalPages,
     };
+  },
+
+  async getProductStockStats() {
+    return adminRepository.getProductStockStats();
   },
 
   async getProductById(id: string) {
@@ -110,6 +114,15 @@ export const adminService = {
     const existing = await productRepository.findById(id);
     if (!existing) {
       throw ApiError.notFound('Product not found');
+    }
+
+    if (hardDelete) {
+      const orderItemCount = await adminRepository.countOrderItemsForProduct(id);
+      if (orderItemCount > 0) {
+        throw ApiError.conflict(
+          "This product is part of past orders, so it can't be deleted. Mark it inactive in edit mode to hide it from the store."
+        );
+      }
     }
 
     await adminRepository.deleteProduct(id, hardDelete);

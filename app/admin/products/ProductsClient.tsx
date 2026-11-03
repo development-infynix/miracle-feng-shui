@@ -25,6 +25,7 @@ interface ProductsClientProps {
   pageSize: number;
   totalPages: number;
   categories?: string[];
+  stockStats: { total: number; healthy: number; low: number; outOfStock: number };
 }
 
 export default function ProductsClient({
@@ -35,6 +36,7 @@ export default function ProductsClient({
   category: serverCategory,
   totalPages,
   categories: serverCategories,
+  stockStats,
 }: ProductsClientProps) {
   const router = useRouter();
   const [viewProduct, setViewProduct] = useState<Product | null>(null);
@@ -558,19 +560,19 @@ export default function ProductsClient({
             <div className="absolute right-0 top-full mt-2 z-[1000] w-56 rounded-lg border border-gray-200 bg-white shadow-xl p-3 space-y-2 text-xs">
               <div className="flex items-center justify-between">
                 <span className="text-gray-500 font-medium">Total Catalog</span>
-                <span className="font-bold text-gray-900">{products.length}</span>
+                <span className="font-bold text-gray-900">{stockStats.total}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-gray-500 font-medium">Healthy Stock (&gt;=10)</span>
-                <span className="font-bold text-emerald-700">{products.filter((p) => (p.stock ?? 50) >= 10).length}</span>
+                <span className="font-bold text-emerald-700">{stockStats.healthy}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-gray-500 font-medium">Low Stock (&lt;10)</span>
-                <span className="font-bold text-gray-700">{products.filter((p) => { const st = p.stock ?? 50; return st > 0 && st < 10; }).length}</span>
+                <span className="font-bold text-gray-700">{stockStats.low}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-gray-500 font-medium">Out of Stock (0)</span>
-                <span className="font-bold text-rose-700">{products.filter((p) => (p.stock ?? 50) === 0).length}</span>
+                <span className="font-bold text-rose-700">{stockStats.outOfStock}</span>
               </div>
             </div>
           )}

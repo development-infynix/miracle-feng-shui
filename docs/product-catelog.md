@@ -16,7 +16,7 @@ How the `Product` table and the `/admin/products` page work in the **Miracle Fen
 | List, search, category filter | Works, including across pages |
 | Create product | Saves, but drops most form fields (T-05) |
 | Edit product | Works. Only the fields sent are changed |
-| Delete product | Hard delete only. Fails for products with orders (T-06) |
+| Delete product | Hard delete from the drawer. Refused with an explanation for products with orders (T-06) |
 | CSV import/export | Works, with data-quality problems (§7) |
 | Image upload | Works. One image per product from the admin UI (T-17) |
 | Authorization | **Not safe for production** (T-01 to T-03) |
@@ -77,7 +77,7 @@ Routes marked **None** rely only on `middleware.ts`, which can be bypassed (§9)
 - `q` matches `title`, `description` and `maker` case-insensitively. `tags` must match exactly, including case.
 - `category` matches name or slug, case-insensitively.
 - `status` accepts `active`, `inactive` or `all` (the default, which returns both).
-- `lowStock` means stock ≤ 5. Passing `lowStock=false` is parsed as `true` **[ran]** (T-11).
+- `lowStock=true` means stock ≤ 5, and `lowStock=false` applies no stock filter.
 
 **`POST /api/admin/products`**
 
@@ -102,7 +102,7 @@ Routes marked **None** rely only on `middleware.ts`, which can be bypassed (§9)
 - Reads `page`, `q`, `category` from `searchParams` and queries through `adminService.getProducts` (page size 20).
 - Calls the service directly rather than the API, so `withRole` does not apply. Only `middleware.ts` guards it.
 - Passes `status: 'all'`, so inactive products appear too, with an "Inactive" badge on the card.
-- `page` is not validated. Negative or fractional values would reach Prisma as an invalid `skip` and likely throw **[not run]**.
+- `page` is kept in range by the repository, so a page past the end shows the last page with products.
 
 ### `app/admin/products/ProductsClient.tsx` (client, 888 lines)
 
@@ -110,7 +110,7 @@ Routes marked **None** rely only on `middleware.ts`, which can be bypassed (§9)
 - Search is debounced by 400 ms and written to `?q=`. The category filter writes `?category=`. Both reset to page 1 and run on the server.
 - A blur and spinner overlay shows during navigation and mutations.
 - The footer shows "Page X of Y · N items" with Prev/Next.
-- The info popover shows catalog stats, **counted from the current page only** (T-09).
+- The info popover shows whole-catalog stock counts from the server.
 - The CSV import modal is defined inline in this file (§7).
 
 **Unused code here:** `EditProductDrawer` rendering, `openEditModal`, `handleDelete`, the `selectedStockFilter` state (no control sets it) and the `ImageUploadField` import (T-16).
@@ -143,7 +143,7 @@ Routes marked **None** rely only on `middleware.ts`, which can be bypassed (§9)
 - Item Details uses the shared `ItemDetailsField` in both the Add drawer and edit mode: one input per detail, with a **+** button on the last row. Enter adds a row from the last input, and pasting a multi-line list makes one row per line.
 - **Images can't be changed here**: they are not in the edit form or the save payload (T-17).
 - Delete asks for confirmation through `Alert`, then always uses `?hard=true` (T-06).
-- After a successful hard delete, `deleteProduct()` from the store sends a **second `DELETE`** that returns 404, and the failure is ignored.
+- If the product is part of past orders, the delete is refused and the drawer explains how to mark it inactive instead.
 
 ### `EditProductDrawer.tsx` — currently unreachable
 
@@ -221,7 +221,6 @@ The cookie is set by client-side JavaScript at login and is not signed or checke
 
 - `handleError` accepts a thunk (`handleError(() => adminController.x())`) or an error object. **Both styles are in use**: `products/route.ts` uses thunks, `products/[id]/route.ts` uses `try/catch`.
 - For unexpected errors it returns `error.message` to the client, which can expose internal database details (T-18).
-- The field is `error`, not `message`. `ViewProductDrawer.tsx:89` reads `data?.message`, so the real reason is never displayed (T-06).
 
 **Lint and build**
 
@@ -242,7 +241,6 @@ Claims from earlier versions of this doc, or assumptions the code invites.
 |---|---|
 | "Production enforces NextAuth session" | A plain, unsigned cookie passes the middleware. Several routes have no other check |
 | `isActive` provides soft delete | The admin UI always hard-deletes. Soft delete is only reachable by calling the API directly |
-| "Total Catalog" stat shows the catalog size | It counts the current page, at most 20 |
 | `EditProductDrawer` is a working flow | It can't be reached |
 | Add form "maker" and "badges" are saved | They are never sent to the API |
 | "Admin routes pass a thunk" | Only some do |
@@ -265,15 +263,15 @@ Claims from earlier versions of this doc, or assumptions the code invites.
   - **Still open: earlier edits weren't undone.** Compared with `lib/placeholder-data.ts`, some products differ on `inDemandCount` (11), `materials` (6) and `maker` (2). These may be deliberate changes, so review before restoring anything.
   - **Still open:** `updateProduct` replaces a cleared description with "Authentic blessed talisman".
 - [ ] **T-05: Send all form fields on create.** `addProduct` omits `maker`, `bestseller`, `etsyPick` and `freeShipping`. It also hardcodes `isFeatured: true` for every new product, so remove that or make it a form choice. Replace the placeholder description with validation.
-- [ ] **T-06: Decide the delete behaviour.** Products with orders can't be hard-deleted, but the edit-mode Active switch can now take them off sale. Show the API's `error` text, and remove the second `DELETE` call.
+- [ ] **T-06: Decide the delete behaviour.** Products with orders can't be hard-deleted, and the API now returns a 409 explaining that the Active switch can take them off sale. Still to decide: whether the drawer should keep hard-deleting products with no orders.
 
 ### P1 — Page behaviour
 
 - [x] **T-07: Keep `q` and `category` in the Prev/Next links.** Done. The search box and category filter also follow the URL now, and the active category shows as a removable chip in the toolbar.
 - [ ] **T-08: Add an active/inactive filter to the toolbar.** `status=all` now returns all products, and edit mode has an Active switch to deactivate or restore a product.
-- [ ] **T-09: Serve catalog stats from the server,** using count queries rather than the current page.
+- [x] **T-09: Serve catalog stats from the server.** Done. The info button uses whole-catalog counts, unaffected by search or filters.
 - [ ] **T-10: Pick one low-stock threshold** and share it across the repository, dashboard, card and stats.
-- [ ] **T-11: Parse `lowStock` properly** (`admin.validator.ts:9`), since `z.coerce.boolean()` treats any non-empty string as true. Validate `page` in `page.tsx`.
+- [x] **T-11: Parse `lowStock` properly and keep `page` in range.** Done. A page past the end moves to the last page with products.
 - [ ] **T-12: Fix import behaviour.** Skip existing rows when "update existing" is off, and call `router.refresh()` after an import. Report skipped rows in the summary. Only overwrite boolean fields when the column is present.
 - [ ] **T-13: Make export fail visibly** instead of returning placeholder products. Add `isActive`, `discount`, `itemDetails` and `materials`.
 

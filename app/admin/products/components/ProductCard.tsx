@@ -1,8 +1,13 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
+import Image from 'next/image';
+import { ADMIN_CARD_IMAGE_SIZES, canResizeImage } from '@/lib/images';
 import { Product } from '@/lib/placeholder-data';
 import { MdKeyboardDoubleArrowRight } from 'react-icons/md';
+
+const FALLBACK_IMAGE =
+  'https://images.unsplash.com/photo-1518895949257-7621c3c786d7?auto=format&fit=crop&w=600&q=80';
 
 interface ProductCardProps {
   product: Product;
@@ -11,17 +16,20 @@ interface ProductCardProps {
 
 export default function ProductCard({ product, onView }: ProductCardProps) {
   const prod = product;
+  const [imageFailed, setImageFailed] = useState(false);
+  const imageSrc = !imageFailed && prod.images[0] ? prod.images[0] : FALLBACK_IMAGE;
+
   return (
     <div className="bg-white rounded-lg border border-gray-100 shadow-2xs overflow-hidden flex flex-col">
       <div className="relative w-full h-36 bg-gray-100">
-        <img
-          src={prod.images[0]}
+        <Image
+          src={imageSrc}
           alt={prod.name}
-          className={`w-full h-full object-cover ${prod.isActive === false ? 'opacity-50 grayscale' : ''}`}
-          onError={(e) => {
-            (e.target as HTMLImageElement).src =
-              'https://images.unsplash.com/photo-1518895949257-7621c3c786d7?auto=format&fit=crop&w=600&q=80';
-          }}
+          fill
+          sizes={ADMIN_CARD_IMAGE_SIZES}
+          unoptimized={!canResizeImage(imageSrc)}
+          className={`object-cover ${prod.isActive === false ? 'opacity-50 grayscale' : ''}`}
+          onError={() => setImageFailed(true)}
         />
         {prod.isActive === false && (
           <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[9px] font-bold bg-[#040404] text-white">Inactive</span>

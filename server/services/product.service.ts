@@ -177,6 +177,10 @@ export const productService = {
       imageUrl?: string;
     }
   ) {
+    if (!(await productRepository.findCategoryById(id))) {
+      throw ApiError.notFound('Category not found');
+    }
+
     // The slug is fixed at creation, so renaming a category keeps its URL.
     return productRepository.updateCategory(id, {
       name: data.name?.trim(),
@@ -186,6 +190,9 @@ export const productService = {
   },
 
   async deleteCategory(id: string, reassignToCategoryId?: string) {
+    if (!(await productRepository.findCategoryById(id))) {
+      throw ApiError.notFound('Category not found');
+    }
     return productRepository.deleteCategory(id, reassignToCategoryId);
   },
 };

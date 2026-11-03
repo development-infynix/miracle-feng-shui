@@ -94,6 +94,16 @@ describe('ProductService', () => {
     countSpy.mockRestore();
   });
 
+  it.each(['updateCategory', 'deleteCategory'] as const)('%s should return 404 for a missing category', async (method) => {
+    vi.spyOn(productRepository, 'findCategoryById').mockResolvedValueOnce(null);
+
+    await expect(
+      method === 'updateCategory'
+        ? productService.updateCategory('missing', { name: 'New name' })
+        : productService.deleteCategory('missing')
+    ).rejects.toMatchObject({ statusCode: 404 });
+  });
+
   describe('category slugs', () => {
     const createdSlug = async (name: string, takenSlugs: string[] = []) => {
       const findSpy = vi
@@ -129,6 +139,7 @@ describe('ProductService', () => {
     });
 
     it('should not change the slug when a category is renamed', async () => {
+      vi.spyOn(productRepository, 'findCategoryById').mockResolvedValueOnce({ id: 'cat-1' } as any);
       const updateSpy = vi
         .spyOn(productRepository, 'updateCategory')
         .mockResolvedValueOnce({ id: 'cat-1' } as any);

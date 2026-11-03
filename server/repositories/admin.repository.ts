@@ -124,33 +124,46 @@ export const adminRepository = {
       ];
     }
 
-    const skip = (query.page - 1) * query.pageSize;
-    const take = query.pageSize;
+    const total = await prisma.product.count({ where });
+    const totalPages = Math.ceil(total / query.pageSize);
+    // Stay in range, e.g. after deleting the only product on the last page.
+    const page = Math.min(Math.max(1, Math.floor(query.page)), Math.max(1, totalPages));
 
-    const [items, total] = await Promise.all([
-      prisma.product.findMany({
-        where,
-        orderBy: { createdAt: 'desc' },
-        skip,
-        take,
-        select: {
-          id: true,
-          title: true,
-          images: true,
-          price: true,
-          comparePrice: true,
-          discount: true,
-          stock: true,
-          isActive: true,
-          category: {
-            select: { id: true, name: true, slug: true },
-          },
+    const items = await prisma.product.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      skip: (page - 1) * query.pageSize,
+      take: query.pageSize,
+      select: {
+        id: true,
+        title: true,
+        images: true,
+        price: true,
+        comparePrice: true,
+        discount: true,
+        stock: true,
+        isActive: true,
+        category: {
+          select: { id: true, name: true, slug: true },
         },
-      }),
-      prisma.product.count({ where }),
-    ]);
+      },
+    });
 
-    return { items, total };
+    return { items, total, page, totalPages };
+  },
+
+  async getProductStockStats() {
+    const [total, healthy, low, outOfStock] = await Promise.all([
+      prisma.product.count(),
+      prisma.product.count({ where: { stock: { gte: 10 } } }),
+      prisma.product.count({ where: { stock: { gt: 0, lt: 10 } } }),
+      prisma.product.count({ where: { stock: 0 } }),
+    ]);
+    return { total, healthy, low, outOfStock };
+  },
+
+  async countOrderItemsForProduct(productId: string) {
+    return prisma.orderItem.count({ where: { productId } });
   },
 
   async createProduct(data: CreateProductInput) {

@@ -108,11 +108,12 @@ Products keep their link, because it uses `id`, and the admin shows the new name
 |---|---|
 | No products | The category is deleted |
 | Products, and a target is chosen | All its products move to the target, then the category is deleted |
-| Products, and no target | The request is refused with a 500 error (T-C10), and the database would also block it through `Restrict` |
+| Products, and no target or an invalid one | The request is refused with a 400 error and nothing changes. The database would also block it through `Restrict` |
+| Category doesn't exist | The request returns 404 |
 
 - The admin alert requires a target when the category has products, and offers every other category.
 - Inactive products move too. Only `categoryId` changes, so orders, reviews, cart items and favourites are unaffected.
-- The move and delete aren't in one transaction. A failure in between leaves the products moved and the old category still there (T-C5).
+- The move and delete run in one transaction, so they succeed or fail together.
 
 Deleting a product doesn't affect its category, apart from reducing the count.
 
@@ -157,12 +158,10 @@ The admin page currently has no button for either action. The import dialog was 
 | T-C2 | The shop can't filter by slug | Storefront |
 | T-C3 | Renaming a category breaks hardcoded storefront links | Storefront |
 | T-C4 | Categories with no products appear as empty shop tabs | Storefront |
-| T-C5 | Category move and delete aren't in one transaction | Backend |
 | T-C6 | The category API has no schema validation, and duplicate names are allowed | Backend |
 | T-C7 | The shop loads at most 100 products, so a larger catalog would be cut off | Storefront |
 | T-C8 | Placeholder categories and products can hide a database failure | Backend |
 | T-C9 | CSV import can create categories from typos, and a blank value can recreate a deleted "Feng Shui Decor" | Import |
-| T-C10 | Refusing to delete a category that has products returns a 500 instead of a 400 | Backend |
 | T-C11 | The admin page has no button for CSV import or export | Admin |
 
 ## 10. Key Files
@@ -179,4 +178,4 @@ The admin page currently has no button for either action. The import dialog was 
 | CSV | `app/api/admin/products/import/route.ts`, `export/route.ts` |
 | Client state | `context/StoreContext.tsx` |
 | Storefront | `app/shop/page.tsx`, `app/page.tsx`, `components/CategoryCircle.tsx`, `components/Footer.tsx` |
-| Tests | `tests/services/product.service.test.ts`, `tests/repositories/admin.repository.test.ts`, `tests/validators/admin.validator.test.ts` |
+| Tests | `tests/services/product.service.test.ts`, `tests/services/admin.service.test.ts`, `tests/repositories/admin.repository.test.ts`, `tests/repositories/product.repository.test.ts`, `tests/validators/admin.validator.test.ts` |

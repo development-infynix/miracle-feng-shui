@@ -1,5 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { createProductSchema, updateProductSchema } from '@/server/validators/admin.validator';
+import {
+  adminProductQuerySchema,
+  createProductSchema,
+  updateProductSchema,
+} from '@/server/validators/admin.validator';
+
+describe('adminProductQuerySchema', () => {
+  it('reads lowStock as the value it was given', () => {
+    expect(adminProductQuerySchema.parse({ lowStock: 'false' }).lowStock).toBe(false);
+    expect(adminProductQuerySchema.parse({ lowStock: 'true' }).lowStock).toBe(true);
+    expect(adminProductQuerySchema.parse({}).lowStock).toBeUndefined();
+  });
+});
 
 describe('updateProductSchema', () => {
   it('keeps only the fields that were sent', () => {

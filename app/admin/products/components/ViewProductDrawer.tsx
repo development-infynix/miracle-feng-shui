@@ -20,7 +20,7 @@ const inputClass =
   'w-full rounded-md border border-stone-300 bg-white px-2.5 py-1.5 text-sm text-stone-900 outline-none focus:border-stone-900 focus:ring-2 focus:ring-stone-900/10';
 
 export default function ViewProductDrawer({ open, product, categories, loading, onClose, onSaved, onDeleted }: ViewProductDrawerProps) {
-  const { updateProduct, deleteProduct } = useStore();
+  const { updateProduct, refreshProducts } = useStore();
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -88,11 +88,11 @@ export default function ViewProductDrawer({ open, product, categories, loading, 
       const res = await fetch(`/api/admin/products/${product.id}?hard=true`, { method: 'DELETE' });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        setError(data?.message || 'Failed to delete product.');
+        setError(data?.error || 'Failed to delete product.');
         setConfirmDelete(false);
         return;
       }
-      deleteProduct(product.id); // sync local state
+      refreshProducts(); // keep the shared product list in step
       setConfirmDelete(false);
       onClose();
       onDeleted?.();

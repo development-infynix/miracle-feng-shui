@@ -40,6 +40,22 @@ describe('adminRepository product status filter', () => {
 
     expect(db.product.findMany.mock.calls[0][0].where.isActive).toBe(expected);
   });
+
+  it('moves back to the last page when the requested page is past the end', async () => {
+    db.product.count.mockResolvedValue(25);
+
+    const result = await adminRepository.findProducts({ page: 9, pageSize: 20, status: 'all' } as any);
+
+    expect(result).toMatchObject({ page: 2, totalPages: 2, total: 25 });
+    expect(db.product.findMany.mock.calls[0][0].skip).toBe(20);
+  });
+
+  it('stays on page 1 when there are no products', async () => {
+    const result = await adminRepository.findProducts({ page: 3, pageSize: 20, status: 'all' } as any);
+
+    expect(result).toMatchObject({ page: 1, totalPages: 0, total: 0 });
+    expect(db.product.findMany.mock.calls[0][0].skip).toBe(0);
+  });
 });
 
 describe('adminRepository product categories', () => {
