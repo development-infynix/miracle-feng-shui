@@ -966,6 +966,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           discount: updated.discount ?? null,
           itemDetails: updated.itemDetails,
           materials: updated.materials,
+          isActive: updated.isActive,
+          maker: updated.maker || undefined,
+          freeShipping: updated.freeShipping,
         }),
       });
       if (!res.ok) {

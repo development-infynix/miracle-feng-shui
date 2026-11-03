@@ -15,7 +15,7 @@ How the `Product` table and the `/admin/products` page work in the **Miracle Fen
 |---|---|
 | List, search, category filter | Works, including across pages |
 | Create product | Saves, but drops most form fields (T-05) |
-| Edit product | Saves, but resets unrelated fields (T-04) |
+| Edit product | Works. Only the fields sent are changed |
 | Delete product | Hard delete only. Fails for products with orders (T-06) |
 | CSV import/export | Works, with data-quality problems (§7) |
 | Image upload | Works. One image per product from the admin UI (T-17) |
@@ -76,7 +76,7 @@ Routes marked **None** rely only on `middleware.ts`, which can be bypassed (§9)
 - Returns `{ products, total, page, pageSize, totalPages }` with card-level fields only.
 - `q` matches `title`, `description` and `maker` case-insensitively. `tags` must match exactly, including case.
 - `category` matches name or slug, case-insensitively.
-- `status=active` and `status=inactive` work. `status=all` (the default) returns **active products only** (`admin.repository.ts:85-92`).
+- `status` accepts `active`, `inactive` or `all` (the default, which returns both).
 - `lowStock` means stock ≤ 5. Passing `lowStock=false` is parsed as `true` **[ran]** (T-11).
 
 **`POST /api/admin/products`**
@@ -87,7 +87,7 @@ Routes marked **None** rely only on `middleware.ts`, which can be bypassed (§9)
 
 **`PATCH /api/admin/products/[id]`**
 
-- **Not a true partial update**: see T-04.
+- A true partial update: fields that aren't sent stay unchanged.
 - An unknown category returns 400, the same as POST.
 
 **`DELETE /api/admin/products/[id]`**
@@ -101,7 +101,7 @@ Routes marked **None** rely only on `middleware.ts`, which can be bypassed (§9)
 
 - Reads `page`, `q`, `category` from `searchParams` and queries through `adminService.getProducts` (page size 20).
 - Calls the service directly rather than the API, so `withRole` does not apply. Only `middleware.ts` guards it.
-- Passes `status: 'all'`, so inactive products never appear.
+- Passes `status: 'all'`, so inactive products appear too, with an "Inactive" badge on the card.
 - `page` is not validated. Negative or fractional values would reach Prisma as an invalid `skip` and likely throw **[not run]**.
 
 ### `app/admin/products/ProductsClient.tsx` (client, 888 lines)
@@ -142,7 +142,6 @@ Routes marked **None** rely only on `middleware.ts`, which can be bypassed (§9)
 - Edit mode covers title, description, item details, pricing, stock, category, maker and badges.
 - Item Details uses the shared `ItemDetailsField` in both the Add drawer and edit mode: one input per detail, with a **+** button on the last row. Enter adds a row from the last input, and pasting a multi-line list makes one row per line.
 - **Images can't be changed here**: they are not in the edit form or the save payload (T-17).
-- **Maker and free-shipping edits are lost** (T-04).
 - Delete asks for confirmation through `Alert`, then always uses `?hard=true` (T-06).
 - After a successful hard delete, `deleteProduct()` from the store sends a **second `DELETE`** that returns 404, and the failure is ignored.
 
@@ -242,13 +241,10 @@ Claims from earlier versions of this doc, or assumptions the code invites.
 | Claim | What actually happens |
 |---|---|
 | "Production enforces NextAuth session" | A plain, unsigned cookie passes the middleware. Several routes have no other check |
-| "`PATCH` — partial update" | Omitted fields are reset to their defaults **[ran]** |
 | `isActive` provides soft delete | The admin UI always hard-deletes. Soft delete is only reachable by calling the API directly |
-| `status=all` returns all products | It returns active products only |
 | "Total Catalog" stat shows the catalog size | It counts the current page, at most 20 |
 | `EditProductDrawer` is a working flow | It can't be reached |
 | Add form "maker" and "badges" are saved | They are never sent to the API |
-| View drawer maker edits are saved | They are sent nowhere, and the stored maker gets reset |
 | "Admin routes pass a thunk" | Only some do |
 | `/api/images` returns 404 for missing images | Signing doesn't check existence, so it redirects anyway |
 | "Low stock" has one meaning | ≤ 5 in the repository and dashboard, < 10 on the cards and stats |
@@ -265,19 +261,16 @@ Claims from earlier versions of this doc, or assumptions the code invites.
 
 ### P1 — Data integrity
 
-- [ ] **T-04: Make PATCH a true partial update.** `updateProductSchema = createProductSchema.partial()` (`admin.validator.ts:54`) still applies defaults under Zod 4 **[ran]**. A title-only update returns `stock: 10`, `maker` (default), `makerSales: 0`, `starSeller: false`, `bestseller: false`, `etsyPick: false`, `freeShipping: true`, `itemDetails: []`, `materials: []`, `tags: []`, `allowsPersonalization: false`, `inDemandCount: 0`, `isActive: true` and `isFeatured: false`.
-  - Because `updateProduct` in `StoreContext.tsx` doesn't send most of these, **each admin edit resets** `maker`, `makerSales`, `starSeller`, `freeShipping`, `tags`, `allowsPersonalization`, `inDemandCount`, `isActive` and `isFeatured`.
-  - `materials` is now sent on edit, so it survives once the View drawer has loaded the full product. Editing before `/detail` finishes can still reset it.
-  - Fix: define the update schema without defaults, and add `maker` and `freeShipping` to the store payload.
-  - **Existing products may already be affected.** Review whether edited products need these values restored.
-  - Also stop `updateProduct` replacing a cleared description with "Authentic blessed talisman".
+- [x] **T-04: Make PATCH a true partial update.** Done. `updateProductSchema` is now built from fields with no defaults, covered by `tests/validators/admin.validator.test.ts`, and `updateProduct` sends `maker` and `freeShipping`.
+  - **Still open: earlier edits weren't undone.** Compared with `lib/placeholder-data.ts`, some products differ on `inDemandCount` (11), `materials` (6) and `maker` (2). These may be deliberate changes, so review before restoring anything.
+  - **Still open:** `updateProduct` replaces a cleared description with "Authentic blessed talisman".
 - [ ] **T-05: Send all form fields on create.** `addProduct` omits `maker`, `bestseller`, `etsyPick` and `freeShipping`. It also hardcodes `isFeatured: true` for every new product, so remove that or make it a form choice. Replace the placeholder description with validation.
-- [ ] **T-06: Decide the delete behaviour.** Recommended: soft-delete by default, because products with orders can't be hard-deleted and the admin UI has no other way to take them off sale. Show the API's `error` text, and remove the second `DELETE` call.
+- [ ] **T-06: Decide the delete behaviour.** Products with orders can't be hard-deleted, but the edit-mode Active switch can now take them off sale. Show the API's `error` text, and remove the second `DELETE` call.
 
 ### P1 — Page behaviour
 
 - [x] **T-07: Keep `q` and `category` in the Prev/Next links.** Done. The search box and category filter also follow the URL now, and the active category shows as a removable chip in the toolbar.
-- [ ] **T-08: Make `status=all` return all products,** and add an active/inactive filter plus a way to restore soft-deleted products. Depends on T-06.
+- [ ] **T-08: Add an active/inactive filter to the toolbar.** `status=all` now returns all products, and edit mode has an Active switch to deactivate or restore a product.
 - [ ] **T-09: Serve catalog stats from the server,** using count queries rather than the current page.
 - [ ] **T-10: Pick one low-stock threshold** and share it across the repository, dashboard, card and stats.
 - [ ] **T-11: Parse `lowStock` properly** (`admin.validator.ts:9`), since `z.coerce.boolean()` treats any non-empty string as true. Validate `page` in `page.tsx`.
@@ -309,7 +302,6 @@ Claims from earlier versions of this doc, or assumptions the code invites.
 **Missing features**
 
 - Stock filter control (the logic exists but nothing sets it), sorting and bulk actions.
-- Viewing, restoring or deactivating products without calling the API.
 - Audit history of who changed a product.
 
 **Missing tests**

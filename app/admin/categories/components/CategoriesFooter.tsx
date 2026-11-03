@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { MdKeyboardDoubleArrowLeft, MdKeyboardDoubleArrowRight } from 'react-icons/md';
 
 interface CategoriesFooterProps {
   page: number;
@@ -9,7 +10,7 @@ interface CategoriesFooterProps {
   onPageChange: (page: number) => void;
 }
 
-const baseClass = 'px-3 py-1.5 text-xs font-semibold rounded-md border';
+const baseClass = 'px-3 py-1.5 text-xs font-semibold rounded-md border inline-flex items-center';
 const disabledClass = 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed';
 
 export default function CategoriesFooter({ page, totalPages, total, onPageChange }: CategoriesFooterProps) {
@@ -31,6 +32,7 @@ export default function CategoriesFooter({ page, totalPages, total, onPageChange
             hasPrev ? 'bg-white text-gray-700 border-gray-200 hover:bg-gray-100 cursor-pointer' : disabledClass
           }`}
         >
+          <MdKeyboardDoubleArrowLeft className="mr-1 text-[15px]" />
           Prev
         </button>
         <button
@@ -43,6 +45,7 @@ export default function CategoriesFooter({ page, totalPages, total, onPageChange
           }`}
         >
           Next
+          <MdKeyboardDoubleArrowRight className="ml-1 text-[15px]" />
         </button>
       </div>
     </div>

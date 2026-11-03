@@ -11,6 +11,7 @@ export type ProductReview = {
 
 export type Product = {
   id: string;
+  isActive?: boolean;
   name: string;
   maker: string; // Shop name
   makerAvatar?: string;

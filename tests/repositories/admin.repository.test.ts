@@ -2,7 +2,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const db = vi.hoisted(() => ({
   category: { findFirst: vi.fn(), create: vi.fn() },
-  product: { findUnique: vi.fn(), create: vi.fn(), update: vi.fn() },
+  product: {
+    findUnique: vi.fn(),
+    findMany: vi.fn(),
+    count: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+  },
 }));
 
 vi.mock('@/lib/prisma', () => ({ default: db }));
@@ -17,6 +23,24 @@ const newProduct = {
   images: ['/image.jpg'],
   categoryId: 'Deleted Category',
 } as any;
+
+describe('adminRepository product status filter', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    db.product.findMany.mockResolvedValue([]);
+    db.product.count.mockResolvedValue(0);
+  });
+
+  it.each([
+    ['all', undefined],
+    ['active', true],
+    ['inactive', false],
+  ])('status=%s filters isActive to %s', async (status, expected) => {
+    await adminRepository.findProducts({ page: 1, pageSize: 20, status } as any);
+
+    expect(db.product.findMany.mock.calls[0][0].where.isActive).toBe(expected);
+  });
+});
 
 describe('adminRepository product categories', () => {
   beforeEach(() => {

@@ -4,10 +4,9 @@ export interface CategoryItem {
   slug: string;
   image: string;
   description: string;
-  /** Active products: the same set the products page lists for this category. */
   activeCount: number;
   inactiveCount: number;
-  /** All linked products, active and inactive. */
+  /** All linked products, active and inactive: the same set the products page lists. */
   productCount: number;
 }
 

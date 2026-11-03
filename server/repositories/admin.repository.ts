@@ -99,9 +99,6 @@ export const adminRepository = {
       where.isActive = true;
     } else if (query.status === 'inactive') {
       where.isActive = false;
-    } else {
-      // Default: hide soft-deleted products
-      where.isActive = true;
     }
 
     if (query.lowStock) {

@@ -17,12 +17,15 @@ export default function ProductCard({ product, onView }: ProductCardProps) {
         <img
           src={prod.images[0]}
           alt={prod.name}
-          className="w-full h-full object-cover"
+          className={`w-full h-full object-cover ${prod.isActive === false ? 'opacity-50 grayscale' : ''}`}
           onError={(e) => {
             (e.target as HTMLImageElement).src =
               'https://images.unsplash.com/photo-1518895949257-7621c3c786d7?auto=format&fit=crop&w=600&q=80';
           }}
         />
+        {prod.isActive === false && (
+          <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[9px] font-bold bg-[#040404] text-white">Inactive</span>
+        )}
         {prod.stock === 0 ? (
           <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full text-[9px] font-bold bg-rose-50 text-rose-700 border border-rose-200">Out</span>
         ) : (prod.stock ?? 50) < 10 ? (

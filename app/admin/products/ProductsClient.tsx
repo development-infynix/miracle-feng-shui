@@ -3,6 +3,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { IoFunnelSharp } from 'react-icons/io5';
 import { BsInfoSquareFill } from 'react-icons/bs';
+import { MdKeyboardDoubleArrowLeft, MdKeyboardDoubleArrowRight } from 'react-icons/md';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useStore } from '@/context/StoreContext';
@@ -606,21 +607,25 @@ export default function ProductsClient({
           <span className="text-xs text-gray-500">Page {page} of {Math.max(1, totalPages)} · {total} items</span>
           <div className="flex items-center gap-2">
             {page > 1 ? (
-              <Link href={productsUrl(page - 1, urlSearch, urlCategory)} onClick={() => setIsNavigating(true)} className="px-3 py-1.5 text-xs font-semibold rounded-md border bg-white text-gray-700 border-gray-200 hover:bg-gray-100">
+              <Link href={productsUrl(page - 1, urlSearch, urlCategory)} onClick={() => setIsNavigating(true)} className="px-3 py-1.5 text-xs font-semibold rounded-md border bg-white text-gray-700 border-gray-200 hover:bg-gray-100 inline-flex items-center">
+                <MdKeyboardDoubleArrowLeft className="mr-1 text-[15px]" />
                 Prev
               </Link>
             ) : (
-              <span className="px-3 py-1.5 text-xs font-semibold rounded-md border bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed">
+              <span className="px-3 py-1.5 text-xs font-semibold rounded-md border bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed inline-flex items-center">
+                <MdKeyboardDoubleArrowLeft className="mr-1 text-[15px]" />
                 Prev
               </span>
             )}
             {page < Math.max(1, totalPages) ? (
-              <Link href={productsUrl(page + 1, urlSearch, urlCategory)} onClick={() => setIsNavigating(true)} className="px-3 py-1.5 text-xs font-semibold rounded-md border bg-[#040404] text-white border-[#040404] hover:bg-black" style={{ color: "#ffffff" }}>
+              <Link href={productsUrl(page + 1, urlSearch, urlCategory)} onClick={() => setIsNavigating(true)} className="px-3 py-1.5 text-xs font-semibold rounded-md border bg-[#040404] text-white border-[#040404] hover:bg-black inline-flex items-center" style={{ color: "#ffffff" }}>
                 Next
+                <MdKeyboardDoubleArrowRight className="ml-1 text-[15px]" />
               </Link>
             ) : (
-              <span className="px-3 py-1.5 text-xs font-semibold rounded-md border bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed">
+              <span className="px-3 py-1.5 text-xs font-semibold rounded-md border bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed inline-flex items-center">
                 Next
+                <MdKeyboardDoubleArrowRight className="ml-1 text-[15px]" />
               </span>
             )}
           </div>

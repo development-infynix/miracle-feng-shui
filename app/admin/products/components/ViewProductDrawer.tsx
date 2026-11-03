@@ -70,6 +70,7 @@ export default function ViewProductDrawer({ open, product, categories, loading, 
       etsyPick: !!product.etsyPick,
       freeShipping: !!product.freeShipping,
       itemDetails: product.itemDetails || [],
+      isActive: product.isActive !== false,
     });
     setError('');
     setEditing(true);
@@ -128,6 +129,7 @@ export default function ViewProductDrawer({ open, product, categories, loading, 
         category: form.category,
         itemDetails: (form.itemDetails || []).map((v: string) => v.trim()).filter(Boolean),
         materials: product.materials,
+        isActive: !!form.isActive,
         maker: String(form.maker || '').trim(),
         bestseller: !!form.bestseller,
         etsyPick: !!form.etsyPick,
@@ -468,6 +470,32 @@ export default function ViewProductDrawer({ open, product, categories, loading, 
                   )}
                 </dd>
               </div>
+              {editing && (
+                <div className="grid grid-cols-[7rem_1fr] items-center gap-3 py-3 text-sm">
+                  <dt className="text-stone-500">Status</dt>
+                  <dd className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={!!form.isActive}
+                      aria-label="Product active"
+                      onClick={() => setForm({ ...form, isActive: !form.isActive })}
+                      className={`relative h-6 w-11 shrink-0 rounded-full transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900 ${
+                        form.isActive ? 'bg-stone-900' : 'bg-stone-300'
+                      }`}
+                    >
+                      <span
+                        className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${
+                          form.isActive ? 'translate-x-5' : 'translate-x-0'
+                        }`}
+                      />
+                    </button>
+                    <span className="text-xs text-stone-600">
+                      {form.isActive ? 'Active: visible in the store' : 'Inactive: hidden from the store'}
+                    </span>
+                  </dd>
+                </div>
+              )}
               {!editing && (
                 <>
                   <div className="grid grid-cols-[7rem_1fr] items-center gap-3 py-3 text-sm">

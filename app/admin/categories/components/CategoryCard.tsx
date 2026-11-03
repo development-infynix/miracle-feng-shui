@@ -61,7 +61,7 @@ export default function CategoryCard({ category, onView }: CategoryCardProps) {
       <div className="flex items-center justify-between gap-2 px-3 py-2 border-t border-gray-100 bg-gray-50">
         <div className="min-w-0">
           <span className="font-bold text-gray-900 text-sm whitespace-nowrap block leading-tight">
-            {category.activeCount} {category.activeCount === 1 ? 'item' : 'items'}
+            {category.productCount} {category.productCount === 1 ? 'item' : 'items'}
           </span>
           {category.inactiveCount > 0 && (
             <span className="text-[10.5px] text-gray-500 whitespace-nowrap block leading-tight">

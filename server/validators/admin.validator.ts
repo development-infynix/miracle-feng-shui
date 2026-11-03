@@ -11,7 +11,9 @@ export const adminProductQuerySchema = z.object({
 
 export type AdminProductQueryInput = z.infer<typeof adminProductQuerySchema>;
 
-export const createProductSchema = z.object({
+// Shared rules with no defaults. Defaults belong only to creation: Zod still applies them to
+// fields made optional by `.partial()`, which would overwrite stored values on every update.
+const productFields = z.object({
   title: z.string().min(2, 'Title must be at least 2 characters'),
   name: z.string().optional(), // alias for title
   slug: z.string().optional(),
@@ -21,29 +23,48 @@ export const createProductSchema = z.object({
   originalPrice: z.coerce.number().min(0).nullable().optional(), // alias for comparePrice
   categoryId: z.string().min(1, 'Category is required'),
   category: z.string().optional(), // alias for categoryId
-  stock: z.coerce.number().int().min(0).default(10),
+  stock: z.coerce.number().int().min(0),
   images: z.array(z.string()).min(1, 'At least one product image is required'),
-  maker: z.string().optional().default('Miracle Feng Shui Studio'),
+  maker: z.string().optional(),
   makerLocation: z.string().optional(),
   makerAvatar: z.string().optional(),
-  makerSales: z.coerce.number().int().optional().default(0),
+  makerSales: z.coerce.number().int().optional(),
   salesCount: z.coerce.number().int().optional(), // alias for makerSales
+  starSeller: z.boolean().optional(),
+  bestseller: z.boolean().optional(),
+  etsyPick: z.boolean().optional(),
+  freeShipping: z.boolean().optional(),
+  readyToShip: z.boolean().optional(),
+  returnsAccepted: z.boolean().optional(),
+  discount: z.string().nullable().optional(),
+  itemDetails: z.array(z.string()).optional(),
+  highlights: z.array(z.string()).optional(), // alias for itemDetails
+  materials: z.array(z.string()).optional(),
+  tags: z.array(z.string()).optional(),
+  variations: z.any().optional(),
+  allowsPersonalization: z.boolean().optional(),
+  personalizationRequired: z.boolean().optional(), // alias for allowsPersonalization
+  personalizationPrompt: z.string().nullable().optional(),
+  personalizationInstruction: z.string().nullable().optional(), // alias
+  inDemandCount: z.coerce.number().int().optional(),
+  isActive: z.boolean().optional(),
+  isFeatured: z.boolean().optional(),
+});
+
+export const createProductSchema = productFields.extend({
+  stock: z.coerce.number().int().min(0).default(10),
+  maker: z.string().optional().default('Miracle Feng Shui Studio'),
+  makerSales: z.coerce.number().int().optional().default(0),
   starSeller: z.boolean().optional().default(false),
   bestseller: z.boolean().optional().default(false),
   etsyPick: z.boolean().optional().default(false),
   freeShipping: z.boolean().optional().default(true),
   readyToShip: z.boolean().optional().default(true),
   returnsAccepted: z.boolean().optional().default(true),
-  discount: z.string().nullable().optional(),
   itemDetails: z.array(z.string()).optional().default([]),
-  highlights: z.array(z.string()).optional(), // alias for itemDetails
   materials: z.array(z.string()).optional().default([]),
   tags: z.array(z.string()).optional().default([]),
-  variations: z.any().optional(),
   allowsPersonalization: z.boolean().optional().default(false),
-  personalizationRequired: z.boolean().optional(), // alias for allowsPersonalization
-  personalizationPrompt: z.string().nullable().optional(),
-  personalizationInstruction: z.string().nullable().optional(), // alias
   inDemandCount: z.coerce.number().int().optional().default(0),
   isActive: z.boolean().optional().default(true),
   isFeatured: z.boolean().optional().default(false),
@@ -51,7 +72,7 @@ export const createProductSchema = z.object({
 
 export type CreateProductInput = z.infer<typeof createProductSchema>;
 
-export const updateProductSchema = createProductSchema.partial();
+export const updateProductSchema = productFields.partial();
 export type UpdateProductInput = z.infer<typeof updateProductSchema>;
 
 export const updateOrderStatusSchema = z.object({
