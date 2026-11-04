@@ -224,6 +224,30 @@ export const adminService = {
     };
   },
 
+  async getCustomerProfile(id: string) {
+    const customer = await adminRepository.findCustomerProfile(id);
+    if (!customer) throw ApiError.notFound('Customer not found');
+    return customer;
+  },
+
+  async getCustomerFavorites(id: string) {
+    const customer = await adminRepository.findCustomerFavorites(id);
+    if (!customer) throw ApiError.notFound('Customer not found');
+    return customer.favorites;
+  },
+
+  async getCustomerCart(id: string) {
+    const customer = await adminRepository.findCustomerCart(id);
+    if (!customer) throw ApiError.notFound('Customer not found');
+    return customer.cart;
+  },
+
+  async getCustomerOrders(id: string) {
+    const customer = await adminRepository.findCustomerOrders(id);
+    if (!customer) throw ApiError.notFound('Customer not found');
+    return customer.orders;
+  },
+
   async getHomepageSections() {
     const sections = await adminRepository.getHomepageSections();
     return sections.map((sec) => ({

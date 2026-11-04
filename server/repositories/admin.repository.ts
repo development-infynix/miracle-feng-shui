@@ -19,6 +19,13 @@ async function resolveCategoryId(identifier: string) {
   return category.id;
 }
 
+const CUSTOMER_PRODUCT_SELECT = {
+  id: true,
+  title: true,
+  price: true,
+  images: true,
+} satisfies Prisma.ProductSelect;
+
 export const adminRepository = {
   async getDashboardStats() {
     // Automatically purge old demo seed orders if present
@@ -305,6 +312,99 @@ export const adminRepository = {
       include: {
         items: true,
         user: { select: { id: true, name: true, email: true, phone: true } },
+      },
+    });
+  },
+
+  // Customer drawer queries. Each one returns null unless the id belongs to a
+  // CUSTOMER. Results go to the browser, so they use allowlists: never select
+  // passwordHash or resetToken*.
+  async findCustomerProfile(id: string) {
+    return prisma.user.findFirst({
+      where: { id, role: 'CUSTOMER' },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        createdAt: true,
+        // Default address first, so the drawer lists them in a sensible order.
+        addresses: {
+          orderBy: { isDefault: 'desc' },
+          select: {
+            id: true,
+            name: true,
+            phone: true,
+            line1: true,
+            line2: true,
+            city: true,
+            state: true,
+            pincode: true,
+            country: true,
+            isDefault: true,
+          },
+        },
+        _count: { select: { orders: true, favorites: true } },
+      },
+    });
+  },
+
+  async findCustomerFavorites(id: string) {
+    return prisma.user.findFirst({
+      where: { id, role: 'CUSTOMER' },
+      select: {
+        favorites: {
+          orderBy: { createdAt: 'desc' },
+          select: {
+            id: true,
+            createdAt: true,
+            product: { select: CUSTOMER_PRODUCT_SELECT },
+          },
+        },
+      },
+    });
+  },
+
+  async findCustomerCart(id: string) {
+    return prisma.user.findFirst({
+      where: { id, role: 'CUSTOMER' },
+      select: {
+        cart: {
+          select: {
+            id: true,
+            items: {
+              orderBy: { createdAt: 'desc' },
+              select: {
+                id: true,
+                quantity: true,
+                product: { select: CUSTOMER_PRODUCT_SELECT },
+              },
+            },
+          },
+        },
+      },
+    });
+  },
+
+  async findCustomerOrders(id: string) {
+    return prisma.user.findFirst({
+      where: { id, role: 'CUSTOMER' },
+      select: {
+        orders: {
+          orderBy: { createdAt: 'desc' },
+          select: {
+            id: true,
+            orderNumber: true,
+            status: true,
+            paymentStatus: true,
+            paymentMethod: true,
+            total: true,
+            createdAt: true,
+            items: {
+              select: { id: true, title: true, price: true, quantity: true, image: true },
+            },
+          },
+        },
       },
     });
   },

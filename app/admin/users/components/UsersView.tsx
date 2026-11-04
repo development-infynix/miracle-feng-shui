@@ -39,7 +39,8 @@ export default function UsersView({ users, page, pageSize, search }: UsersViewPr
         )}
       </div>
 
-      <UserDetailDrawer open={!!selected} user={selected} onClose={closeDrawer} />
+      {/* Mounted per open customer, so tabs always start fresh with no stale data. */}
+      {selected && <UserDetailDrawer key={selected.id} user={selected} onClose={closeDrawer} />}
     </>
   );
 }

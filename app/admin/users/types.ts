@@ -1,5 +1,15 @@
 // Shared shapes for the admin users feature.
-// Serialized by the server page and consumed by the client components.
+// UserRow comes from the server page. The rest come from /api/admin/users/[id],
+// so their dates arrive as JSON strings.
+
+export interface UserRow {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  createdAt: Date;
+  _count: { orders: number };
+}
 
 export interface AddressRow {
   id: string;
@@ -14,25 +24,34 @@ export interface AddressRow {
   isDefault: boolean;
 }
 
+export interface CustomerProfile {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  createdAt: string;
+  addresses: AddressRow[];
+  _count: { orders: number; favorites: number };
+}
+
 // Minimal product snapshot shown inside favorites / cart tabs.
 export interface ProductSummary {
   id: string;
   title: string;
-  slug: string;
   price: number;
   images: string[];
 }
 
 export interface FavoriteRow {
   id: string;
-  createdAt: Date;
+  createdAt: string;
   product: ProductSummary;
 }
 
 export interface CartItemRow {
   id: string;
   quantity: number;
-  product: ProductSummary | null;
+  product: ProductSummary;
 }
 
 export interface CartRow {
@@ -55,19 +74,6 @@ export interface OrderRow {
   paymentStatus: string;
   paymentMethod: string;
   total: number;
-  createdAt: Date;
+  createdAt: string;
   items: OrderItemRow[];
-}
-
-export interface UserRow {
-  id: string;
-  name: string;
-  email: string;
-  phone: string | null;
-  createdAt: Date;
-  addresses: AddressRow[];
-  favorites: FavoriteRow[];
-  cart: CartRow | null;
-  orders: OrderRow[];
-  _count: { orders: number; favorites: number };
 }

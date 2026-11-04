@@ -38,34 +38,14 @@ export default async function AdminUsersPage({
       take: PAGE_SIZE,
       // Allowlist, not `include`: this result goes to a client component, so every
       // selected field reaches the browser. Never add passwordHash or resetToken*.
+      // Only what the list shows: each drawer tab loads its own data on demand.
       select: {
         id: true,
         name: true,
         email: true,
         phone: true,
         createdAt: true,
-        // Default address first, so the drawer lists them in a sensible order.
-        addresses: { orderBy: { isDefault: 'desc' } },
-        favorites: {
-          orderBy: { createdAt: 'desc' },
-          include: {
-            product: { select: { id: true, title: true, slug: true, price: true, images: true } },
-          },
-        },
-        cart: {
-          include: {
-            items: {
-              include: {
-                product: { select: { id: true, title: true, slug: true, price: true, images: true } },
-              },
-            },
-          },
-        },
-        orders: {
-          orderBy: { createdAt: 'desc' },
-          include: { items: true },
-        },
-        _count: { select: { orders: true, favorites: true } },
+        _count: { select: { orders: true } },
       },
     }),
   ]);

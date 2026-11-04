@@ -71,6 +71,22 @@ export const adminController = {
     return apiResponse.ok(order);
   },
 
+  async getCustomerProfile(params: { id: string }) {
+    return apiResponse.ok(await adminService.getCustomerProfile(params.id));
+  },
+
+  async getCustomerFavorites(params: { id: string }) {
+    return apiResponse.ok(await adminService.getCustomerFavorites(params.id));
+  },
+
+  async getCustomerCart(params: { id: string }) {
+    return apiResponse.ok(await adminService.getCustomerCart(params.id));
+  },
+
+  async getCustomerOrders(params: { id: string }) {
+    return apiResponse.ok(await adminService.getCustomerOrders(params.id));
+  },
+
   async getHomepageSections() {
     const sections = await adminService.getHomepageSections();
     return apiResponse.ok(sections);
