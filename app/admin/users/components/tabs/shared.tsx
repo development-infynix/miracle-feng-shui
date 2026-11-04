@@ -65,6 +65,37 @@ export function TabLoading({ label }: { label: string }) {
   );
 }
 
+interface LoadMoreProps {
+  shown: number;
+  total: number;
+  loading: boolean;
+  failed: boolean;
+  onLoadMore: () => void;
+}
+
+export function LoadMore({ shown, total, loading, failed, onLoadMore }: LoadMoreProps) {
+  return (
+    <div className="flex flex-col items-center gap-2 pt-1">
+      <p className="text-xs text-stone-500 tabular-nums">
+        Showing {shown} of {total}
+      </p>
+      {failed && (
+        <p role="alert" className="text-xs text-red-600">
+          Couldn&apos;t load more. Please try again.
+        </p>
+      )}
+      <button
+        type="button"
+        onClick={onLoadMore}
+        disabled={loading}
+        className="inline-flex items-center rounded-md border border-stone-300 bg-white px-4 py-2 text-xs font-semibold text-stone-700 transition-colors hover:bg-stone-100 cursor-pointer disabled:cursor-wait disabled:opacity-60"
+      >
+        {loading ? 'Loading…' : 'Load more'}
+      </button>
+    </div>
+  );
+}
+
 export function TabError({ label, onRetry }: { label: string; onRetry: () => void }) {
   return (
     <div role="alert" className="rounded-lg border border-stone-200 bg-white px-4 py-8 text-center">

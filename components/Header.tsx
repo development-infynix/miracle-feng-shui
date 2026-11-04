@@ -4,14 +4,14 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
-import { useStore } from '@/context/StoreContext';
+import type { NavCategory } from '@/lib/nav-categories';
 import { products } from '@/lib/placeholder-data';
 import { signIn, signOut, useSession } from 'next-auth/react';
 import { useLocale } from '@/context/CurrencyContext';
 import { Country, Currency, Language, translateCategory } from '@/lib/translations';
 import AddressManagerModal from '@/components/AddressManagerModal';
 
-export function Header() {
+export function Header({ navCategories }: { navCategories: NavCategory[] }) {
   const router = useRouter();
   const pathname = usePathname();
 
@@ -20,7 +20,6 @@ export function Header() {
     return null;
   }
   const { count, userLoggedIn, setUserLoggedIn, favorites } = useCart();
-  const { categories: storeCategories } = useStore();
   const { data: session, status } = useSession();
   const {
     country,
@@ -182,26 +181,25 @@ export function Header() {
       .slice(0, 8);
   }, [query]);
 
-  const secondaryNavItems = useMemo(() => {
-    if (storeCategories && storeCategories.length > 1) {
-      return storeCategories
-        .filter((c) => c !== 'All')
-        .slice(0, 8)
-        .map((catName, idx) => ({
-          name: catName,
-          href: `/shop?category=${encodeURIComponent(catName)}`,
-          isGift: idx === 0,
-        }));
-    }
-    return [
-      { name: 'Feng Shui Decor', href: '/shop?category=Feng%20Shui%20Decor', isGift: true },
-      { name: 'Feng Shui Jewelry', href: '/shop?category=Feng%20Shui%20Jewelry' },
-      { name: 'Feng Shui Candles', href: '/shop?category=Feng%20Shui%20Candles' },
-      { name: 'Crystals & Trees', href: '/shop?category=Crystals%20%26%20Trees' },
-      { name: 'Zen & Meditation', href: '/shop?category=Zen%20%26%20Meditation' },
-      { name: 'Feng Shui Books', href: '/shop?category=Feng%20Shui%20Books' },
-    ];
-  }, [storeCategories]);
+  // Favorites and cart need an account: guests get the login modal instead of the page.
+  // While the session is still loading, the link works normally.
+  const openLoginIfGuest = (e: React.MouseEvent) => {
+    if (userLoggedIn || status !== 'unauthenticated') return;
+    e.preventDefault();
+    setIsRegisterMode(false);
+    setShowAuthModal(true);
+  };
+
+  // Newest categories from the server (app/layout.tsx), then the link to all of them.
+  const secondaryNavItems = [
+    ...navCategories.map((category) => ({
+      key: category.id,
+      label: translateCategory(category.name, language),
+      href: `/shop?category=${encodeURIComponent(category.name)}`,
+      isViewAll: false,
+    })),
+    { key: 'view-all', label: t('nav.view_all', 'View all'), href: '/shop', isViewAll: true },
+  ];
 
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -506,11 +504,12 @@ export function Header() {
                 href="/"
                 className="flex items-center gap-2 sm:gap-2.5 shrink-0 select-none hover:opacity-90 transition-opacity"
               >
-                <div className="w-[38px] h-[38px] sm:w-[44px] sm:h-[44px] md:w-[48px] md:h-[48px] rounded-full overflow-hidden shadow-2xs shrink-0 border border-black/10">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-full overflow-hidden shadow-2xs shrink-0">
+                  {/* The SVG has a transparent margin around its circle; the scale crops it off. */}
                   <img
-                    src="/images/miracle.jpeg"
+                    src="/images/logofull.svg"
                     alt="Miracle feng shui"
-                    className="w-full h-full object-cover scale-105"
+                    className="w-full h-full object-cover scale-[1.23]"
                   />
                 </div>
                 <span className="font-serif text-[22px] sm:text-[25px] md:text-[28px] font-bold text-[#222222] tracking-tight leading-none">
@@ -729,6 +728,7 @@ export function Header() {
               >
                 <Link
                   href="/favorites"
+                  onClick={openLoginIfGuest}
                   aria-label="Favourites"
                   className="w-8 h-8 sm:w-10 sm:h-10 rounded-full hover:bg-[#DCE8F5] text-etsy-dark flex items-center justify-center transition-colors relative"
                 >
@@ -755,6 +755,7 @@ export function Header() {
               >
                 <Link
                   href="/cart"
+                  onClick={openLoginIfGuest}
                   aria-label="Cart"
                   className="w-8 h-8 sm:w-10 sm:h-10 rounded-full hover:bg-[#DCE8F5] text-etsy-dark flex items-center justify-center transition-colors relative"
                 >
@@ -777,22 +778,32 @@ export function Header() {
         </div>
 
         {/* Secondary Categories Navigation Bar (Desktop & Tablet) */}
-        <nav className="border-t border-[#E1E3DF] bg-white hidden md:block">
+        <nav className="hidden md:block bg-gradient-to-b from-white to-[#F4F0F9] py-2.5">
           <div className="etsy-container">
-            <ul className="flex items-center justify-center gap-7 sm:gap-9 py-2.5 list-none m-0 p-0 overflow-x-auto text-[13px] font-semibold text-[#111111] whitespace-nowrap scrollbar-none mx-auto w-full">
-              {secondaryNavItems.map((item) => (
-                <li key={item.name}>
-                  <Link
-                    href={item.href}
-                    className={`flex items-center gap-1.5 hover:text-etsy-orange hover:underline transition-colors ${item.isGift ? 'text-etsy-orange' : ''
-                      }`}
-                  >
-                    {item.isGift && <i className="fa-solid fa-gift text-[13px]" />}
-                    <span>{translateCategory(item.name, language)}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            {/* One glass pill holding every category. The pill stays whole on narrow
+            screens; the list scrolls inside it. */}
+            <div className="w-fit max-w-full mx-auto overflow-hidden rounded-full border border-white/80 bg-gradient-to-b from-[#F3ECFB]/90 to-[#DCCDF0]/70 backdrop-blur-xl shadow-[0_8px_24px_rgba(67,23,105,0.2),inset_0_2px_3px_rgba(255,255,255,0.95),inset_0_-3px_8px_rgba(67,23,105,0.12)]">
+              <ul className="flex items-center p-1 list-none overflow-x-auto no-scrollbar font-outfit text-[14px] font-medium tracking-[0.01em] whitespace-nowrap">
+                {secondaryNavItems.map((item, idx) => (
+                  <li key={item.key} className="flex items-center shrink-0">
+                    {idx > 0 && <span aria-hidden="true" className="h-4 w-px mx-0.5 bg-[#431769]/30" />}
+                    <Link
+                      href={item.href}
+                      className="group flex items-center h-9 px-4 rounded-full focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#3A1F62]"
+                    >
+                      {/* Text colour sits on this span: the global `a { color: inherit }` rule overrides colour utilities on the link. */}
+                      <span
+                        className={`flex items-center gap-1.5 transition-colors group-hover:text-[#7A2FC0] ${item.isViewAll ? 'text-[#431769]' : 'text-[#111111]'
+                          }`}
+                      >
+                        {item.label}
+                        {item.isViewAll && <i aria-hidden="true" className="fa-solid fa-arrow-right text-[11px]" />}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </nav>
       </header>
@@ -811,8 +822,8 @@ export function Header() {
             {/* Drawer Header */}
             <div className="flex items-center justify-between pb-4 border-b border-gray-100">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-full overflow-hidden border border-black/10">
-                  <img src="/images/miracle.jpeg" alt="Miracle feng shui" className="w-full h-full object-cover" />
+                <div className="w-8 h-8 rounded-full overflow-hidden">
+                  <img src="/images/logofull.svg" alt="Miracle feng shui" className="w-full h-full object-cover scale-[1.23]" />
                 </div>
                 <span className="font-serif font-semibold text-[18px] text-[#222222]">Miracle feng shui</span>
               </div>
@@ -858,14 +869,13 @@ export function Header() {
               <div className="space-y-1">
                 {secondaryNavItems.map((item) => (
                   <Link
-                    key={item.name}
+                    key={item.key}
                     href={item.href}
                     onClick={() => setMobileMenuOpen(false)}
                     className="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-gray-50 text-[14px] font-medium text-[#222222] transition-colors"
                   >
                     <span className="flex items-center gap-2">
-                      {item.isGift && <i className="fa-solid fa-gift text-etsy-orange text-[13px]" />}
-                      {translateCategory(item.name, language)}
+                      {item.label}
                     </span>
                     <i className="fa-solid fa-chevron-right text-[11px] text-gray-300" />
                   </Link>
@@ -876,7 +886,10 @@ export function Header() {
               <div className="pt-4 mt-3 border-t border-gray-100 space-y-1">
                 <Link
                   href="/favorites"
-                  onClick={() => setMobileMenuOpen(false)}
+                  onClick={(e) => {
+                    setMobileMenuOpen(false);
+                    openLoginIfGuest(e);
+                  }}
                   className="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-gray-50 text-[14px] font-medium text-[#222222]"
                 >
                   <span className="flex items-center gap-3">
@@ -899,7 +912,10 @@ export function Header() {
                 </Link>
                 <Link
                   href="/cart"
-                  onClick={() => setMobileMenuOpen(false)}
+                  onClick={(e) => {
+                    setMobileMenuOpen(false);
+                    openLoginIfGuest(e);
+                  }}
                   className="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-gray-50 text-[14px] font-medium text-[#222222]"
                 >
                   <span className="flex items-center gap-3">

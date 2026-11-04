@@ -11,6 +11,20 @@ import {
 import { ApiError } from '../utils/ApiError';
 import { OrderStatus } from '@/app/generated/prisma/client';
 
+const CUSTOMER_LIST_PAGE_SIZE = 20;
+
+const customerListRange = (page: number) => ({
+  skip: (page - 1) * CUSTOMER_LIST_PAGE_SIZE,
+  take: CUSTOMER_LIST_PAGE_SIZE,
+});
+
+const customerListPage = <T>(items: T[], total: number, page: number) => ({
+  items,
+  total,
+  page,
+  hasMore: page * CUSTOMER_LIST_PAGE_SIZE < total,
+});
+
 export const adminService = {
   async getDashboard() {
     return adminRepository.getDashboardStats();
@@ -230,22 +244,32 @@ export const adminService = {
     return customer;
   },
 
-  async getCustomerFavorites(id: string) {
-    const customer = await adminRepository.findCustomerFavorites(id);
+  async getCustomerFavorites(id: string, page: number) {
+    const customer = await adminRepository.findCustomerFavorites(id, customerListRange(page));
     if (!customer) throw ApiError.notFound('Customer not found');
-    return customer.favorites;
+    return customerListPage(customer.favorites, customer._count.favorites, page);
   },
 
-  async getCustomerCart(id: string) {
-    const customer = await adminRepository.findCustomerCart(id);
+  async getCustomerCart(id: string, page: number) {
+    const customer = await adminRepository.findCustomerCart(id, customerListRange(page));
     if (!customer) throw ApiError.notFound('Customer not found');
-    return customer.cart;
+
+    const totals = await adminRepository.findCustomerCartTotals(id);
+    return {
+      ...customerListPage(customer.cart?.items ?? [], customer.cart?._count.items ?? 0, page),
+      quantity: totals.reduce((sum, line) => sum + line.quantity, 0),
+      subtotal: totals.reduce((sum, line) => sum + line.product.price * line.quantity, 0),
+    };
   },
 
-  async getCustomerOrders(id: string) {
-    const customer = await adminRepository.findCustomerOrders(id);
+  async getCustomerOrders(id: string, page: number) {
+    const customer = await adminRepository.findCustomerOrders(id, customerListRange(page));
     if (!customer) throw ApiError.notFound('Customer not found');
-    return customer.orders;
+
+    return {
+      ...customerListPage(customer.orders, customer._count.orders, page),
+      totalAmount: await adminRepository.sumCustomerOrders(id),
+    };
   },
 
   async getHomepageSections() {

@@ -11,6 +11,11 @@ export const adminProductQuerySchema = z.object({
 
 export type AdminProductQueryInput = z.infer<typeof adminProductQuerySchema>;
 
+// Load-more paging for the customer drawer's lists. The max keeps `skip` a safe integer.
+export const customerListQuerySchema = z.object({
+  page: z.coerce.number().int().positive().max(1_000_000).default(1),
+});
+
 // Shared rules with no defaults. Defaults belong only to creation: Zod still applies them to
 // fields made optional by `.partial()`, which would overwrite stored values on every update.
 const productFields = z.object({

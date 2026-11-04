@@ -54,9 +54,18 @@ export interface CartItemRow {
   product: ProductSummary;
 }
 
-export interface CartRow {
-  id: string;
-  items: CartItemRow[];
+// One load-more batch. `total`, `quantity`, `subtotal` and `totalAmount` always
+// cover the whole list, including items not loaded yet.
+export interface PagedList<T> {
+  items: T[];
+  total: number;
+  page: number;
+  hasMore: boolean;
+}
+
+export interface CartPage extends PagedList<CartItemRow> {
+  quantity: number;
+  subtotal: number;
 }
 
 export interface OrderItemRow {
@@ -76,4 +85,8 @@ export interface OrderRow {
   total: number;
   createdAt: string;
   items: OrderItemRow[];
+}
+
+export interface OrdersPage extends PagedList<OrderRow> {
+  totalAmount: number;
 }

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
+import Alert from '@/app/components/alert';
 
 export default function AdminLayout({
   children,
@@ -16,6 +17,8 @@ export default function AdminLayout({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [adminUser, setAdminUser] = useState('Administrator');
+  const [confirmSignOut, setConfirmSignOut] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
 
   const isLoginPage = pathname === '/admin/login';
 
@@ -33,10 +36,19 @@ export default function AdminLayout({
   }, [pathname, isLoginPage, session, sessionStatus]);
 
   const handleSignOut = async () => {
+    setSigningOut(true);
     try {
       await signOut({ redirect: false });
     } catch { /* ignore */ }
+    // This layout stays mounted on the login page, so reset its UI state for the next sign-in.
+    setSigningOut(false);
+    setConfirmSignOut(false);
+    setMobileMenuOpen(false);
     router.replace('/admin/login');
+  };
+
+  const closeSignOutConfirm = () => {
+    if (!signingOut) setConfirmSignOut(false);
   };
 
   if (isLoginPage) return <>{children}</>;
@@ -54,10 +66,10 @@ export default function AdminLayout({
 
   const navItems = [
     { name: 'Dashboard', href: '/admin', icon: 'fa-gauge-high', exact: true },
-    { name: 'Customer Orders', href: '/admin/orders', icon: 'fa-cart-shopping' },
     { name: 'Products Catalog', href: '/admin/products', icon: 'fa-boxes-stacked' },
     { name: 'Categories', href: '/admin/categories', icon: 'fa-tags' },
     { name: 'Customer Users', href: '/admin/users', icon: 'fa-users' },
+    { name: 'Customer Orders', href: '/admin/orders', icon: 'fa-cart-shopping' },
     { name: 'Sections Layout', href: '/admin/homepage', icon: 'fa-layer-group' },
     { name: 'Live Storefront', href: '/', icon: 'fa-store', isExternal: true },
   ];
@@ -145,10 +157,10 @@ export default function AdminLayout({
         </div>
         <button
           type="button"
-          onClick={handleSignOut}
+          onClick={() => setConfirmSignOut(true)}
           aria-label="Sign out"
           title="Sign Out"
-          className="w-9 h-9 flex items-center justify-center rounded-md border border-gray-200 text-gray-600 hover:text-gray-900 hover:bg-gray-100 text-xs cursor-pointer transition-colors shrink-0"
+          className="w-9 h-9 flex items-center justify-center rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 hover:text-gray-900 text-xs cursor-pointer transition-colors shrink-0"
         >
           <i className="fa-solid fa-arrow-right-from-bracket" />
         </button>
@@ -197,6 +209,27 @@ export default function AdminLayout({
 
         <main className="flex-1 w-full max-w-full px-3 sm:px-4 lg:px-5 py-5 min-w-0 overflow-x-hidden">{children}</main>
       </div>
+
+      <Alert
+        open={confirmSignOut}
+        title="Sign out?"
+        description="You'll need to sign in again to access the admin panel."
+        onClose={closeSignOutConfirm}
+        actions={[
+          {
+            label: 'Cancel',
+            onClick: closeSignOutConfirm,
+            variant: 'default',
+            disabled: signingOut,
+          },
+          {
+            label: signingOut ? 'Signing out...' : 'Sign out',
+            onClick: handleSignOut,
+            variant: 'primary',
+            disabled: signingOut,
+          },
+        ]}
+      />
     </div>
   );
 }

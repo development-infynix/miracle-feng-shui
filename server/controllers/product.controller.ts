@@ -3,6 +3,7 @@ import { productQuerySchema } from '../validators/product.validator';
 import { productService } from '../services/product.service';
 import { apiResponse } from '../utils/apiResponse';
 import { handleError } from '../middlewares/handleError';
+import { invalidateNavCategories } from '@/lib/nav-categories';
 
 export const productController = {
   async list(req: NextRequest) {
@@ -39,6 +40,7 @@ export const productController = {
     try {
       const body = await req.json();
       const category = await productService.createCategory(body);
+      invalidateNavCategories();
       return apiResponse.ok(category, 201);
     } catch (error) {
       return handleError(error);
@@ -53,6 +55,7 @@ export const productController = {
       const { id } = await params;
       const body = await req.json();
       const updated = await productService.updateCategory(id, body);
+      invalidateNavCategories();
       return apiResponse.ok(updated);
     } catch (error) {
       return handleError(error);
@@ -77,6 +80,7 @@ export const productController = {
         if (queryReassign) reassignToCategoryId = queryReassign;
       }
       await productService.deleteCategory(id, reassignToCategoryId);
+      invalidateNavCategories();
       return apiResponse.ok({ message: 'Category deleted successfully' });
     } catch (error) {
       return handleError(error);

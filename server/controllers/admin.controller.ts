@@ -2,12 +2,18 @@ import { NextRequest } from 'next/server';
 import { adminService } from '../services/admin.service';
 import {
   adminProductQuerySchema,
+  customerListQuerySchema,
   createProductSchema,
   updateProductSchema,
   updateOrderStatusSchema,
   updateHomepageSectionSchema,
 } from '../validators/admin.validator';
 import { apiResponse } from '../utils/apiResponse';
+
+const parseCustomerListQuery = (req: NextRequest) =>
+  customerListQuerySchema.parse({
+    page: new URL(req.url).searchParams.get('page') || undefined,
+  });
 
 export const adminController = {
   async getDashboard() {
@@ -75,16 +81,19 @@ export const adminController = {
     return apiResponse.ok(await adminService.getCustomerProfile(params.id));
   },
 
-  async getCustomerFavorites(params: { id: string }) {
-    return apiResponse.ok(await adminService.getCustomerFavorites(params.id));
+  async getCustomerFavorites(req: NextRequest, params: { id: string }) {
+    const { page } = parseCustomerListQuery(req);
+    return apiResponse.ok(await adminService.getCustomerFavorites(params.id, page));
   },
 
-  async getCustomerCart(params: { id: string }) {
-    return apiResponse.ok(await adminService.getCustomerCart(params.id));
+  async getCustomerCart(req: NextRequest, params: { id: string }) {
+    const { page } = parseCustomerListQuery(req);
+    return apiResponse.ok(await adminService.getCustomerCart(params.id, page));
   },
 
-  async getCustomerOrders(params: { id: string }) {
-    return apiResponse.ok(await adminService.getCustomerOrders(params.id));
+  async getCustomerOrders(req: NextRequest, params: { id: string }) {
+    const { page } = parseCustomerListQuery(req);
+    return apiResponse.ok(await adminService.getCustomerOrders(params.id, page));
   },
 
   async getHomepageSections() {

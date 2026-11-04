@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { invalidateNavCategories } from '@/lib/nav-categories';
 
 // RFC 4180 compliant CSV parser that handles quotes, line breaks, and escaped quotes
 function parseCsv(text: string): Array<Record<string, string>> {
@@ -285,6 +286,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    invalidateNavCategories();
     return NextResponse.json({
       success: true,
       data: {

@@ -3,6 +3,7 @@ import './globals.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import { Providers } from '@/components/Providers';
 import { Header } from '@/components/Header';
+import { getNavCategories } from '@/lib/nav-categories';
 import { Footer } from '@/components/Footer';
 import { GuestNotificationToast } from '@/components/GuestNotificationToast';
 import { ScrollToTop } from '@/components/ScrollToTop';
@@ -13,11 +14,16 @@ export const metadata: Metadata = {
     'Find the perfect handmade gift, vintage & on-trend clothes, unique jewelry, and more… lots more on Miracle feng shui.',
 };
 
-export default function RootLayout({
+// Static pages embed the navbar, so they refresh too if a category change is made outside the app.
+export const revalidate = 300;
+
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const navCategories = await getNavCategories();
+
   return (
     <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
       <head>
@@ -40,7 +46,7 @@ export default function RootLayout({
         className="min-h-screen flex flex-col bg-white text-etsy-dark antialiased"
       >
         <Providers>
-          <Header />
+          <Header navCategories={navCategories} />
           <main className="flex-grow">{children}</main>
           <Footer />
           <GuestNotificationToast />

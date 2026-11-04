@@ -349,49 +349,71 @@ export const adminRepository = {
     });
   },
 
-  async findCustomerFavorites(id: string) {
+  // The id tiebreak keeps paging stable when rows share a createdAt.
+  async findCustomerFavorites(id: string, range: { skip: number; take: number }) {
     return prisma.user.findFirst({
       where: { id, role: 'CUSTOMER' },
       select: {
         favorites: {
-          orderBy: { createdAt: 'desc' },
+          ...range,
+          orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
           select: {
             id: true,
             createdAt: true,
             product: { select: CUSTOMER_PRODUCT_SELECT },
           },
         },
+        _count: { select: { favorites: true } },
       },
     });
   },
 
-  async findCustomerCart(id: string) {
+  async findCustomerCart(id: string, range: { skip: number; take: number }) {
     return prisma.user.findFirst({
       where: { id, role: 'CUSTOMER' },
       select: {
         cart: {
           select: {
-            id: true,
             items: {
-              orderBy: { createdAt: 'desc' },
+              ...range,
+              orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
               select: {
                 id: true,
                 quantity: true,
                 product: { select: CUSTOMER_PRODUCT_SELECT },
               },
             },
+            _count: { select: { items: true } },
           },
         },
       },
     });
   },
 
-  async findCustomerOrders(id: string) {
+  // Every cart line, for totals that must cover items not loaded yet.
+  async findCustomerCartTotals(id: string) {
+    return prisma.cartItem.findMany({
+      where: { cart: { userId: id } },
+      select: { quantity: true, product: { select: { price: true } } },
+    });
+  },
+
+  async sumCustomerOrders(id: string) {
+    const result = await prisma.order.aggregate({
+      where: { userId: id },
+      _sum: { total: true },
+    });
+    return result._sum.total ?? 0;
+  },
+
+  async findCustomerOrders(id: string, range: { skip: number; take: number }) {
     return prisma.user.findFirst({
       where: { id, role: 'CUSTOMER' },
       select: {
+        _count: { select: { orders: true } },
         orders: {
-          orderBy: { createdAt: 'desc' },
+          ...range,
+          orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
           select: {
             id: true,
             orderNumber: true,
