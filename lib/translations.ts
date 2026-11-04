@@ -145,7 +145,7 @@ export const translations: Record<Language, Record<string, string>> = {
 
     'shop.sort': "Sort",
 
-    'shop.sort_recommended': "Recommended",
+    'shop.sort_bestsellers': "Bestsellers",
 
     'shop.sort_newest': "Newest",
 
@@ -445,7 +445,7 @@ export const translations: Record<Language, Record<string, string>> = {
 
     'shop.sort': "ترتيب",
 
-    'shop.sort_recommended': "الموصى بها",
+    'shop.sort_bestsellers': "الأكثر مبيعًا",
 
     'shop.sort_newest': "الأحدث",
 

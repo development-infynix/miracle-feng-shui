@@ -86,8 +86,8 @@ export default function ShopFilterDrawer({
   const update = (next: Partial<ShopFilters>) => onChange({ ...filters, ...next });
 
   const sortOptions: { value: ShopSort; label: string }[] = [
-    { value: 'relevancy', label: t('shop.sort_recommended', 'Recommended') },
     { value: 'newest', label: t('shop.sort_newest', 'Newest') },
+    { value: 'relevancy', label: t('shop.sort_bestsellers', 'Bestsellers') },
     { value: 'price-asc', label: t('shop.sort_price_asc', 'Lowest Price') },
     { value: 'price-desc', label: t('shop.sort_price_desc', 'Highest Price') },
     { value: 'rating', label: t('shop.sort_rating', 'Highest Rated') },

@@ -2,6 +2,7 @@
 // Plain data only, so both the server page and client components can import it.
 
 export const SHOP_PAGE_SIZE = 24;
+export const DEFAULT_SORT = 'newest';
 
 export type ShopSort = 'relevancy' | 'price-asc' | 'price-desc' | 'rating' | 'newest';
 export type ShopPrice = 'all' | 'under-1000' | '1000-1500' | '1500-2000' | 'over-2000';
@@ -51,7 +52,7 @@ export function parseShopFilters(params: RawParams): ShopFilters {
   return {
     category: category === 'All' ? '' : category,
     q: first(params.q).trim(),
-    sort: SORTS.includes(sort) ? sort : 'relevancy',
+    sort: SORTS.includes(sort) ? sort : DEFAULT_SORT,
     price: PRICES.includes(price) ? price : 'all',
     freeShipping: first(params.freeShipping) === 'true',
     onSale: first(params.onSale) === 'true',
@@ -77,7 +78,7 @@ export function shopUrl(filters: ShopFilters): string {
   const params = new URLSearchParams();
   if (filters.category) params.set('category', filters.category);
   if (filters.q) params.set('q', filters.q);
-  if (filters.sort !== 'relevancy') params.set('sort', filters.sort);
+  if (filters.sort !== DEFAULT_SORT) params.set('sort', filters.sort);
   if (filters.price !== 'all') params.set('price', filters.price);
   if (filters.freeShipping) params.set('freeShipping', 'true');
   if (filters.onSale) params.set('onSale', 'true');
@@ -88,7 +89,7 @@ export function shopUrl(filters: ShopFilters): string {
 export const NO_FILTERS: ShopFilters = {
   category: '',
   q: '',
-  sort: 'relevancy',
+  sort: DEFAULT_SORT,
   price: 'all',
   freeShipping: false,
   onSale: false,
@@ -100,7 +101,7 @@ export function hasNarrowingFilters(filters: ShopFilters): boolean {
 }
 
 export function hasActiveFilters(filters: ShopFilters): boolean {
-  return hasNarrowingFilters(filters) || filters.sort !== 'relevancy';
+  return hasNarrowingFilters(filters) || filters.sort !== DEFAULT_SORT;
 }
 
 /** How many choices the Filters button reports. A search isn't one: it came from the search box. */
@@ -110,7 +111,7 @@ export function countActiveFilters(filters: ShopFilters): number {
     filters.price !== 'all',
     filters.freeShipping,
     filters.onSale,
-    filters.sort !== 'relevancy',
+    filters.sort !== DEFAULT_SORT,
   ].filter(Boolean).length;
 }
 

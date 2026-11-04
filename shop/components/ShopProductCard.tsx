@@ -20,15 +20,9 @@ export default function ShopProductCard({ product }: { product: Product }) {
   const outOfStock = product.stock === 0;
   const lowStock = product.stock !== undefined && product.stock > 0 && product.stock < LOW_STOCK;
   const originalPrice = product.originalPrice && product.originalPrice > product.price ? product.originalPrice : null;
-  const percentOff = originalPrice ? Math.round((1 - product.price / originalPrice) * 100) : 0;
-
-  const notes = [
-    product.freeShipping && t('shop.free_delivery_short', 'Free delivery'),
-    lowStock && t('shop.only_left', 'Only {count} left').replace('{count}', String(product.stock)),
-  ].filter(Boolean);
 
   return (
-    <article className="relative flex h-full flex-col overflow-hidden rounded-lg bg-gradient-to-b from-[#F3ECFB] to-[#DCCDF0] shadow-[0_6px_12px_rgba(67,23,105,0.24),inset_0_-3px_5px_rgba(67,23,105,0.1)]">
+    <article className="relative flex h-full flex-col overflow-hidden rounded-lg bg-gradient-to-b from-[#F3ECFB] to-[#DCCDF0] shadow-[0_6px_10px_rgba(67,23,105,0.14),inset_0_-3px_5px_rgba(67,23,105,0.1)]">
       <Link
         href={`/product/${product.id}`}
         className="group flex flex-1 flex-col rounded-lg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#3A1F62]"
@@ -46,11 +40,7 @@ export default function ShopProductCard({ product }: { product: Product }) {
           />
 
           <div className="absolute left-2 top-2 flex flex-col items-start gap-1 sm:left-2.5 sm:top-2.5">
-            {outOfStock ? (
-              <span className={`${imagePill} bg-[#111111] text-white`}>{t('shop.out_of_stock', 'Out of stock')}</span>
-            ) : (
-              percentOff > 0 && <span className={`${imagePill} bg-[#431769] text-white`}>-{percentOff}%</span>
-            )}
+            {outOfStock && <span className={`${imagePill} bg-[#111111] text-white`}>{t('shop.out_of_stock', 'Out of stock')}</span>}
             {product.bestseller && (
               <span className={`${imagePill} bg-[#F3ECFB] text-[#431769]`}>{t('badge.bestseller', 'Bestseller')}</span>
             )}
@@ -82,14 +72,10 @@ export default function ShopProductCard({ product }: { product: Product }) {
             </span>
           </h3>
 
-          {product.description && (
-            <p className="mt-1.5 hidden truncate font-outfit text-[13px] text-[#5B4A70] sm:block">
-              {product.description}
+          {lowStock && (
+            <p className="mt-1 truncate font-outfit text-[12px] text-[#5B4A70]">
+              {t('shop.only_left', 'Only {count} left').replace('{count}', String(product.stock))}
             </p>
-          )}
-
-          {notes.length > 0 && (
-            <p className="mt-1 truncate font-outfit text-[12px] text-[#5B4A70]">{notes.join(' · ')}</p>
           )}
 
           <div className="mt-auto pt-3">

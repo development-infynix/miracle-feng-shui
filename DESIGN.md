@@ -13,7 +13,6 @@ colors:
   muted-plum: "#5B4A70"
   veil-plum: "#2B154C"
   page-white: "#FFFFFF"
-  lilac-ground: "#F1E9FA"
 typography:
   wordmark:
     fontFamily: "Charter, 'Charter Bitstream', Cambria, Georgia, serif"
@@ -150,11 +149,12 @@ A single violet family, from pale lilac glass to near-black plum, on a white pag
 - **Dusk Plum:** longer messages on glass, such as "no results" text.
 - **Muted Plum:** secondary text on glass, such as placeholders and product categories. Never use a neutral gray on glass.
 - **Veil Plum:** the tint behind blurred overlays, at 15% over the page for the phone menu and 25% for the search modal.
-- **Lilac Ground:** the page background, a clearly lilac tint of the same purple family. It sits close to the glass colours, so the stronger glass lift is what separates them.
-- **Page White:** text on Royal Amethyst, and older sections not yet migrated.
+- **Page White:** the page background and text on Royal Amethyst. The page stays plain white so the glass is the only purple surface.
 
 ### Named Rules
 **The State Is Violet Rule.** Hover, selected and active all mean text turning Awakened Violet. If a state needs anything else, question the state first.
+
+**The Accent, Not The Ground Rule.** Purple belongs on the glass and small controls. Never tint a whole page or section lilac or purple: it was tried and read as generic AI styling, especially on phones.
 
 **The Products Own Colour Rule.** Purple is the only chrome colour. Orange, green and other accents don't belong on glass, including highlights on a category or link.
 
@@ -193,7 +193,7 @@ Tall panels scroll inside themselves and keep within the viewport.
 Depth comes from the material rather than a stack of shadows. A single soft violet drop shadow sits under the merged shape, and the puffiness comes from inside the filter: a bright rim along the top edge and a soft plum shade along the bottom. Real backdrop blur on the content layer lets the page show through the slightly translucent glass.
 
 ### Shadow Vocabulary
-- **Glass lift** (`drop-shadow(0 6px 12px rgba(67, 23, 105, 0.24))`): under every goo shape, applied after the goo filter so the thread casts it too.
+- **Glass lift** (`drop-shadow(0 6px 10px rgba(67, 23, 105, 0.14))`): under every goo shape, applied after the goo filter so the thread casts it too.
 - **Top rim** (white at 70%, 2px inner offset): light catching the top edge, inside the filter.
 - **Bottom shade** (Royal Amethyst at 16%, 3px inner offset, 2px blur): the underside of the glass, inside the filter.
 
@@ -242,20 +242,20 @@ The thread is the signature shape. It's a narrow strip that the goo filter flare
 - **Style:** a solid Royal Amethyst block with sharp 6px corners, 48px tall, with white text. Hover deepens it to Deep Plum, and it dims while submitting. Keep it to a form's single main action.
 
 ### Shop Filter Bar
-- **Layout:** a full-width Lilac Ground bar that sticks directly under the site header, with applied filters on the left and a glass Filters button with sharp 6px corners on the right. The button shows a badge counting active choices.
-- **Scrolling:** products start below the bar and only ever scroll beneath it. The area behind the site header is Lilac Ground on this page too, so products never show around the pills or under the button.
+- **Layout:** a full-width white bar that sticks directly under the site header, with applied filters on the left and a glass Filters button with sharp 6px corners on the right. The button shows a badge counting active choices.
+- **Scrolling:** products start below the bar and only ever scroll beneath it. The area behind the site header is white on this page too, so products never show around the pills or under the button.
 - **Heading:** the shop has no visible page heading, because the navbar's Products link and the applied filters already say where you are. A screen-reader heading names the page.
 - **Applied filters:** removable pills with a clear-all link. Sort isn't listed, since it doesn't hide anything.
 
 ### Filter Drawer
 - **Shape:** glass from the right edge, up to 400px wide with square corners, over a blurred page. It has no thread, because it comes from the screen edge rather than from a pill.
-- **Sections:** Category, Price, Offers and Sort, in that order. Choices apply straight away and the drawer stays open, so the list updates behind it.
+- **Sections:** Category, Price, Offers and Sort, in that order. Sort defaults to Newest. Choices apply straight away and the drawer stays open, so the list updates behind it.
 - **Footer:** Clear all, when something is active, and a primary button stating the result count, such as "Show 7 products".
 
 ### Shop Product Card
 - **Shape:** a contained glass card with 8px corners, using the glass gradient and glass lift. The photo fills the top edge to edge, and cards in a row share one height.
-- **On the photo:** the percentage off, worked out from the real prices, and Bestseller as small sharp labels at top left, with a round glass heart at top right. Out of stock replaces the percentage.
-- **Details:** category with a small rating chip beside it, then a semibold name, a one-line description from tablet up, and quiet delivery and low-stock notes. The rating only appears when a product has reviews.
+- **On the photo:** Out of stock and Bestseller as small sharp labels at top left, with a round glass heart at top right. Discounts show only in the price row.
+- **Details:** category with a small rating chip beside it, then a semibold name and a quiet low-stock note when it applies. The rating only appears when a product has reviews.
 - **Price row:** below a thin divider, any real compare-at price struck through, then the price in bold, with a double chevron at the far right.
 - **Hover:** the name turns Awakened Violet, the chevron shifts slightly, and the photo zooms a little. The card itself doesn't lift.
 
@@ -281,6 +281,7 @@ The thread is the signature shape. It's a narrow strip that the goo filter flare
 - **Do** keep every state working from the keyboard, with Deep Plum focus rings, and honour reduced motion.
 
 ### Don't:
+- **Don't** use a lilac or purple page background.
 - **Don't** add a white or filled pill behind a hovered item.
 - **Don't** put a solid bar or border behind the header. The pills float.
 - **Don't** use orange, gift icons or other accent highlights on navigation.
