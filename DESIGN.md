@@ -182,7 +182,7 @@ The header is a sticky, transparent strip holding a floating pill inside a conta
 
 From the medium breakpoint (768px) up, the pill has three zones: brand on the left, main links in the centre, and social and account on the right. Below it, the pill holds only the brand and the bubble menu icon.
 
-- **Tablet and up, category pill:** open by default on page load, and it pushes the page down instead of covering it. The space is reserved in CSS so the server render is already the right height.
+- **Tablet and up, category pill:** open on a visitor's first page load. Once they close it, it stays closed on later page loads until they open it again. While open, it pushes the page down instead of covering it. The space is reserved in CSS so the server render is already the right height.
 - **Phones, menu panel:** floats over the page, which blurs and stops scrolling behind it.
 - **Search modal:** a 640px column, placed 12vh from the top on tablet and up and at the top of the screen on phones.
 

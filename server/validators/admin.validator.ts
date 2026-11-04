@@ -52,6 +52,8 @@ const productFields = z.object({
   personalizationPrompt: z.string().nullable().optional(),
   personalizationInstruction: z.string().nullable().optional(), // alias
   inDemandCount: z.coerce.number().int().optional(),
+  rating: z.coerce.number().min(0).max(5).optional(),
+  reviewCount: z.coerce.number().int().min(0).optional(),
   isActive: z.boolean().optional(),
   isFeatured: z.boolean().optional(),
 });
@@ -71,6 +73,7 @@ export const createProductSchema = productFields.extend({
   tags: z.array(z.string()).optional().default([]),
   allowsPersonalization: z.boolean().optional().default(false),
   inDemandCount: z.coerce.number().int().optional().default(0),
+  rating: z.coerce.number().min(0).max(5).optional().default(0),
   isActive: z.boolean().optional().default(true),
   isFeatured: z.boolean().optional().default(false),
 });

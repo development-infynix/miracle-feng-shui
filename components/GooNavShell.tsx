@@ -120,6 +120,7 @@ export default function GooNavShell({
   return (
     <div
       ref={rootRef}
+      data-goo-shell={dropId}
       className={`relative transition-[padding] duration-[420ms] ease-out motion-reduce:transition-none ${open ? (openSpaceClassName ?? '') : ''}`}
     >
       <svg aria-hidden="true" className="absolute h-0 w-0">

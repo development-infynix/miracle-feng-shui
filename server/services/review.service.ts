@@ -40,27 +40,8 @@ export const reviewService = {
       throw ApiError.conflict('You have already submitted a review for this product');
     }
 
-    const review = await prisma.$transaction(async (tx) => {
-      const newReview = await reviewRepository.create(userId, product.id, input, tx);
-      const allReviews = await tx.review.findMany({
-        where: { productId: product.id },
-        select: { rating: true },
-      });
-
-      const count = allReviews.length;
-      const sum = allReviews.reduce((acc, curr) => acc + curr.rating, 0);
-      const avg = Number((sum / count).toFixed(1));
-
-      await tx.product.update({
-        where: { id: product.id },
-        data: {
-          ratingAvg: avg,
-          ratingCount: count,
-        },
-      });
-
-      return newReview;
-    });
+    // Reviews no longer drive product ratings; ratings are managed by admins.
+    const review = await reviewRepository.create(userId, product.id, input);
 
     return this.formatReview(review);
   },

@@ -103,16 +103,16 @@ export function ProductCard({ product }: ProductCardProps) {
         </h3>
 
         {/* Rating & Review Count */}
-        <div className="flex items-center gap-1.5 mt-1.5">
-          <div className="flex items-center gap-0.5 text-[#E59819]">
-            {[...Array(5)].map((_, i) => (
-              <i key={i} className="fa-solid fa-star text-[11px] leading-none" />
-            ))}
+        {(product.reviewCount > 0 || (product.rating ?? 0) > 0) && (
+          <div className="flex items-center gap-1.5 mt-1.5">
+            <div className="flex items-center gap-0.5 text-[#E59819]">
+              <i className="fa-solid fa-star text-[11px] leading-none" />
+            </div>
+            <span className="text-[12px] text-etsy-gray font-normal">
+              {product.rating.toFixed(1)} ({product.reviewCount > 1000 ? `${(product.reviewCount / 1000).toFixed(1)}k` : product.reviewCount})
+            </span>
           </div>
-          <span className="text-[12px] text-etsy-gray font-normal">
-            ({product.reviewCount > 1000 ? `${(product.reviewCount / 1000).toFixed(1)}k` : product.reviewCount})
-          </span>
-        </div>
+        )}
 
         {/* Price & Discounts */}
         <div className="flex items-baseline flex-wrap gap-1.5 mt-1.5">

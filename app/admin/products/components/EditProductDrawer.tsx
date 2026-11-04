@@ -164,6 +164,23 @@ export default function AddProductModal({
                 className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-200 focus:outline-hidden focus:border-black"
               />
             </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">
+                Rating (0-5)
+              </label>
+              <input
+                type="number"
+                min={0}
+                max={5}
+                step={0.1}
+                placeholder="e.g. 4.9"
+                value={formData.rating != null && formData.rating > 0 ? formData.rating : ''}
+                onChange={(e) =>
+                  setFormData({ ...formData, rating: e.target.value === '' ? 0 : Math.max(0, Math.min(5, Number(e.target.value))) })
+                }
+                className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-200 focus:outline-hidden focus:border-black"
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

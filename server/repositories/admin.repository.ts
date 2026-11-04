@@ -213,6 +213,7 @@ export const adminRepository = {
         inDemandCount: data.inDemandCount ?? 0,
         isActive: data.isActive ?? true,
         isFeatured: data.isFeatured ?? false,
+        ratingAvg: data.rating ?? 0,
         categoryId: resolvedCategoryId,
       },
       include: {
@@ -253,6 +254,8 @@ export const adminRepository = {
         inDemandCount: data.inDemandCount,
         isActive: data.isActive,
         isFeatured: data.isFeatured,
+        ratingAvg: data.rating,
+        ratingCount: data.reviewCount,
         categoryId: resolvedCategoryId,
       },
       include: {

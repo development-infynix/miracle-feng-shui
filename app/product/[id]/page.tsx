@@ -195,7 +195,7 @@ export default function ProductDetailPage({
                 ))}
               </div>
               <span className="font-semibold text-[#111111]">
-                {product.rating || 4.9}
+                {product.rating ?? '—'}
               </span>
               <span className="text-gray-300">•</span>
               <button
@@ -203,7 +203,7 @@ export default function ProductDetailPage({
                 onClick={() => setActiveTab('reviews')}
                 className="text-gray-600 hover:text-black underline cursor-pointer text-[13px]"
               >
-                ({product.reviewCount || 2840} customer reviews)
+                ({(product.reviewCount ?? 0) > 0 ? `${product.reviewCount} customer reviews` : 'No reviews yet'})
               </button>
             </div>
 
@@ -647,7 +647,7 @@ export default function ProductDetailPage({
                       ))}
                     </div>
                     <span className="font-bold text-[18px] text-[#111111]">
-                      {product.rating || 5.0} out of 5
+                      {(product.rating ?? 0) > 0 ? `${product.rating ?? 0} out of 5` : 'No reviews yet'}
                     </span>
                     <span className="text-gray-300">|</span>
                     <span className="text-[13px] text-gray-500 font-medium">

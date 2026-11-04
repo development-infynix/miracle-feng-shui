@@ -27,6 +27,12 @@ export default async function RootLayout({
   return (
     <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
       <head>
+        {/* Runs before the first paint, so a closed category pill doesn't flash open on load. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: "try{if(localStorage.getItem('mfs_nav_categories_closed'))document.documentElement.setAttribute('data-nav-categories-closed','')}catch(e){}",
+          }}
+        />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link

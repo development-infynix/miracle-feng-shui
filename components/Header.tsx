@@ -14,6 +14,7 @@ import AuthModal from '@/home/components/authmodal';
 import GeneralSearchModal from '@/home/components/generalsearchmodal';
 import { TbChartBubbleFilled } from 'react-icons/tb';
 
+const NAV_CATEGORIES_CLOSED_KEY = 'mfs_nav_categories_closed';
 const INSTAGRAM_URL = 'https://www.instagram.com/fengshui.chitrahanson';
 // Add the page link here to make the Facebook icon clickable.
 const FACEBOOK_URL = '';
@@ -58,6 +59,24 @@ export function Header({ navCategories }: { navCategories: NavCategory[] }) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(true);
   const categoriesTriggerRef = useRef<HTMLButtonElement>(null);
+
+  // The category pill starts open until the visitor closes it, then stays closed on later
+  // page loads. The script in app/layout.tsx hides it before this runs, so it doesn't flash.
+  React.useLayoutEffect(() => {
+    if (document.documentElement.hasAttribute('data-nav-categories-closed')) setCategoriesOpen(false);
+  }, []);
+
+  const toggleCategories = () => {
+    const next = !categoriesOpen;
+    setCategoriesOpen(next);
+    document.documentElement.toggleAttribute('data-nav-categories-closed', !next);
+    try {
+      if (next) localStorage.removeItem(NAV_CATEGORIES_CLOSED_KEY);
+      else localStorage.setItem(NAV_CATEGORIES_CLOSED_KEY, 'true');
+    } catch {
+      // Storage can be blocked. The choice then lasts until the next full page load.
+    }
+  };
   const mobileMenuTriggerRef = useRef<HTMLButtonElement>(null);
   const [showRegionModal, setShowRegionModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -310,7 +329,7 @@ export function Header({ navCategories }: { navCategories: NavCategory[] }) {
                     type="button"
                     aria-expanded={categoriesOpen}
                     aria-controls="nav-categories-pill"
-                    onClick={() => setCategoriesOpen((prev) => !prev)}
+                    onClick={toggleCategories}
                     className={`inline-flex ${navTextButton}`}
                   >
                     <span className={`flex items-center gap-1.5 font-outfit transition-colors group-hover:text-[#7A2FC0] ${categoriesOpen ? 'text-[#7A2FC0]' : 'text-[#111111]'}`}>

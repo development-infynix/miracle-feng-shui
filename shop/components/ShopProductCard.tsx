@@ -53,7 +53,7 @@ export default function ShopProductCard({ product }: { product: Product }) {
               {translateCategory(product.category, language)}
             </span>
             {/* A rating only shows once a product has real reviews. */}
-            {product.reviewCount > 0 && (
+            {(product.reviewCount > 0 || (product.rating ?? 0) > 0) && (
               <span
                 aria-label={t('shop.rating_label', 'Rated {rating} from {count} reviews')
                   .replace('{rating}', product.rating.toFixed(1))

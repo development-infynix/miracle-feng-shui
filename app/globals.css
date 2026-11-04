@@ -265,3 +265,12 @@ a {
     animation: none;
   }
 }
+
+/* Category pill the visitor has closed: hidden from the first paint, before React loads. */
+html[data-nav-categories-closed] [data-goo-shell='nav-categories-pill'] {
+  padding-bottom: 0 !important;
+}
+
+html[data-nav-categories-closed] #nav-categories-pill {
+  visibility: hidden !important;
+}

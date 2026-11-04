@@ -169,6 +169,23 @@ export default function AddProductModal({
                   </dd>
                 </div>
                 <div className="grid grid-cols-[7rem_1fr] items-center gap-3 py-3 text-sm">
+                  <dt className="text-stone-500">Rating</dt>
+                  <dd>
+                    <input
+                      type="number"
+                      min={0}
+                      max={5}
+                      step={0.1}
+                      placeholder="e.g. 4.9"
+                      value={formData.rating != null && formData.rating > 0 ? formData.rating : ''}
+                      onChange={(e) =>
+                        setFormData({ ...formData, rating: e.target.value === '' ? 0 : Math.max(0, Math.min(5, Number(e.target.value))) })
+                      }
+                      className={inputClass}
+                    />
+                  </dd>
+                </div>
+                <div className="grid grid-cols-[7rem_1fr] items-center gap-3 py-3 text-sm">
                   <dt className="text-stone-500">Category *</dt>
                   <dd>
                     <select
