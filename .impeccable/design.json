@@ -1,0 +1,131 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-04T00:00:00.000Z",
+  "title": "Design System: Miracle Feng Shui",
+  "extensions": {
+    "colorMeta": {
+      "royal-amethyst": { "role": "primary", "displayName": "Royal Amethyst", "canonical": "#431769", "tonalRamp": ["#1E0A30", "#2F1049", "#431769", "#5F2A8C", "#7D4BAA", "#A07FC4", "#C7B3DE", "#EDE5F6"] },
+      "deep-plum": { "role": "primary", "displayName": "Deep Plum", "canonical": "#3A1F62", "tonalRamp": ["#190D2B", "#2B154C", "#3A1F62", "#553A80", "#755C9C", "#9A87B8", "#C3B7D6", "#ECE8F3"] },
+      "awakened-violet": { "role": "primary", "displayName": "Awakened Violet", "canonical": "#7A2FC0", "tonalRamp": ["#2E0E4C", "#4A1A7A", "#62249C", "#7A2FC0", "#9558D0", "#B288DF", "#D2B9EC", "#F1E8F9"] },
+      "lilac-mist": { "role": "neutral", "displayName": "Lilac Mist", "canonical": "#F3ECFB", "tonalRamp": ["#4E3A63", "#75608B", "#9C88B1", "#BFAED0", "#DCCDF0", "#E6DBF3", "#F3ECFB", "#FAF7FD"] },
+      "lilac-depth": { "role": "neutral", "displayName": "Lilac Depth", "canonical": "#DCCDF0", "tonalRamp": ["#4E3A63", "#75608B", "#9C88B1", "#BFAED0", "#DCCDF0", "#E6DBF3", "#F3ECFB", "#FAF7FD"] },
+      "thread-lilac": { "role": "neutral", "displayName": "Thread Lilac", "canonical": "#E6DBF3", "tonalRamp": ["#4E3A63", "#75608B", "#9C88B1", "#BFAED0", "#DCCDF0", "#E6DBF3", "#F3ECFB", "#FAF7FD"] },
+      "ink": { "role": "neutral", "displayName": "Ink", "canonical": "#111111", "tonalRamp": ["#111111", "#2B2B2B", "#474747", "#666666", "#8A8A8A", "#ADADAD", "#D1D1D1", "#F2F2F2"] },
+      "dusk-plum": { "role": "neutral", "displayName": "Dusk Plum", "canonical": "#2B1A3F", "tonalRamp": ["#160D20", "#2B1A3F", "#45305C", "#614A79", "#806A97", "#A18EB3", "#C5B8D1", "#EDE8F1"] },
+      "muted-plum": { "role": "neutral", "displayName": "Muted Plum", "canonical": "#5B4A70", "tonalRamp": ["#221A2C", "#3C3049", "#5B4A70", "#74648A", "#8F81A2", "#ABA0BA", "#CBC4D5", "#EEEBF2"] },
+      "veil-plum": { "role": "neutral", "displayName": "Veil Plum", "canonical": "#2B154C", "tonalRamp": ["#160A28", "#2B154C", "#44296C", "#5F4689", "#7F69A4", "#A192BE", "#C6BCD9", "#EEEAF4"] },
+      "page-white": { "role": "neutral", "displayName": "Page White", "canonical": "#FFFFFF", "tonalRamp": ["#262626", "#474747", "#6B6B6B", "#8F8F8F", "#B3B3B3", "#D6D6D6", "#F0F0F0", "#FFFFFF"] }
+    },
+    "typographyMeta": {
+      "wordmark": { "displayName": "Wordmark", "purpose": "The brand name beside the logo. 18px on phones." },
+      "nav-label": { "displayName": "Nav label", "purpose": "Main links, the category pill and the Clear action." },
+      "menu-row": { "displayName": "Menu row", "purpose": "Rows in the phone menu." },
+      "input": { "displayName": "Input", "purpose": "The search field. Stays at 16px so iOS doesn't zoom on focus." },
+      "section-label": { "displayName": "Section label", "purpose": "Panel section names, in Royal Amethyst and normal case." },
+      "caption": { "displayName": "Caption", "purpose": "Secondary lines such as a product's category." }
+    },
+    "shadows": [
+      { "name": "glass-lift", "value": "drop-shadow(0 6px 10px rgba(67, 23, 105, 0.14))", "purpose": "Under every goo shape, applied after the goo filter so the thread casts it too." },
+      { "name": "panel-rim", "value": "inner offset 2px, #FFFFFF at 70%", "purpose": "Light catching the top edge, inside the goo filter." },
+      { "name": "panel-shade", "value": "inner offset 3px, 2px blur, #431769 at 16%", "purpose": "The underside of the glass, inside the goo filter." }
+    ],
+    "motion": [
+      { "name": "pour-pill", "value": "640ms cubic-bezier(0.22, 1.3, 0.36, 1)", "purpose": "A small pill pouring out, with a slight overshoot." },
+      { "name": "pour-panel", "value": "640ms cubic-bezier(0.22, 1.08, 0.36, 1)", "purpose": "A tall panel pouring out, with a gentler settle." },
+      { "name": "draw-back", "value": "300ms cubic-bezier(0.55, 0, 0.8, 0.4)", "purpose": "A shape being drawn back into its parent." },
+      { "name": "thread-thin", "value": "760ms ease-out", "purpose": "The thread thinning from 48px to 14px as a shape opens." },
+      { "name": "make-room", "value": "420ms ease-out", "purpose": "The page moving down when the category pill opens." },
+      { "name": "bubble-turn", "value": "500ms ease-out", "purpose": "The phone menu icon rotating 180 degrees." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Glass Pill",
+      "kind": "nav",
+      "refersTo": "nav-pill",
+      "description": "The main navigation pill with text-only hover. The live version gets its material from the goo filter.",
+      "html": "<nav class=\"ds-pill\"><span class=\"ds-brand\">Miracle feng shui</span><span class=\"ds-links\"><a href=\"#\" class=\"ds-link ds-link-selected\">Categories</a><a href=\"#\" class=\"ds-link\">Search</a><a href=\"#\" class=\"ds-link\">Sign in</a></span></nav>",
+      "css": ".ds-pill { display: flex; align-items: center; justify-content: space-between; gap: 24px; height: 56px; padding: 0 20px; border-radius: 9999px; background: linear-gradient(to bottom, #F3ECFB, #DCCDF0); box-shadow: 0 6px 10px rgba(67, 23, 105, 0.14), inset 0 2px 2px rgba(255, 255, 255, 0.7), inset 0 -3px 5px rgba(67, 23, 105, 0.16); } .ds-brand { font-family: Charter, Cambria, Georgia, serif; font-size: 21px; font-weight: 700; letter-spacing: -0.025em; color: #111111; } .ds-links { display: flex; gap: 8px; } .ds-link { padding: 10px 12px; border-radius: 9999px; font-family: Outfit, sans-serif; font-size: 14px; font-weight: 500; letter-spacing: 0.01em; color: #111111; text-decoration: none; transition: color 0.15s; } .ds-link:hover, .ds-link-selected { color: #7A2FC0; } .ds-link:focus-visible { outline: 2px solid #3A1F62; outline-offset: 1px; }"
+    },
+    {
+      "name": "Category Pill",
+      "kind": "nav",
+      "refersTo": "nav-pill",
+      "description": "The latest categories in one pill, with short dividers and View all.",
+      "html": "<div class=\"ds-cats\"><a href=\"#\" class=\"ds-cat\">Feng Shui Books</a><span class=\"ds-rule\"></span><a href=\"#\" class=\"ds-cat\">Zen &amp; Meditation</a><span class=\"ds-rule\"></span><a href=\"#\" class=\"ds-cat ds-cat-all\">View all</a></div>",
+      "css": ".ds-cats { display: inline-flex; align-items: center; padding: 4px; border-radius: 9999px; background: linear-gradient(to bottom, #F3ECFB, #DCCDF0); box-shadow: 0 6px 10px rgba(67, 23, 105, 0.14), inset 0 2px 2px rgba(255, 255, 255, 0.7), inset 0 -3px 5px rgba(67, 23, 105, 0.16); } .ds-cat { padding: 8px 16px; border-radius: 9999px; font-family: Outfit, sans-serif; font-size: 14px; font-weight: 500; color: #111111; text-decoration: none; transition: color 0.15s; } .ds-cat:hover { color: #7A2FC0; } .ds-cat:focus-visible { outline: 2px solid #3A1F62; outline-offset: -2px; } .ds-cat-all { color: #431769; } .ds-rule { width: 1px; height: 16px; margin: 0 2px; background: rgba(67, 23, 105, 0.3); }"
+    },
+    {
+      "name": "Search Input",
+      "kind": "input",
+      "refersTo": "nav-pill",
+      "description": "The search pill. The live empty field also shows a blinking violet cursor.",
+      "html": "<label class=\"ds-search\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#431769\" stroke-width=\"2.5\" stroke-linecap=\"round\" aria-hidden=\"true\"><circle cx=\"11\" cy=\"11\" r=\"7\"/><path d=\"m20 20-4-4\"/></svg><input class=\"ds-search-input\" type=\"text\" placeholder=\"Search product, categories...\" aria-label=\"Search\"></label>",
+      "css": ".ds-search { display: flex; align-items: center; gap: 10px; height: 56px; padding: 0 20px; border-radius: 9999px; background: linear-gradient(to bottom, #F3ECFB, #DCCDF0); box-shadow: 0 6px 10px rgba(67, 23, 105, 0.14), inset 0 2px 2px rgba(255, 255, 255, 0.7), inset 0 -3px 5px rgba(67, 23, 105, 0.16); } .ds-search-input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font-family: Outfit, sans-serif; font-size: 16px; font-weight: 500; color: #111111; caret-color: #7A2FC0; } .ds-search-input::placeholder { color: #5B4A70; }"
+    },
+    {
+      "name": "Category Chip",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "A category shortcut inside a glass panel. Hover changes the text only.",
+      "html": "<a href=\"#\" class=\"ds-chip\">Feng Shui Books</a>",
+      "css": ".ds-chip { display: inline-flex; align-items: center; height: 32px; padding: 0 10px; border-radius: 9999px; border: 1px solid rgba(255, 255, 255, 0.7); background: rgba(255, 255, 255, 0.45); font-family: Outfit, sans-serif; font-size: 13px; font-weight: 500; color: #111111; text-decoration: none; transition: color 0.15s; } .ds-chip:hover { color: #7A2FC0; } .ds-chip:focus-visible { outline: 2px solid #3A1F62; }"
+    },
+    {
+      "name": "Product Row",
+      "kind": "card",
+      "refersTo": "product-thumbnail",
+      "description": "A search result or new arrival, with a sharp thumbnail on soft glass. The example image and text are illustrative.",
+      "html": "<a href=\"#\" class=\"ds-row\"><span class=\"ds-thumb\"></span><span class=\"ds-copy\"><span class=\"ds-name\">Example product name</span><span class=\"ds-cat-name\">Category</span></span><span class=\"ds-price\">Price</span></a>",
+      "css": ".ds-row { display: flex; align-items: center; gap: 12px; padding: 6px; border-radius: 16px; text-decoration: none; } .ds-thumb { width: 48px; height: 48px; flex: none; border-radius: 6px; background: #BFAED0; } .ds-copy { flex: 1; min-width: 0; } .ds-name { display: block; font-family: Outfit, sans-serif; font-size: 14px; font-weight: 500; color: #111111; transition: color 0.15s; } .ds-row:hover .ds-name { color: #7A2FC0; } .ds-row:focus-visible { outline: 2px solid #3A1F62; outline-offset: -2px; } .ds-cat-name { display: block; font-family: Outfit, sans-serif; font-size: 12px; color: #5B4A70; } .ds-price { font-family: Outfit, sans-serif; font-size: 13.5px; font-weight: 600; color: #111111; }"
+    },
+    {
+      "name": "Count Badge",
+      "kind": "custom",
+      "refersTo": "count-badge",
+      "description": "The favorites or cart count beside a nav label.",
+      "html": "<span class=\"ds-badge\">3</span>",
+      "css": ".ds-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 9999px; background: #431769; color: #FFFFFF; font-family: Outfit, sans-serif; font-size: 10px; font-weight: 700; line-height: 1; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Poured Thread",
+    "overview": "Everything that floats above the store is one body of liquid glass. A pill does not open a menu; it pours one. The second shape drains out of the first, stays joined by a thin thread of the same liquid, and is drawn back in when dismissed. In a shop about flow and connection, the navigation behaves the way the subject describes: nothing appears from nowhere, and connected things stay connected.\n\nThe glass is the only loud thing here. Products supply the colour and the imagery, so the chrome keeps to one family of lilac and plum, text stays dark and quiet, and interaction shows through a colour change, not extra shapes. The thread is the one authored motion moment, and it is worth more because nothing else competes with it.\n\nThis system currently covers the storefront header, the search modal and the customer sign in modal. The rest of the storefront still uses an older Etsy-derived palette (the `etsy-*` tokens in `app/globals.css`), and the admin panel has its own restrained black-and-white working style. Treat the older storefront styling as not yet migrated, and don't copy it into new work. Leave the admin as it is unless asked.",
+    "keyCharacteristics": [
+      "Floating lilac glass pills on the shared goo filter, never on a solid header bar.",
+      "A liquid thread linking every parent shape to whatever it opens.",
+      "Text-only hover and selection: colour changes, no pills or fills.",
+      "One purple family, with the products as the only other colour.",
+      "Sharp product thumbnails set against soft, rounded glass."
+    ],
+    "rules": [
+      { "name": "The State Is Violet Rule", "body": "Hover, selected and active all mean text turning Awakened Violet. If a state needs anything else, question the state first.", "section": "colors" },
+      { "name": "The Products Own Colour Rule", "body": "Purple is the only chrome colour. Orange, green and other accents don't belong on glass, including highlights on a category or link.", "section": "colors" },
+      { "name": "The Set It On The Element Rule", "body": "`globals.css` gives buttons and headings their own font and colour outside Tailwind's layers, so those override inherited styles and utilities. Inside glass, put `font-outfit` and the colour on an inner span of a button, link or heading. Skipping this produces the fallback font or the wrong colour.", "section": "typography" },
+      { "name": "The One Liquid Rule", "body": "Joined shapes share one filtered layer, so the shadow and rim follow the merged outline. Don't add a `box-shadow` or border to a single pill; it breaks the illusion that they are one body.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do build anything that opens from a pill with the Goo Shell, so the thread and material stay identical.",
+      "Do hang the thread from the control that opened the shape.",
+      "Do keep hover and selected states to a text colour change.",
+      "Do push the page down for the persistent category pill on tablet and up, and float over a blurred page for the phone menu.",
+      "Do load categories and products from the server in glass surfaces, never from the placeholder data.",
+      "Do keep product thumbnails at the sharp 6px radius.",
+      "Do keep every state working from the keyboard, with Deep Plum focus rings, and honour reduced motion."
+    ],
+    "donts": [
+      "Don't add a white or filled pill behind a hovered item.",
+      "Don't put a solid bar or border behind the header. The pills float.",
+      "Don't use orange, gift icons or other accent highlights on navigation.",
+      "Don't round product thumbnails to match the glass.",
+      "Don't place text inside the filtered layer, or add a border or `box-shadow` to a single goo shape.",
+      "Don't add a second ambient animation near the thread.",
+      "Don't expand the search field in place. Search opens as a modal.",
+      "Don't show fake urgency or invented claims on glass surfaces."
+    ]
+  }
+}

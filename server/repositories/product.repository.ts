@@ -25,6 +25,7 @@ export const productRepository = {
         { title: { contains: term, mode: 'insensitive' } },
         { description: { contains: term, mode: 'insensitive' } },
         { maker: { contains: term, mode: 'insensitive' } },
+        { category: { name: { contains: term, mode: 'insensitive' } } },
         { tags: { has: term } },
       ];
     }

@@ -11,11 +11,15 @@ interface GooNavShellProps {
   open: boolean;
   /** The control the liquid thread hangs from. */
   triggerRef: React.RefObject<HTMLElement | null>;
+  /** Change this when triggerRef moves to another control; the thread slides across to it. */
+  threadKey?: string;
   dropId: string;
   /** Contents of the shape that drops down. */
   drop: React.ReactNode;
   /** Contents of the main pill. */
   children: React.ReactNode;
+  /** Shrink the main pill to its contents and centre it, instead of filling the width. */
+  fitMain?: boolean;
   /** Main pill height before measuring, so the first paint is right. */
   mainHeight?: number;
   dropRadius?: number;
@@ -40,9 +44,11 @@ interface GooNavShellProps {
 export default function GooNavShell({
   open,
   triggerRef,
+  threadKey,
   dropId,
   drop,
   children,
+  fitMain = false,
   mainHeight: initialMainHeight = 56,
   dropRadius = 9999,
   dropClassName = 'w-fit max-w-full',
@@ -60,6 +66,8 @@ export default function GooNavShell({
     dropWidth: 0,
     dropHeight: TUCKED_HEIGHT,
     threadX: 0,
+    mainLeft: 0,
+    mainWidth: 0,
   });
 
   useEffect(() => {
@@ -76,6 +84,8 @@ export default function GooNavShell({
       const triggerCenter = trigger ? trigger.left + trigger.width / 2 - rootLeft : dropLeft;
       setGeometry({
         mainHeight: main.offsetHeight || initialMainHeight,
+        mainLeft: main.offsetLeft,
+        mainWidth: main.offsetWidth,
         dropLeft,
         dropWidth,
         dropHeight: dropEl.offsetHeight || TUCKED_HEIGHT,
@@ -90,9 +100,9 @@ export default function GooNavShell({
     observer.observe(main);
     observer.observe(dropEl);
     return () => observer.disconnect();
-  }, [triggerRef, initialMainHeight]);
+  }, [triggerRef, initialMainHeight, threadKey]);
 
-  const { mainHeight, dropLeft, dropWidth, dropHeight, threadX } = geometry;
+  const { mainHeight, dropLeft, dropWidth, dropHeight, threadX, mainLeft, mainWidth } = geometry;
   // A shell hidden by its parent measures zero wide and draws no drop shape.
   const hasDrop = dropWidth > 0;
 
@@ -149,11 +159,19 @@ export default function GooNavShell({
           filter: `url(#${filterId}) drop-shadow(0 6px 10px rgba(67, 23, 105, 0.14))`,
         }}
       >
-        <div className="absolute inset-x-0 top-0 rounded-full" style={{ height: mainHeight, background: FILL }} />
+        <div
+          className="absolute top-0 rounded-full"
+          style={{
+            height: mainHeight,
+            background: FILL,
+            left: fitMain ? mainLeft : 0,
+            width: fitMain ? mainWidth : '100%',
+          }}
+        />
         {hasDrop && (
           <>
             <div
-              className={`absolute origin-top rounded-full bg-[#E6DBF3] transition-[width,transform] motion-reduce:transition-none ${open ? 'duration-[760ms] ease-out' : 'duration-[200ms] ease-in'}`}
+              className={`absolute origin-top rounded-full bg-[#E6DBF3] transition-[left,width,transform] motion-reduce:transition-none ${open ? 'duration-[760ms] ease-out' : 'duration-[200ms] ease-in'}`}
               style={{
                 left: threadX,
                 top: mainHeight - 14,
@@ -179,7 +197,10 @@ export default function GooNavShell({
       </div>
 
       {/* Main pill content */}
-      <div ref={mainRef} className="relative z-20 rounded-full backdrop-blur-xl pointer-events-auto">
+      <div
+        ref={mainRef}
+        className={`relative z-20 rounded-full backdrop-blur-xl pointer-events-auto ${fitMain ? 'mx-auto w-fit' : ''}`}
+      >
         {children}
       </div>
 
@@ -192,7 +213,7 @@ export default function GooNavShell({
           ref={dropRef}
           id={dropId}
           inert={!open}
-          className={`origin-top overflow-hidden backdrop-blur-xl transition-[transform,opacity,visibility] motion-reduce:transition-none ${motion} ${dropClassName} ${open ? 'pointer-events-auto opacity-100' : 'invisible opacity-0'}`}
+          className={`origin-top overflow-hidden backdrop-blur-xl motion-reduce:transition-none ${motion} ${dropClassName} ${open ? 'pointer-events-auto opacity-100 transition-[transform,opacity]' : 'invisible opacity-0 transition-[transform,opacity,visibility]'}`}
           // Until it's measured the shape layer can't draw this, so it fills itself.
           style={{ transform: dropTransform, borderRadius: dropRadius, background: hasDrop ? undefined : FILL }}
         >
