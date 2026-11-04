@@ -124,7 +124,7 @@ Everything that floats above the store is one body of liquid glass. A pill does 
 
 The glass is the only loud thing here. Products supply the colour and the imagery, so the chrome keeps to one family of lilac and plum, text stays dark and quiet, and interaction shows through a colour change, not extra shapes. The thread is the one authored motion moment, and it is worth more because nothing else competes with it.
 
-This system currently covers the storefront header, the search modal, the customer sign in modal and the shop page. The rest of the storefront still uses an older Etsy-derived palette (the `etsy-*` tokens in `app/globals.css`), and the admin panel has its own restrained black-and-white working style. Treat the older storefront styling as not yet migrated, and don't copy it into new work. Leave the admin as it is unless asked.
+This system currently covers the storefront header, the search modal, the customer sign in modal, the shop page and the product details drawer. The rest of the storefront still uses an older Etsy-derived palette (the `etsy-*` tokens in `app/globals.css`), and the admin panel has its own restrained black-and-white working style. Treat the older storefront styling as not yet migrated, and don't copy it into new work. Leave the admin as it is unless asked.
 
 **Key Characteristics:**
 - Floating lilac glass pills on the shared goo filter, never on a solid header bar.
@@ -253,11 +253,22 @@ The thread is the signature shape. It's a narrow strip that the goo filter flare
 - **Footer:** Clear all, when something is active, and a primary button stating the result count, such as "Show 7 products".
 
 ### Shop Product Card
-- **Shape:** a contained glass card with 8px corners, using the glass gradient and glass lift. The photo fills the top edge to edge, and cards in a row share one height.
+- **Shape:** a contained glass card with 8px corners, using the glass gradient and glass lift. The card frames the photo: a 4:3 image with 6px corners sits inset from the card edges, and cards in a row share one height.
 - **On the photo:** Out of stock and Bestseller as small sharp labels at top left, with a round glass heart at top right. Discounts show only in the price row.
-- **Details:** category with a small rating chip beside it, then a semibold name and a quiet low-stock note when it applies. The rating only appears when a product has reviews.
+- **Details:** category with a small rating chip beside it, then a semibold name and a quiet low-stock note when it applies. The rating is the number an admin entered, and it's hidden when that's 0. Customer reviews don't affect it.
 - **Price row:** below a thin divider, any real compare-at price struck through, then the price in bold, with a double chevron at the far right.
 - **Hover:** the name turns Awakened Violet, the chevron shifts slightly, and the photo zooms a little. The card itself doesn't lift.
+
+### Product Details Drawer
+*Products have no page of their own. Every product link opens this drawer (`shop/components/ProductDetailsDrawer.tsx`), and `/shop?product=<id>` opens it directly.*
+
+- **Shape:** glass from the right edge, up to 520px wide and full width on phones, with square corners over a blurred page. It has no thread, like the filter drawer.
+- **Loading in stages:** cards load only the fields they show. Opening a product shows those straight away and loads the full details for that product alone. Reviews load the first time the Reviews tab is opened.
+- **Tabs:** Product details and Reviews, as text tabs in the header, with the review count from the Review table. The selected tab turns Awakened Violet and draws a 2px line under itself.
+- **Product details:** photo and thumbnails at 6px, category and rating, a serif name, price, description, options, quantity, item details, materials and maker.
+- **Actions:** a fixed footer on the Product details tab, with Buy It Now as an outline and Add to Cart as the primary button. Guests see one primary button, Login to cart, which opens the sign in modal over the drawer.
+- **Reviews:** the Reviews tab shows Add review to signed-in customers and Login to add review to guests, which opens the sign in modal over the drawer. The form takes a star rating and a comment, and saving never changes the rating on the product.
+- **Claims:** only show what's stored for the product. Don't add demand counts, certificates or delivery promises here.
 
 ### Chips
 - **Style:** translucent white (45%) with a white border (70%), in full pills 32px tall. They carry no shadow of their own.

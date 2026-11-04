@@ -1,4 +1,5 @@
 import prisma from '@/lib/prisma';
+import { productReviewCount } from './product.repository';
 import { Prisma } from '@/app/generated/prisma/client';
 
 export const favoriteRepository = {
@@ -8,7 +9,7 @@ export const favoriteRepository = {
       where: { userId },
       include: {
         product: {
-          include: { category: true },
+          include: { category: true, ...productReviewCount },
         },
       },
       orderBy: { createdAt: 'desc' },

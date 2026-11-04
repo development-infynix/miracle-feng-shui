@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import type { Product } from '@/lib/placeholder-data';
+import type { ProductSummary } from '@/lib/placeholder-data';
 import { useLocale } from '@/context/CurrencyContext';
 import { translateCategory } from '@/lib/translations';
 import ShopAppliedFilters from './ShopAppliedFilters';
@@ -15,7 +15,7 @@ const CONTAINER = 'mx-auto w-full max-w-[1280px] px-3 sm:px-6';
 interface ShopViewProps {
   filters: ShopFilters;
   categories: ShopCategory[];
-  products: Product[];
+  products: ProductSummary[];
   total: number;
 }
 

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import type { Product } from '@/lib/placeholder-data';
+import type { ProductSummary } from '@/lib/placeholder-data';
 import { useLocale } from '@/context/CurrencyContext';
 import ShopProductCard from './ShopProductCard';
 import { hasNarrowingFilters, NO_FILTERS, toProductQuery, type ShopFilters } from './shopFilters';
@@ -11,7 +11,7 @@ const buttonClass =
 
 interface ShopProductGridProps {
   filters: ShopFilters;
-  initialProducts: Product[];
+  initialProducts: ProductSummary[];
   total: number;
   /** A filter change is loading on the server. */
   pending: boolean;
@@ -44,7 +44,7 @@ export default function ShopProductGrid({ filters, initialProducts, total, pendi
       setProducts((current) => {
         // A product added while browsing shifts the pages, so one can arrive twice.
         const seen = new Set(current.map((product) => product.id));
-        return [...current, ...(json.data.items as Product[]).filter((product) => !seen.has(product.id))];
+        return [...current, ...(json.data.items as ProductSummary[]).filter((product) => !seen.has(product.id))];
       });
       setPage((current) => current + 1);
     } catch (error) {

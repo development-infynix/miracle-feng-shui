@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { ProductLink } from '@/shop/components/ProductDrawerProvider';
 
 import {
   circularCategories,
@@ -302,9 +303,8 @@ export default function MiracleFengShuiHomePage() {
               {picks.map((pick) => {
                 const isFav = !!favoritePicks[pick.id];
                 return (
-                  <Link
-                    key={pick.id}
-                    href={`/product/${pick.id}`}
+                  <ProductLink
+                    key={pick.id} product={pick}
                     className="group relative aspect-square rounded-[12px] sm:rounded-[14px] overflow-hidden bg-[#F4F4F4] shadow-2xs hover:shadow-md transition-all"
                   >
                     <img
@@ -347,7 +347,7 @@ export default function MiracleFengShuiHomePage() {
                         </span>
                       )}
                     </div>
-                  </Link>
+                  </ProductLink>
                 );
               })}
             </div>
@@ -412,9 +412,8 @@ export default function MiracleFengShuiHomePage() {
           {todaysDeals.map((deal) => {
             const isFav = !!favoritePicks[deal.id];
             return (
-              <Link
-                key={deal.id}
-                href={`/product/${deal.id}`}
+              <ProductLink
+                key={deal.id} product={deal.id}
                 className="group shrink-0 w-[230px] sm:w-[260px] flex flex-col no-underline text-inherit"
               >
                 <div className="relative aspect-square w-full rounded-[16px] sm:rounded-[18px] overflow-hidden bg-[#F0EFEB] shadow-2xs group-hover:shadow-md transition-all">
@@ -460,7 +459,7 @@ export default function MiracleFengShuiHomePage() {
                     </span>
                   </div>
                 </div>
-              </Link>
+              </ProductLink>
             );
           })}
         </div>

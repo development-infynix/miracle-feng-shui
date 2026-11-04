@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { ProductLink } from '@/shop/components/ProductDrawerProvider';
 import { useSession } from 'next-auth/react';
 import { printIsolatedTaxInvoice, downloadStandaloneTaxInvoice } from '@/lib/invoice';
 import { useLocale } from '@/context/CurrencyContext';
@@ -432,11 +433,7 @@ export default function MyOrdersPage() {
                     {/* Items in this Order */}
                     <div className="divide-y divide-gray-100">
                       {(order.items || []).map((it, idx) => {
-                        const productUrl = it.slug
-                          ? `/product/${it.slug}`
-                          : it.productId
-                          ? `/product/${it.productId}`
-                          : `/shop`;
+                        const productRef = it.productId || it.slug;
 
                         return (
                           <div
@@ -444,8 +441,7 @@ export default function MyOrdersPage() {
                             className="py-4 first:pt-0 last:pb-0 flex flex-col sm:flex-row items-start justify-between gap-5"
                           >
                             <div className="flex gap-4 sm:gap-5 flex-grow">
-                              <Link
-                                href={productUrl}
+                              <ProductLink product={productRef}
                                 className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden bg-gray-50 border border-gray-200/80 shrink-0 block group"
                               >
                                 <img
@@ -456,18 +452,17 @@ export default function MyOrdersPage() {
                                     (e.target as HTMLImageElement).src = '/images/miracle.jpeg';
                                   }}
                                 />
-                              </Link>
+                              </ProductLink>
 
                               <div className="space-y-1.5 flex-grow">
                                 <span className="text-[12px] text-gray-500 font-medium block">
                                   Sold by {order.shopName || 'Miracle Feng Shui Studio'}
                                 </span>
-                                <Link
-                                  href={productUrl}
+                                <ProductLink product={productRef}
                                   className="text-[14.5px] sm:text-[15.5px] font-medium text-[#111111] hover:underline line-clamp-2 leading-snug"
                                 >
                                   {it.title || it.name || it.productName}
-                                </Link>
+                                </ProductLink>
                                 <div className="flex items-center gap-3 text-[13px] pt-0.5">
                                   <span className="font-semibold text-[#111111]">
                                     {formatPrice(it.price * (it.quantity || 1))}
@@ -480,13 +475,12 @@ export default function MyOrdersPage() {
 
                             {/* Clean Action Buttons */}
                             <div className="flex flex-row sm:flex-col items-center sm:items-stretch gap-2 w-full sm:w-[140px] pt-1 sm:pt-0 shrink-0">
-                              <Link
-                                href={productUrl}
+                              <ProductLink product={productRef}
                                 style={{ color: '#ffffff', backgroundColor: '#111111' }}
                                 className="w-full text-center px-4 py-2.5 bg-[#111111] hover:bg-black text-white text-[13px] font-semibold rounded-xl transition-all shadow-xs no-underline flex items-center justify-center"
                               >
                                 Buy again
-                              </Link>
+                              </ProductLink>
                             </div>
                           </div>
                         );

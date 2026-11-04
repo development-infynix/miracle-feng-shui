@@ -15,6 +15,7 @@ export async function GET(req: NextRequest) {
     'freeShipping',
     'maker',
     'tags',
+    'rating',
   ];
 
   const sampleRows = [
@@ -32,6 +33,7 @@ export async function GET(req: NextRequest) {
       'true',
       '"Miracle Feng Shui Studio"',
       '"Citrine | Prosperity | Wealth Tree | Crystals"',
+      '4.9',
     ].join(','),
     [
       '',
@@ -47,6 +49,7 @@ export async function GET(req: NextRequest) {
       'true',
       '"Miracle Feng Shui Studio"',
       '"Bagua | Protection | Brass Decor"',
+      '4.8',
     ].join(','),
     [
       '',
@@ -62,6 +65,7 @@ export async function GET(req: NextRequest) {
       'true',
       '"Miracle Feng Shui Studio"',
       '"Pixiu | Cinnabar | Luck Bracelet"',
+      '5',
     ].join(','),
   ];
 

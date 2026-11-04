@@ -7,7 +7,8 @@ import GooNavShell from '@/components/GooNavShell';
 import { useLocale } from '@/context/CurrencyContext';
 import { useGlassModal } from './useGlassModal';
 import type { NavCategory } from '@/lib/nav-categories';
-import type { Product } from '@/lib/placeholder-data';
+import type { ProductSummary } from '@/lib/placeholder-data';
+import { ProductLink, useProductDrawer } from '@/shop/components/ProductDrawerProvider';
 import { translateCategory, translateProductTitle } from '@/lib/translations';
 
 const MAX_RESULTS = 6;
@@ -24,12 +25,12 @@ async function fetchProducts(params: Record<string, string>, signal: AbortSignal
   const res = await fetch(`/api/products?${new URLSearchParams(params)}`, { signal });
   const json = await res.json();
   if (!res.ok || !json.success) throw new Error(`Request failed: ${res.status}`);
-  return json.data as { items: Product[]; total: number };
+  return json.data as { items: ProductSummary[]; total: number };
 }
 
 interface SearchResult {
   term: string;
-  items: Product[];
+  items: ProductSummary[];
   failed: boolean;
 }
 
@@ -46,7 +47,7 @@ export default function GeneralSearchModal({ open, onClose, categories }: Genera
   const { formatPrice, language, t } = useLocale();
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(-1);
-  const [arrivals, setArrivals] = useState<{ items: Product[]; failed: boolean } | null>(null);
+  const [arrivals, setArrivals] = useState<{ items: ProductSummary[]; failed: boolean } | null>(null);
   const [result, setResult] = useState<SearchResult | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -102,6 +103,8 @@ export default function GeneralSearchModal({ open, onClose, categories }: Genera
   const searchItems = result?.items ?? [];
   const rows = term ? searchItems : (arrivals?.items ?? []);
 
+  const { openProduct } = useProductDrawer();
+
   const updateQuery = (value: string) => {
     setQuery(value);
     setActiveIndex(-1);
@@ -111,7 +114,7 @@ export default function GeneralSearchModal({ open, onClose, categories }: Genera
     e.preventDefault();
     const active = rows[activeIndex];
     if (active) {
-      router.push(`/product/${active.id}`);
+      openProduct(active);
     } else {
       router.push(term ? `/shop?q=${encodeURIComponent(term)}` : '/shop');
     }
@@ -168,8 +171,7 @@ export default function GeneralSearchModal({ open, onClose, categories }: Genera
         const active = idx === activeIndex;
         return (
           <li key={product.id} id={`${LISTBOX_ID}-${idx}`} role="option" aria-selected={active}>
-            <Link
-              href={`/product/${product.id}`}
+            <ProductLink product={product}
               onClick={onClose}
               onMouseEnter={() => setActiveIndex(idx)}
               className="group flex items-center gap-3 rounded-2xl p-1.5 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#3A1F62]"
@@ -197,7 +199,7 @@ export default function GeneralSearchModal({ open, onClose, categories }: Genera
               <span aria-hidden="true" className="hidden md:block">
                 <i className={`fa-solid fa-arrow-right text-[11px] text-[#7A2FC0] transition-opacity ${active ? 'opacity-100' : 'opacity-0'}`} />
               </span>
-            </Link>
+            </ProductLink>
           </li>
         );
       })}

@@ -53,7 +53,6 @@ const productFields = z.object({
   personalizationInstruction: z.string().nullable().optional(), // alias
   inDemandCount: z.coerce.number().int().optional(),
   rating: z.coerce.number().min(0).max(5).optional(),
-  reviewCount: z.coerce.number().int().min(0).optional(),
   isActive: z.boolean().optional(),
   isFeatured: z.boolean().optional(),
 });

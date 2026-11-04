@@ -1,4 +1,5 @@
 import prisma from '@/lib/prisma';
+import { productReviewCount } from './product.repository';
 import { Prisma } from '@/app/generated/prisma/client';
 import { AddToCartInput } from '../validators/cart.validator';
 
@@ -10,7 +11,7 @@ export const cartRepository = {
       include: {
         items: {
           include: {
-            product: true,
+            product: { include: productReviewCount },
           },
           orderBy: { createdAt: 'asc' },
         },
@@ -23,7 +24,7 @@ export const cartRepository = {
         include: {
           items: {
             include: {
-              product: true,
+              product: { include: productReviewCount },
             },
             orderBy: { createdAt: 'asc' },
           },

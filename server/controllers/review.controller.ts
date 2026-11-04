@@ -1,16 +1,19 @@
 import { NextRequest } from 'next/server';
-import { createReviewSchema } from '../validators/review.validator';
+import { createReviewSchema, reviewListQuerySchema } from '../validators/review.validator';
 import { reviewService } from '../services/review.service';
 import { apiResponse } from '../utils/apiResponse';
 import { handleError } from '../middlewares/handleError';
 import { AuthenticatedUser } from '../middlewares/withAuth';
 
 export const reviewController = {
-  async list(_req: NextRequest, context: { params: Promise<{ id?: string; slug?: string }> }) {
+  async list(req: NextRequest, context: { params: Promise<{ id?: string; slug?: string }> }) {
     try {
       const resolved = await context.params;
       const productId = (resolved.slug || resolved.id)!;
-      const reviews = await reviewService.listByProduct(productId);
+      const { page } = reviewListQuerySchema.parse({
+        page: req.nextUrl.searchParams.get('page') ?? undefined,
+      });
+      const reviews = await reviewService.listByProduct(productId, page);
       return apiResponse.ok(reviews);
     } catch (error) {
       return handleError(error);

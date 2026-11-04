@@ -143,8 +143,6 @@ async function main() {
         inDemandCount: prod.inDemandCount || 0,
         isFeatured: prod.bestseller || false,
         isActive: true,
-        ratingAvg: prod.rating || 5.0,
-        ratingCount: prod.reviewCount || 10,
       },
       create: {
         id: prod.id,
@@ -173,8 +171,6 @@ async function main() {
         inDemandCount: prod.inDemandCount || 0,
         isFeatured: prod.bestseller || false,
         isActive: true,
-        ratingAvg: prod.rating || 5.0,
-        ratingCount: prod.reviewCount || 10,
       },
     });
     createdProducts.push(created);

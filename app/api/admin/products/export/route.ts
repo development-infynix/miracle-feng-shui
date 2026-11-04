@@ -43,6 +43,7 @@ export async function GET(req: NextRequest) {
         freeShipping: p.freeShipping || true,
         maker: p.maker || 'Miracle Feng Shui Studio',
         tags: [p.category],
+        ratingAvg: p.rating || 0,
       }));
     }
 
@@ -60,6 +61,7 @@ export async function GET(req: NextRequest) {
       'freeShipping',
       'maker',
       'tags',
+      'rating',
     ];
 
     const rows = productItems.map((p: any) => {
@@ -81,6 +83,7 @@ export async function GET(req: NextRequest) {
         escapeCsvCell(p.freeShipping ? 'true' : 'false'),
         escapeCsvCell(p.maker || 'Miracle Feng Shui Studio'),
         escapeCsvCell(tagsStr),
+        escapeCsvCell(p.ratingAvg ?? 0),
       ].join(',');
     });
 

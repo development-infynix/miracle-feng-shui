@@ -2,6 +2,9 @@
 
 import { useEffect, useRef, useState } from 'react';
 
+// Open modals, newest last. Modals can stack, such as sign in over a product drawer.
+const openModals: object[] = [];
+
 interface GlassModalOptions {
   open: boolean;
   onClose: () => void;
@@ -30,18 +33,23 @@ export function useGlassModal({ open, onClose, panelRef, initialFocusRef }: Glas
   useEffect(() => {
     if (!open) return;
     const previousFocus = document.activeElement as HTMLElement | null;
+    const modal = {};
+    openModals.push(modal);
     document.body.style.overflow = 'hidden';
     const pourTimer = setTimeout(() => setPoured(true), 40);
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Only the modal on top responds to the keyboard.
+      if (openModals[openModals.length - 1] !== modal) return;
       if (e.key === 'Escape') {
         onCloseRef.current();
         return;
       }
       if (e.key !== 'Tab' || !panelRef.current) return;
-      const focusable = panelRef.current.querySelectorAll<HTMLElement>(
-        'input:not([disabled]), button:not([disabled]), a[href]'
-      );
+      // Leaves out inactive tabs and anything in a hidden panel, which can't take focus.
+      const focusable = Array.from(
+        panelRef.current.querySelectorAll<HTMLElement>('input:not([disabled]), button:not([disabled]), a[href]')
+      ).filter((element) => element.tabIndex >= 0 && element.offsetParent !== null);
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
       if (e.shiftKey && document.activeElement === first) {
@@ -57,7 +65,8 @@ export function useGlassModal({ open, onClose, panelRef, initialFocusRef }: Glas
     return () => {
       clearTimeout(pourTimer);
       setPoured(false);
-      document.body.style.overflow = '';
+      openModals.splice(openModals.indexOf(modal), 1);
+      if (openModals.length === 0) document.body.style.overflow = '';
       document.removeEventListener('keydown', handleKeyDown);
       previousFocus?.focus();
     };

@@ -1,11 +1,11 @@
 'use client';
 
 import React from 'react';
-import Link from 'next/link';
 import { Product } from '@/lib/placeholder-data';
 import { useCart } from '@/context/CartContext';
 import { useLocale } from '@/context/CurrencyContext';
 import { translateProductTitle } from '@/lib/translations';
+import { ProductLink } from '@/shop/components/ProductDrawerProvider';
 
 interface ProductCardProps {
   product: Product;
@@ -30,8 +30,7 @@ export function ProductCard({ product }: ProductCardProps) {
   const mainImage = product.images[0];
 
   return (
-    <Link
-      href={`/product/${product.id}`}
+    <ProductLink product={product}
       className="group flex flex-col no-underline text-inherit hover:-translate-y-1 transition-all duration-200"
     >
       {/* 1. Image Area with Badges & Favorite Heart */}
@@ -102,14 +101,14 @@ export function ProductCard({ product }: ProductCardProps) {
           {localizedTitle}
         </h3>
 
-        {/* Rating & Review Count */}
-        {(product.reviewCount > 0 || (product.rating ?? 0) > 0) && (
+        {/* Rating */}
+        {(product.rating ?? 0) > 0 && (
           <div className="flex items-center gap-1.5 mt-1.5">
             <div className="flex items-center gap-0.5 text-[#E59819]">
               <i className="fa-solid fa-star text-[11px] leading-none" />
             </div>
             <span className="text-[12px] text-etsy-gray font-normal">
-              {product.rating.toFixed(1)} ({product.reviewCount > 1000 ? `${(product.reviewCount / 1000).toFixed(1)}k` : product.reviewCount})
+              {product.rating.toFixed(1)}
             </span>
           </div>
         )}
@@ -153,6 +152,6 @@ export function ProductCard({ product }: ProductCardProps) {
           </div>
         )}
       </div>
-    </Link>
+    </ProductLink>
   );
 }

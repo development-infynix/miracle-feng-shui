@@ -40,6 +40,12 @@ export type Product = {
   stock?: number;
 };
 
+/** The fields a product card needs. Everything else loads when the product is opened. */
+export type ProductSummary = Pick<
+  Product,
+  'id' | 'name' | 'price' | 'originalPrice' | 'images' | 'stock' | 'bestseller' | 'category' | 'rating' | 'maker'
+>;
+
 export const categories = [
   'All',
   'Feng Shui Decor',
@@ -361,7 +367,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 5,
-    "reviewCount": 1420,
+    "reviewCount": 0,
     "category": "Feng Shui Jewelry",
     "images": [
       "https://i.etsystatic.com/28306871/r/il/791365/7159126948/il_340x270.7159126948_ebgf.jpg",
@@ -391,7 +397,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 4.9,
-    "reviewCount": 2310,
+    "reviewCount": 0,
     "category": "Feng Shui Jewelry",
     "images": [
       "https://i.etsystatic.com/65398995/r/il/637ebb/7994749201/il_1080xN.7994749201_tjcq.jpg",
@@ -420,7 +426,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 4.8,
-    "reviewCount": 890,
+    "reviewCount": 0,
     "category": "Feng Shui Jewelry",
     "images": [
       "https://i.etsystatic.com/27864554/r/il/32250d/5943360949/il_fullxfull.5943360949_g433.jpg",
@@ -450,7 +456,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 5,
-    "reviewCount": 3120,
+    "reviewCount": 0,
     "category": "Feng Shui Jewelry",
     "images": [
       "https://i.etsystatic.com/58154797/r/il/827b49/7627716971/il_fullxfull.7627716971_ctfy.jpg",
@@ -481,7 +487,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 4.9,
-    "reviewCount": 1750,
+    "reviewCount": 0,
     "category": "Feng Shui Jewelry",
     "images": [
       "https://i.etsystatic.com/57158477/r/il/5dae6a/6913075322/il_fullxfull.6913075322_qfbf.jpg",
@@ -511,7 +517,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 5,
-    "reviewCount": 420,
+    "reviewCount": 0,
     "category": "Feng Shui Jewelry",
     "images": [
       "https://images.unsplash.com/photo-1599643477877-530eb83abc8e?auto=format&fit=crop&w=800&q=80",
@@ -542,7 +548,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 4.8,
-    "reviewCount": 640,
+    "reviewCount": 0,
     "category": "Feng Shui Jewelry",
     "images": [
       "https://images.unsplash.com/photo-1606744837616-56c9a5c6a6eb?auto=format&fit=crop&w=800&q=80",
@@ -572,7 +578,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 4.9,
-    "reviewCount": 1980,
+    "reviewCount": 0,
     "category": "Feng Shui Jewelry",
     "images": [
       "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=800&q=80",
@@ -602,7 +608,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 4.9,
-    "reviewCount": 950,
+    "reviewCount": 0,
     "category": "Feng Shui Jewelry",
     "images": [
       "https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=800&q=80",
@@ -631,7 +637,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 5,
-    "reviewCount": 2840,
+    "reviewCount": 0,
     "category": "Feng Shui Jewelry",
     "images": [
       "https://images.unsplash.com/photo-1599643477877-530eb83abc8e?auto=format&fit=crop&w=800&q=80",
@@ -662,7 +668,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 4.9,
-    "reviewCount": 1680,
+    "reviewCount": 0,
     "category": "Feng Shui Jewelry",
     "images": [
       "https://images.unsplash.com/photo-1599643477877-530eb83abc8e?auto=format&fit=crop&w=800&q=80",
@@ -693,7 +699,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 4.8,
-    "reviewCount": 1150,
+    "reviewCount": 0,
     "category": "Feng Shui Jewelry",
     "images": [
       "https://i.etsystatic.com/18528884/r/il/4255ed/7574072434/il_fullxfull.7574072434_8ebu.jpg",
@@ -723,7 +729,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 5,
-    "reviewCount": 3890,
+    "reviewCount": 0,
     "category": "Feng Shui Candles",
     "images": [
       "https://i.etsystatic.com/19246526/r/il/35c642/6558547910/il_fullxfull.6558547910_qiy1.jpg",
@@ -753,7 +759,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 4.9,
-    "reviewCount": 2150,
+    "reviewCount": 0,
     "category": "Feng Shui Candles",
     "images": [
       "https://i.etsystatic.com/22910392/r/il/bae559/5610740112/il_1080xN.5610740112_bo2m.jpg",
@@ -784,7 +790,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 5,
-    "reviewCount": 4210,
+    "reviewCount": 0,
     "category": "Feng Shui Candles",
     "images": [
       "https://i.etsystatic.com/iap/525f9c/6590809009/iap_600x600.6590809009_28b5u0k3.jpg?version=0",
@@ -815,7 +821,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 4.9,
-    "reviewCount": 1830,
+    "reviewCount": 0,
     "category": "Feng Shui Candles",
     "images": [
       "https://i.etsystatic.com/60335618/r/il/5e079c/7435054325/il_1080xN.7435054325_s37u.jpg",
@@ -844,7 +850,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 4.8,
-    "reviewCount": 940,
+    "reviewCount": 0,
     "category": "Feng Shui Candles",
     "images": [
       "https://i.etsystatic.com/59148376/r/il/5c6a68/7037517033/il_fullxfull.7037517033_rp73.jpg",
@@ -875,7 +881,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 4.9,
-    "reviewCount": 760,
+    "reviewCount": 0,
     "category": "Feng Shui Candles",
     "images": [
       "https://images.unsplash.com/photo-1606744837616-56c9a5c6a6eb?auto=format&fit=crop&w=800&q=80",
@@ -905,7 +911,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 5,
-    "reviewCount": 3200,
+    "reviewCount": 0,
     "category": "Feng Shui Candles",
     "images": [
       "https://images.unsplash.com/photo-1518895949257-7621c3c786d7?auto=format&fit=crop&w=800&q=80",
@@ -935,7 +941,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 4.8,
-    "reviewCount": 820,
+    "reviewCount": 0,
     "category": "Feng Shui Candles",
     "images": [
       "https://images.unsplash.com/photo-1603006905003-be475563bc59?auto=format&fit=crop&w=800&q=80",
@@ -965,7 +971,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 4.9,
-    "reviewCount": 1450,
+    "reviewCount": 0,
     "category": "Feng Shui Candles",
     "images": [
       "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=800&q=80",
@@ -995,7 +1001,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 5,
-    "reviewCount": 2780,
+    "reviewCount": 0,
     "category": "Feng Shui Candles",
     "images": [
       "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80",
@@ -1025,7 +1031,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 4.8,
-    "reviewCount": 920,
+    "reviewCount": 0,
     "category": "Feng Shui Candles",
     "images": [
       "https://images.unsplash.com/photo-1518895949257-7621c3c786d7?auto=format&fit=crop&w=800&q=80",
@@ -1054,7 +1060,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 4.9,
-    "reviewCount": 650,
+    "reviewCount": 0,
     "category": "Feng Shui Candles",
     "images": [
       "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=800&q=80",
@@ -1085,7 +1091,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 5,
-    "reviewCount": 3820,
+    "reviewCount": 0,
     "category": "Feng Shui Decor",
     "images": [
       "https://i.etsystatic.com/61062687/r/il/8c215d/7104788870/il_794xN.7104788870_shv6.jpg",
@@ -1115,7 +1121,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 4.9,
-    "reviewCount": 1620,
+    "reviewCount": 0,
     "category": "Feng Shui Decor",
     "images": [
       "https://images.unsplash.com/photo-1606744837616-56c9a5c6a6eb?auto=format&fit=crop&w=800&q=80",
@@ -1144,7 +1150,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 4.9,
-    "reviewCount": 2190,
+    "reviewCount": 0,
     "category": "Feng Shui Decor",
     "images": [
       "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80",
@@ -1174,7 +1180,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 4.8,
-    "reviewCount": 1510,
+    "reviewCount": 0,
     "category": "Feng Shui Decor",
     "images": [
       "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=800&q=80",
@@ -1203,7 +1209,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 5,
-    "reviewCount": 2900,
+    "reviewCount": 0,
     "category": "Feng Shui Decor",
     "images": [
       "https://images.unsplash.com/photo-1518895949257-7621c3c786d7?auto=format&fit=crop&w=800&q=80",
@@ -1232,7 +1238,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 5,
-    "reviewCount": 3420,
+    "reviewCount": 0,
     "category": "Feng Shui Decor",
     "images": [
       "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80",
@@ -1261,7 +1267,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 4.9,
-    "reviewCount": 1890,
+    "reviewCount": 0,
     "category": "Feng Shui Decor",
     "images": [
       "https://images.unsplash.com/photo-1518895949257-7621c3c786d7?auto=format&fit=crop&w=800&q=80",
@@ -1290,7 +1296,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 4.9,
-    "reviewCount": 2450,
+    "reviewCount": 0,
     "category": "Feng Shui Decor",
     "images": [
       "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=800&q=80",
@@ -1320,7 +1326,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 5,
-    "reviewCount": 1780,
+    "reviewCount": 0,
     "category": "Feng Shui Decor",
     "images": [
       "https://images.unsplash.com/photo-1606744837616-56c9a5c6a6eb?auto=format&fit=crop&w=800&q=80",
@@ -1349,7 +1355,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 4.8,
-    "reviewCount": 930,
+    "reviewCount": 0,
     "category": "Feng Shui Decor",
     "images": [
       "https://images.unsplash.com/photo-1518895949257-7621c3c786d7?auto=format&fit=crop&w=800&q=80",
@@ -1378,7 +1384,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 4.9,
-    "reviewCount": 1120,
+    "reviewCount": 0,
     "category": "Feng Shui Decor",
     "images": [
       "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80",
@@ -1407,7 +1413,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 4.9,
-    "reviewCount": 1340,
+    "reviewCount": 0,
     "category": "Feng Shui Decor",
     "images": [
       "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80",
@@ -1436,7 +1442,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 4.9,
-    "reviewCount": 1470,
+    "reviewCount": 0,
     "category": "Feng Shui Decor",
     "images": [
       "https://images.unsplash.com/photo-1606744837616-56c9a5c6a6eb?auto=format&fit=crop&w=800&q=80",
@@ -1465,7 +1471,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 5,
-    "reviewCount": 4120,
+    "reviewCount": 0,
     "category": "Feng Shui Decor",
     "images": [
       "https://i.etsystatic.com/61064616/r/il/209d99/7042851538/il_1080xN.7042851538_ma68.jpg",
@@ -1494,7 +1500,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 4.8,
-    "reviewCount": 980,
+    "reviewCount": 0,
     "category": "Feng Shui Decor",
     "images": [
       "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80",
@@ -1523,7 +1529,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 4.9,
-    "reviewCount": 780,
+    "reviewCount": 0,
     "category": "Feng Shui Decor",
     "images": [
       "https://images.unsplash.com/photo-1606744837616-56c9a5c6a6eb?auto=format&fit=crop&w=800&q=80",
@@ -1552,7 +1558,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 5,
-    "reviewCount": 2450,
+    "reviewCount": 0,
     "category": "Feng Shui Books",
     "images": [
       "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80",
@@ -1581,7 +1587,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 4.8,
-    "reviewCount": 1100,
+    "reviewCount": 0,
     "category": "Feng Shui Books",
     "images": [
       "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=800&q=80",
@@ -1610,7 +1616,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 5,
-    "reviewCount": 3100,
+    "reviewCount": 0,
     "category": "Feng Shui Books",
     "images": [
       "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80",
@@ -1640,7 +1646,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 4.9,
-    "reviewCount": 1650,
+    "reviewCount": 0,
     "category": "Feng Shui Books",
     "images": [
       "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80",
@@ -1669,7 +1675,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 5,
-    "reviewCount": 2980,
+    "reviewCount": 0,
     "category": "Feng Shui Books",
     "images": [
       "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80",
@@ -1698,7 +1704,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 4.9,
-    "reviewCount": 1200,
+    "reviewCount": 0,
     "category": "Feng Shui Books",
     "images": [
       "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=800&q=80",
@@ -1727,7 +1733,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 5,
-    "reviewCount": 3150,
+    "reviewCount": 0,
     "category": "Feng Shui Books",
     "images": [
       "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80",
@@ -1756,7 +1762,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 4.8,
-    "reviewCount": 970,
+    "reviewCount": 0,
     "category": "Feng Shui Books",
     "images": [
       "https://images.unsplash.com/photo-1518895949257-7621c3c786d7?auto=format&fit=crop&w=800&q=80",
@@ -1785,7 +1791,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 5,
-    "reviewCount": 4200,
+    "reviewCount": 0,
     "category": "Feng Shui Books",
     "images": [
       "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80",
@@ -1814,7 +1820,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 4.9,
-    "reviewCount": 1150,
+    "reviewCount": 0,
     "category": "Feng Shui Books",
     "images": [
       "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=800&q=80",
@@ -1844,7 +1850,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 4.9,
-    "reviewCount": 2210,
+    "reviewCount": 0,
     "category": "Feng Shui Books",
     "images": [
       "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=800&q=80",
@@ -1873,7 +1879,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 4.8,
-    "reviewCount": 1420,
+    "reviewCount": 0,
     "category": "Feng Shui Books",
     "images": [
       "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=800&q=80",
@@ -1902,7 +1908,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 5,
-    "reviewCount": 3950,
+    "reviewCount": 0,
     "category": "Feng Shui Books",
     "images": [
       "https://i.etsystatic.com/61064616/r/il/209d99/7042851538/il_1080xN.7042851538_ma68.jpg",
@@ -1931,7 +1937,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 4.9,
-    "reviewCount": 2100,
+    "reviewCount": 0,
     "category": "Feng Shui Books",
     "images": [
       "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80",
@@ -1960,7 +1966,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 5,
-    "reviewCount": 5120,
+    "reviewCount": 0,
     "category": "Feng Shui Books",
     "images": [
       "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80",
@@ -1989,7 +1995,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 4.8,
-    "reviewCount": 940,
+    "reviewCount": 0,
     "category": "Feng Shui Books",
     "images": [
       "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80",
@@ -2021,7 +2027,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 5,
-    "reviewCount": 3820,
+    "reviewCount": 0,
     "category": "Crystals & Trees",
     "images": [
       "https://images.unsplash.com/photo-1518895949257-7621c3c786d7?auto=format&fit=crop&w=800&q=80",
@@ -2050,7 +2056,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 5,
-    "reviewCount": 2150,
+    "reviewCount": 0,
     "category": "Zen & Meditation",
     "images": [
       "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=800&q=80",
@@ -2079,7 +2085,7 @@ export const products: Product[] = [
     "etsyPick": true,
     "freeShipping": true,
     "rating": 5,
-    "reviewCount": 11200,
+    "reviewCount": 0,
     "category": "Crystals & Trees",
     "images": [
       "https://images.unsplash.com/photo-1518895949257-7621c3c786d7?auto=format&fit=crop&w=800&q=80",
@@ -2110,7 +2116,7 @@ export const products: Product[] = [
     "etsyPick": false,
     "freeShipping": true,
     "rating": 4.9,
-    "reviewCount": 2840,
+    "reviewCount": 0,
     "category": "Zen & Meditation",
     "images": [
       "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=800&q=80",

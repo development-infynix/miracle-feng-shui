@@ -3,15 +3,21 @@ import { Prisma } from '@/app/generated/prisma/client';
 import { CreateReviewInput } from '../validators/review.validator';
 
 export const reviewRepository = {
-  async findByProductId(productId: string, tx?: Prisma.TransactionClient) {
-    const client = tx || prisma;
-    return client.review.findMany({
-      where: { productId },
-      include: {
-        user: { select: { id: true, name: true } },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+  async findPageByProductId(productId: string, range: { skip: number; take: number }) {
+    const where = { productId };
+    const [items, total] = await Promise.all([
+      prisma.review.findMany({
+        where,
+        include: {
+          user: { select: { id: true, name: true } },
+        },
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        skip: range.skip,
+        take: range.take,
+      }),
+      prisma.review.count({ where }),
+    ]);
+    return { items, total };
   },
 
   async findByUserAndProduct(

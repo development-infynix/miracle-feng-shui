@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import {
   Product,
   products as initialProducts,
@@ -574,6 +575,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Only the homepage and the admin read this list, so other pages don't download it.
+  const pathname = usePathname();
+  const needsProductList = pathname === '/' || pathname?.startsWith('/admin');
+  useEffect(() => {
+    if (needsProductList) void refreshProducts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [needsProductList]);
+
   const refreshOrders = async () => {
     try {
       const res = await fetch('/api/admin/orders');
@@ -620,18 +629,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     // 2. Fetch real data from database API
     async function loadData() {
       try {
-        try {
-          const res = await fetch('/api/products?pageSize=100');
-          if (res.ok) {
-            const data = await res.json();
-            if (data.success && Array.isArray(data.data?.items) && data.data.items.length > 0) {
-              if (isMounted) setProducts(data.data.items);
-            }
-          }
-        } catch (e) {
-          console.warn('Could not fetch products from API:', e);
-        }
-
         // Only fetch protected admin endpoints if browsing the /admin portal
         if (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')) {
           try {

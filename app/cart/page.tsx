@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { ProductLink } from '@/shop/components/ProductDrawerProvider';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import { useLocale } from '@/context/CurrencyContext';
@@ -111,12 +112,11 @@ export default function MiracleCartPage() {
                           />
 
                           <div className="space-y-1.5">
-                            <Link
-                              href={`/product/${item.product.id}`}
+                            <ProductLink product={item.product}
                               className="text-[14px] sm:text-[15px] font-medium text-[#222222] hover:underline line-clamp-2 leading-snug"
                             >
                               {translateProductTitle(item.product.name, language, item.product.id)}
-                            </Link>
+                            </ProductLink>
 
                             {/* Dynamic Variations or Materials */}
                             {item.selectedVariations && Object.keys(item.selectedVariations).length > 0 ? (
@@ -175,12 +175,11 @@ export default function MiracleCartPage() {
                                 <i className="fa-solid fa-chevron-down text-[10px] text-gray-500 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
                               </div>
 
-                              <Link
-                                href={`/product/${item.product.id}`}
+                              <ProductLink product={item.product}
                                 className="text-[13px] font-semibold text-[#222222] hover:underline"
                               >
                                 Edit
-                              </Link>
+                              </ProductLink>
                               <button
                                 type="button"
                                 onClick={() => handleSaveForLater(item.id)}
@@ -394,12 +393,11 @@ export default function MiracleCartPage() {
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                   </div>
-                  <Link
-                    href={`/product/${prod.id}`}
+                  <ProductLink product={prod.id}
                     className="text-[13px] font-medium text-[#222222] hover:underline line-clamp-2 leading-snug"
                   >
                     {translateProductTitle(prod.name, language, prod.id)}
-                  </Link>
+                  </ProductLink>
                   <p className="text-[11px] text-[#595959] mt-0.5">
                     ✿ Ad by Miracle feng shui seller
                   </p>

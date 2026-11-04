@@ -12,6 +12,7 @@ describe('ProductService', () => {
       comparePrice: 1500,
       ratingAvg: 4.8,
       ratingCount: 24,
+      _count: { reviews: 3 },
       category: { name: 'Wind Chimes & Bells', slug: 'wind-chimes' },
     };
 
@@ -20,7 +21,45 @@ describe('ProductService', () => {
     expect(formatted.originalPrice).toBe(1500);
     expect(formatted.category).toBe('Wind Chimes & Bells');
     expect(formatted.rating).toBe(4.8);
-    expect(formatted.reviewCount).toBe(24);
+    expect(formatted.reviewCount).toBe(3);
+    expect(formatted).not.toHaveProperty('ratingCount');
+    expect(formatted).not.toHaveProperty('_count');
+  });
+
+  it('shows zero reviews when none exist, whatever number is stored or in the fallback catalog', () => {
+    expect(productService.formatProduct({ title: 'A', ratingCount: 1980, _count: { reviews: 0 } }).reviewCount).toBe(0);
+    expect(productService.formatProduct({ name: 'B', rating: 4.9, reviewCount: 1420 }).reviewCount).toBe(0);
+  });
+
+  it('keeps the entered rating regardless of the review count', () => {
+    const formatted = productService.formatProduct({ title: 'A', ratingAvg: 4.9, _count: { reviews: 0 } });
+    expect(formatted.rating).toBe(4.9);
+  });
+
+  it('gives cards only their own fields, with one photo', () => {
+    const card = productService.formatProductCard({
+      id: 'p1',
+      title: 'Bell',
+      price: 100,
+      comparePrice: 150,
+      images: ['a.jpg', 'b.jpg'],
+      stock: 3,
+      bestseller: true,
+      ratingAvg: 4.5,
+      description: 'Long text',
+      itemDetails: ['x'],
+      category: { name: 'Bells' },
+    });
+
+    expect(card).toMatchObject({ id: 'p1', name: 'Bell', originalPrice: 150, images: ['a.jpg'], rating: 4.5, category: 'Bells' });
+    expect(card).not.toHaveProperty('description');
+    expect(card).not.toHaveProperty('itemDetails');
+    expect(card).not.toHaveProperty('reviewCount');
+  });
+
+  it('does not serve a placeholder product when the database says it is gone', async () => {
+    vi.spyOn(productRepository, 'findBySlugOrId').mockResolvedValueOnce(null);
+    await expect(productService.getBySlugOrId('j4')).rejects.toThrow('Product not found');
   });
 
   it('should return paginated list of products', async () => {

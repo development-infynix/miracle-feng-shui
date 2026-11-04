@@ -5,13 +5,32 @@ import { products as fallbackProducts, categories as fallbackCategories } from '
 
 export const productService = {
   formatProduct(p: any) {
+    // The review count only ever comes from the Review table, never from a stored number.
+    const { ratingCount: _ratingCount, _count, ...product } = p;
     return {
-      ...p,
+      ...product,
       name: p.title || p.name,
       originalPrice: p.comparePrice ?? p.originalPrice,
-      rating: p.ratingAvg ?? p.rating ?? 5,
-      reviewCount: p.ratingCount ?? p.reviewCount ?? 0,
+      rating: p.ratingAvg ?? p.rating ?? 0,
+      reviewCount: _count?.reviews ?? 0,
       category: p.category?.name || p.category,
+    };
+  },
+
+  /** The fields for a product card, with only the first photo. */
+  formatProductCard(p: any) {
+    return {
+      id: p.id,
+      slug: p.slug,
+      name: p.title || p.name,
+      price: p.price,
+      originalPrice: p.comparePrice ?? p.originalPrice,
+      images: (p.images ?? []).slice(0, 1),
+      stock: p.stock,
+      bestseller: p.bestseller,
+      category: p.category?.name || p.category,
+      rating: p.ratingAvg ?? p.rating ?? 0,
+      maker: p.maker,
     };
   },
 
@@ -19,7 +38,7 @@ export const productService = {
     try {
       const { items, total } = await productRepository.findMany(query);
       return {
-        items: items.map(this.formatProduct),
+        items: items.map(this.formatProductCard),
         total,
         page: query.page,
         pageSize: query.pageSize,
@@ -42,7 +61,7 @@ export const productService = {
       const skip = (query.page - 1) * query.pageSize;
       const paginated = filtered.slice(skip, skip + query.pageSize);
       return {
-        items: paginated.map(this.formatProduct),
+        items: paginated.map(this.formatProductCard),
         total: filtered.length,
         page: query.page,
         pageSize: query.pageSize,
@@ -52,17 +71,17 @@ export const productService = {
   },
 
   async getBySlugOrId(identifier: string) {
+    let product;
     try {
-      const product = await productRepository.findBySlugOrId(identifier);
-      if (product) return this.formatProduct(product);
+      product = await productRepository.findBySlugOrId(identifier);
     } catch {
-      // ignore and fallback
+      // The placeholder catalog is only for when the database can't be reached.
+      product = fallbackProducts.find((p) => p.id === identifier);
     }
-    const fallback = fallbackProducts.find((p) => p.id === identifier);
-    if (!fallback) {
+    if (!product) {
       throw ApiError.notFound('Product not found');
     }
-    return this.formatProduct(fallback);
+    return this.formatProduct(product);
   },
 
   async listCategories() {

@@ -3,6 +3,28 @@ import { Prisma } from '@/app/generated/prisma/client';
 import { ProductQueryInput } from '../validators/product.validator';
 import { ApiError } from '../utils/ApiError';
 
+/** Prisma include for a product's exact review count. The Review table is the only source of it. */
+export const productReviewCount = {
+  _count: { select: { reviews: true } },
+} as const;
+
+/** Only what a product card shows. A product's full details load when it's opened. */
+const productCardSelect = {
+  id: true,
+  slug: true,
+  title: true,
+  price: true,
+  comparePrice: true,
+  images: true,
+  stock: true,
+  bestseller: true,
+  ratingAvg: true,
+  maker: true,
+  category: {
+    select: { name: true, slug: true },
+  },
+} as const;
+
 export const productRepository = {
   async findMany(query: ProductQueryInput, tx?: Prisma.TransactionClient) {
     const client = tx || prisma;
@@ -65,11 +87,7 @@ export const productRepository = {
         orderBy: [orderBy, { id: 'desc' }],
         skip,
         take,
-        include: {
-          category: {
-            select: { name: true, slug: true },
-          },
-        },
+        select: productCardSelect,
       }),
       client.product.count({ where }),
     ]);
@@ -83,6 +101,7 @@ export const productRepository = {
       where: { id },
       include: {
         category: true,
+        ...productReviewCount,
       },
     });
   },
@@ -96,12 +115,7 @@ export const productRepository = {
       },
       include: {
         category: true,
-        reviews: {
-          include: {
-            user: { select: { name: true } },
-          },
-          orderBy: { createdAt: 'desc' },
-        },
+        ...productReviewCount,
       },
     });
   },
@@ -232,19 +246,6 @@ export const productRepository = {
     };
 
     return tx ? run(tx) : prisma.$transaction(run);
-  },
-
-  async updateRating(
-    productId: string,
-    ratingAvg: number,
-    ratingCount: number,
-    tx?: Prisma.TransactionClient
-  ) {
-    const client = tx || prisma;
-    return client.product.update({
-      where: { id: productId },
-      data: { ratingAvg, ratingCount },
-    });
   },
 };
 

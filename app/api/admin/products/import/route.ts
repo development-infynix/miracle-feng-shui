@@ -173,6 +173,14 @@ export async function POST(req: NextRequest) {
       const stock = parseInt(row.stock || '50', 10);
       const safeStock = isNaN(stock) ? 50 : Math.max(0, stock);
 
+      // A blank or missing rating leaves the stored rating as it is.
+      const rawRating = row.rating?.trim();
+      const rating = rawRating ? Number(rawRating) : undefined;
+      if (rating !== undefined && (isNaN(rating) || rating < 0 || rating > 5)) {
+        errors.push({ row: rowNumber, title: rawTitle, message: `Invalid rating: "${row.rating}" (use 0 to 5)` });
+        continue;
+      }
+
       // Images
       const rawImages = row.images || row.image || '';
       const imagesList = rawImages
@@ -242,6 +250,7 @@ export async function POST(req: NextRequest) {
               freeShipping,
               maker: row.maker || existing.maker,
               tags: tagsList.length ? tagsList : existing.tags,
+              ...(rating !== undefined ? { ratingAvg: rating } : {}),
             },
           });
           updatedCount++;
@@ -269,6 +278,7 @@ export async function POST(req: NextRequest) {
               freeShipping,
               maker: row.maker || 'Miracle Feng Shui Studio',
               tags: tagsList,
+              ratingAvg: rating ?? 0,
               itemDetails: [
                 'Handcrafted with authentic sacred blessing',
                 'Purified with sandalwood incense before delivery',

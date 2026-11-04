@@ -1,4 +1,5 @@
 import prisma from '@/lib/prisma';
+import { productReviewCount } from './product.repository';
 import { Prisma, OrderStatus } from '@/app/generated/prisma/client';
 import {
   AdminProductQueryInput,
@@ -218,6 +219,7 @@ export const adminRepository = {
       },
       include: {
         category: true,
+        ...productReviewCount,
       },
     });
   },
@@ -255,11 +257,11 @@ export const adminRepository = {
         isActive: data.isActive,
         isFeatured: data.isFeatured,
         ratingAvg: data.rating,
-        ratingCount: data.reviewCount,
         categoryId: resolvedCategoryId,
       },
       include: {
         category: true,
+        ...productReviewCount,
       },
     });
   },

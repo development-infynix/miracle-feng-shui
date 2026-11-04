@@ -1,18 +1,18 @@
 'use client';
 
 import React from 'react';
-import Link from 'next/link';
-import type { Product } from '@/lib/placeholder-data';
+import type { Product, ProductSummary } from '@/lib/placeholder-data';
 import { useCart } from '@/context/CartContext';
 import { useLocale } from '@/context/CurrencyContext';
 import { translateCategory, translateProductTitle } from '@/lib/translations';
+import { ProductLink } from './ProductDrawerProvider';
 
 const FALLBACK_IMAGE = '/images/miracle.jpeg';
 const LOW_STOCK = 10;
 const imagePill = 'rounded-md px-2 py-1 font-outfit text-[11px] font-semibold leading-none';
 
 /** A self-contained glass product card: photo on top, details and price below. */
-export default function ShopProductCard({ product }: { product: Product }) {
+export default function ShopProductCard({ product }: { product: ProductSummary }) {
   const { isFavorite, addFavorite, removeFavorite } = useCart();
   const { formatPrice, language, t } = useLocale();
   const favorited = isFavorite(product.id);
@@ -23,11 +23,10 @@ export default function ShopProductCard({ product }: { product: Product }) {
 
   return (
     <article className="relative flex h-full flex-col overflow-hidden rounded-lg bg-gradient-to-b from-[#F3ECFB] to-[#DCCDF0] shadow-[0_6px_10px_rgba(67,23,105,0.14),inset_0_-3px_5px_rgba(67,23,105,0.1)]">
-      <Link
-        href={`/product/${product.id}`}
+      <ProductLink product={product}
         className="group flex flex-1 flex-col rounded-lg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#3A1F62]"
       >
-        <div className="relative aspect-square overflow-hidden bg-white/50">
+        <div className="relative mx-2 mt-2 aspect-[4/3] overflow-hidden rounded-md bg-white/50 sm:mx-2.5 sm:mt-2.5">
           <img
             src={product.images[0] || FALLBACK_IMAGE}
             alt=""
@@ -52,12 +51,10 @@ export default function ShopProductCard({ product }: { product: Product }) {
             <span className="min-w-0 truncate font-outfit text-[12px] text-[#5B4A70]">
               {translateCategory(product.category, language)}
             </span>
-            {/* A rating only shows once a product has real reviews. */}
-            {(product.reviewCount > 0 || (product.rating ?? 0) > 0) && (
+            {/* The rating an admin entered. Customer reviews don't affect it. */}
+            {(product.rating ?? 0) > 0 && (
               <span
-                aria-label={t('shop.rating_label', 'Rated {rating} from {count} reviews')
-                  .replace('{rating}', product.rating.toFixed(1))
-                  .replace('{count}', String(product.reviewCount))}
+                aria-label={t('shop.rating_label', 'Rated {rating} out of 5').replace('{rating}', product.rating.toFixed(1))}
                 className="inline-flex h-6 shrink-0 items-center gap-1 rounded-md border border-white/70 bg-white/45 px-1.5 font-outfit text-[12px] font-semibold tabular-nums text-[#111111]"
               >
                 <i aria-hidden="true" className="fa-solid fa-star text-[10px] text-[#431769]" />
@@ -96,14 +93,14 @@ export default function ShopProductCard({ product }: { product: Product }) {
             </div>
           </div>
         </div>
-      </Link>
+      </ProductLink>
 
       <button
         type="button"
         aria-pressed={favorited}
         aria-label={`${favorited ? t('shop.remove_favorite', 'Remove from favorites') : t('shop.save_favorite', 'Save to favorites')}: ${title}`}
-        onClick={() => (favorited ? removeFavorite(product.id) : addFavorite(product))}
-        className="group/heart absolute right-2 top-2 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-white/70 bg-[#F3ECFB]/85 backdrop-blur-sm focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#3A1F62] sm:right-2.5 sm:top-2.5"
+        onClick={() => (favorited ? removeFavorite(product.id) : addFavorite(product as Product))}
+        className="group/heart absolute right-3.5 top-3.5 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-white/70 bg-[#F3ECFB]/85 backdrop-blur-sm focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#3A1F62] sm:right-4.5 sm:top-4.5"
       >
         <i
           aria-hidden="true"
