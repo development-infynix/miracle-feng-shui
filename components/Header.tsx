@@ -183,6 +183,7 @@ export function Header({ navCategories }: { navCategories: NavCategory[] }) {
   }, [mobileMenuOpen]);
 
   const closeMobileMenu = () => setMobileMenuOpen(false);
+  const onShopPage = pathname === '/shop';
 
   const openSignIn = () => {
     setIsRegisterMode(false);
@@ -267,7 +268,7 @@ export function Header({ navCategories }: { navCategories: NavCategory[] }) {
         className={`fixed inset-0 z-30 md:hidden bg-[#2B154C]/15 backdrop-blur-[6px] transition-[opacity,visibility] duration-300 motion-reduce:transition-none ${mobileMenuOpen ? 'opacity-100' : 'invisible opacity-0'}`}
       />
 
-      <header className="sticky top-0 z-40 pointer-events-none pt-2.5 pb-1">
+      <header id="site-header" className="sticky top-0 z-40 pointer-events-none pt-2.5 pb-1">
         <div className="mx-auto w-full max-w-[1040px] px-3 sm:px-6">
           {/* Tablet and up: main pill with the category pill below it */}
           <div className="hidden md:block">
@@ -320,6 +321,12 @@ export function Header({ navCategories }: { navCategories: NavCategory[] }) {
                       />
                     </span>
                   </button>
+
+                  <Link href="/shop" aria-current={onShopPage ? 'page' : undefined} className={navItemClass}>
+                    <span className={`font-outfit transition-colors group-hover:text-[#7A2FC0] ${onShopPage ? 'text-[#7A2FC0]' : 'text-[#111111]'}`}>
+                      {t('nav.products', 'Products')}
+                    </span>
+                  </Link>
 
                   <button type="button" onClick={() => setSearchOpen(true)} className={navItemClass}>
                     <span className={navLabelClass}>{t('nav.search', 'Search')}</span>
@@ -479,6 +486,11 @@ export function Header({ navCategories }: { navCategories: NavCategory[] }) {
                   ))}
 
                   <div aria-hidden="true" className="mx-3 my-1.5 h-px bg-[#431769]/20" />
+
+                  <Link href="/shop" onClick={closeMobileMenu} aria-current={onShopPage ? 'page' : undefined} className={mobileRowClass}>
+                    <i aria-hidden="true" className={`fa-solid fa-boxes-stacked ${mobileIconClass}`} />
+                    <span className={`${mobileLabelClass} ${onShopPage ? 'text-[#7A2FC0]' : 'text-[#111111]'}`}>{t('nav.products', 'Products')}</span>
+                  </Link>
 
                   <button
                     type="button"

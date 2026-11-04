@@ -16,6 +16,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'nav.favorites': 'Favorites',
     'nav.cart': 'Cart',
     'nav.view_all': 'View all',
+    'nav.products': "Products",
     'nav.search': 'Search',
     'search.browse_categories': 'Browse categories',
     'auth.create_account': "Create account",
@@ -121,6 +122,57 @@ export const translations: Record<Language, Record<string, string>> = {
     'product.may_we_suggest': 'May We Suggest',
 
     // Shop Page
+    'shop.clear_all': "Clear all",
+
+    'shop.show_count': "Show {count} products",
+
+    'shop.show_one': "Show 1 product",
+
+    'shop.updating': "Updating…",
+
+    'shop.rating_label': "Rated {rating} from {count} reviews",
+
+    'shop.catalogs': "Catalogs",
+    'shop.all_products': "All products",
+
+    'shop.one_product': "1 product",
+
+    'shop.product_count': "{count} products",
+
+    'shop.category': "Category",
+
+    'shop.offers': "Offers",
+
+    'shop.sort': "Sort",
+
+    'shop.sort_recommended': "Recommended",
+
+    'shop.sort_newest': "Newest",
+
+    'shop.remove_filter': "Remove filter",
+
+    'shop.no_products_title': "No products yet",
+
+    'shop.no_matches_hint': "Try removing a filter or checking the spelling.",
+
+    'shop.showing': "Showing {shown} of {total}",
+
+    'shop.load_more': "Load more",
+
+    'shop.loading_more': "Loading…",
+
+    'shop.load_more_failed': "Couldn't load more products. Please try again.",
+
+    'shop.out_of_stock': "Out of stock",
+
+    'shop.free_delivery_short': "Free delivery",
+
+    'shop.only_left': "Only {count} left",
+
+    'shop.save_favorite': "Save to favorites",
+
+    'shop.remove_favorite': "Remove from favorites",
+
     'shop.all_items_heading': 'All Feng Shui & Spiritual Harmony Items',
     'shop.results_for': 'Results for "{query}"',
     'shop.items_found': 'items found',
@@ -263,6 +315,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'nav.favorites': 'المفضلة',
     'nav.cart': 'سلة المشتريات',
     'nav.view_all': 'عرض الكل',
+    'nav.products': "المنتجات",
     'nav.search': 'بحث',
     'search.browse_categories': 'تصفح الفئات',
     'auth.create_account': "إنشاء حساب",
@@ -368,6 +421,58 @@ export const translations: Record<Language, Record<string, string>> = {
     'product.may_we_suggest': 'قد يعجبك أيضاً',
 
     // Shop Page
+    'shop.clear_all': "مسح الكل",
+
+    'shop.show_count': "عرض {count} منتج",
+
+    'shop.show_one': "عرض منتج واحد",
+
+    'shop.updating': "جارٍ التحديث…",
+
+    'shop.rating_label': "التقييم {rating} من {count} مراجعة",
+
+    'shop.catalogs': "الكتالوجات",
+
+    'shop.all_products': "كل المنتجات",
+
+    'shop.one_product': "منتج واحد",
+
+    'shop.product_count': "{count} منتج",
+
+    'shop.category': "الفئة",
+
+    'shop.offers': "العروض",
+
+    'shop.sort': "ترتيب",
+
+    'shop.sort_recommended': "الموصى بها",
+
+    'shop.sort_newest': "الأحدث",
+
+    'shop.remove_filter': "إزالة عامل التصفية",
+
+    'shop.no_products_title': "لا توجد منتجات بعد",
+
+    'shop.no_matches_hint': "جرّب إزالة أحد عوامل التصفية أو التحقق من الإملاء.",
+
+    'shop.showing': "عرض {shown} من {total}",
+
+    'shop.load_more': "تحميل المزيد",
+
+    'shop.loading_more': "جارٍ التحميل…",
+
+    'shop.load_more_failed': "تعذر تحميل المزيد من المنتجات. يرجى المحاولة مرة أخرى.",
+
+    'shop.out_of_stock': "غير متوفر",
+
+    'shop.free_delivery_short': "توصيل مجاني",
+
+    'shop.only_left': "متبقٍ {count} فقط",
+
+    'shop.save_favorite': "حفظ في المفضلة",
+
+    'shop.remove_favorite': "إزالة من المفضلة",
+
     'shop.all_items_heading': 'جميع مقتنيات الفينج شوي والتناغم الروحي',
     'shop.results_for': 'نتائج البحث عن "{query}"',
     'shop.items_found': 'قطعة متوفرة',

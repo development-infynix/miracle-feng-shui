@@ -638,7 +638,7 @@ export default function MiracleFengShuiHomePage() {
   );
 
   return (
-    <div className="pb-12 bg-white relative">
+    <div className="pb-12 relative">
       {/* Render Homepage Sections in Dynamic Order */}
       {sections.map((section) => {
         if (!section.enabled) return null;

@@ -62,7 +62,7 @@ export const productRepository = {
     const [items, total] = await Promise.all([
       client.product.findMany({
         where,
-        orderBy,
+        orderBy: [orderBy, { id: 'desc' }],
         skip,
         take,
         include: {

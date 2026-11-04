@@ -13,6 +13,7 @@ colors:
   muted-plum: "#5B4A70"
   veil-plum: "#2B154C"
   page-white: "#FFFFFF"
+  lilac-ground: "#F1E9FA"
 typography:
   wordmark:
     fontFamily: "Charter, 'Charter Bitstream', Cambria, Georgia, serif"
@@ -41,8 +42,21 @@ typography:
     fontFamily: "Outfit, sans-serif"
     fontSize: "12px"
     fontWeight: 400
+  card-title:
+    fontFamily: "Outfit, sans-serif"
+    fontSize: "16px"
+    fontWeight: 600
+  card-price:
+    fontFamily: "Outfit, sans-serif"
+    fontSize: "18px"
+    fontWeight: 700
+  image-label:
+    fontFamily: "Outfit, sans-serif"
+    fontSize: "11px"
+    fontWeight: 600
 rounded:
   thumbnail: "6px"
+  card: "8px"
   row: "16px"
   panel: "28px"
   pill: "9999px"
@@ -111,7 +125,7 @@ Everything that floats above the store is one body of liquid glass. A pill does 
 
 The glass is the only loud thing here. Products supply the colour and the imagery, so the chrome keeps to one family of lilac and plum, text stays dark and quiet, and interaction shows through a colour change, not extra shapes. The thread is the one authored motion moment, and it is worth more because nothing else competes with it.
 
-This system currently covers the storefront header, the search modal and the customer sign in modal. The rest of the storefront still uses an older Etsy-derived palette (the `etsy-*` tokens in `app/globals.css`), and the admin panel has its own restrained black-and-white working style. Treat the older storefront styling as not yet migrated, and don't copy it into new work. Leave the admin as it is unless asked.
+This system currently covers the storefront header, the search modal, the customer sign in modal and the shop page. The rest of the storefront still uses an older Etsy-derived palette (the `etsy-*` tokens in `app/globals.css`), and the admin panel has its own restrained black-and-white working style. Treat the older storefront styling as not yet migrated, and don't copy it into new work. Leave the admin as it is unless asked.
 
 **Key Characteristics:**
 - Floating lilac glass pills on the shared goo filter, never on a solid header bar.
@@ -136,7 +150,8 @@ A single violet family, from pale lilac glass to near-black plum, on a white pag
 - **Dusk Plum:** longer messages on glass, such as "no results" text.
 - **Muted Plum:** secondary text on glass, such as placeholders and product categories. Never use a neutral gray on glass.
 - **Veil Plum:** the tint behind blurred overlays, at 15% over the page for the phone menu and 25% for the search modal.
-- **Page White:** the page behind the header.
+- **Lilac Ground:** the page background, a clearly lilac tint of the same purple family. It sits close to the glass colours, so the stronger glass lift is what separates them.
+- **Page White:** text on Royal Amethyst, and older sections not yet migrated.
 
 ### Named Rules
 **The State Is Violet Rule.** Hover, selected and active all mean text turning Awakened Violet. If a state needs anything else, question the state first.
@@ -178,7 +193,7 @@ Tall panels scroll inside themselves and keep within the viewport.
 Depth comes from the material rather than a stack of shadows. A single soft violet drop shadow sits under the merged shape, and the puffiness comes from inside the filter: a bright rim along the top edge and a soft plum shade along the bottom. Real backdrop blur on the content layer lets the page show through the slightly translucent glass.
 
 ### Shadow Vocabulary
-- **Glass lift** (`drop-shadow(0 6px 10px rgba(67, 23, 105, 0.14))`): under every goo shape, applied after the goo filter so the thread casts it too.
+- **Glass lift** (`drop-shadow(0 6px 12px rgba(67, 23, 105, 0.24))`): under every goo shape, applied after the goo filter so the thread casts it too.
 - **Top rim** (white at 70%, 2px inner offset): light catching the top edge, inside the filter.
 - **Bottom shade** (Royal Amethyst at 16%, 3px inner offset, 2px blur): the underside of the glass, inside the filter.
 
@@ -204,10 +219,10 @@ The thread is the signature shape. It's a narrow strip that the goo filter flare
 - **Fallback:** with no filter support, the shapes and a plain connector still show. Reduced-motion users get no transitions.
 
 ### Navigation
-- **Main pill:** text links in the centre: Categories, Search, then Sign in for guests or Favorites and Cart for signed-in customers. Instagram and Facebook icons sit on the right, and signed-in customers also get an account avatar there.
+- **Main pill:** text links in the centre: Categories, Products, Search, then Sign in for guests or Favorites and Cart for signed-in customers. Instagram and Facebook icons sit on the right, and signed-in customers also get an account avatar there.
 - **Category pill:** the 4 latest categories from the server plus **View all**, separated by short 1px dividers. Categories shows as selected while it's open.
 - **Phone bar:** only the logo with its wordmark and the bubble menu icon. The icon rotates 180° over 500ms as the menu opens.
-- **Phone menu:** categories, then **View all**, a divider, and actions: Search, Sign in (or the account items), Instagram and Facebook.
+- **Phone menu:** categories, then **View all**, a divider, and actions: Products, Search, Sign in (or the account items), Instagram and Facebook.
 
 ### Search Modal
 - **Search pill:** icon, input, a Clear action once there's text, and a close button. The thread hangs from the search icon.
@@ -226,6 +241,24 @@ The thread is the signature shape. It's a narrow strip that the goo filter flare
 ### Primary Button
 - **Style:** a solid Royal Amethyst block with sharp 6px corners, 48px tall, with white text. Hover deepens it to Deep Plum, and it dims while submitting. Keep it to a form's single main action.
 
+### Shop Filter Bar
+- **Layout:** a full-width Lilac Ground bar that sticks directly under the site header, with applied filters on the left and a glass Filters button with sharp 6px corners on the right. The button shows a badge counting active choices.
+- **Scrolling:** products start below the bar and only ever scroll beneath it. The area behind the site header is Lilac Ground on this page too, so products never show around the pills or under the button.
+- **Heading:** the shop has no visible page heading, because the navbar's Products link and the applied filters already say where you are. A screen-reader heading names the page.
+- **Applied filters:** removable pills with a clear-all link. Sort isn't listed, since it doesn't hide anything.
+
+### Filter Drawer
+- **Shape:** glass from the right edge, up to 400px wide with square corners, over a blurred page. It has no thread, because it comes from the screen edge rather than from a pill.
+- **Sections:** Category, Price, Offers and Sort, in that order. Choices apply straight away and the drawer stays open, so the list updates behind it.
+- **Footer:** Clear all, when something is active, and a primary button stating the result count, such as "Show 7 products".
+
+### Shop Product Card
+- **Shape:** a contained glass card with 8px corners, using the glass gradient and glass lift. The photo fills the top edge to edge, and cards in a row share one height.
+- **On the photo:** the percentage off, worked out from the real prices, and Bestseller as small sharp labels at top left, with a round glass heart at top right. Out of stock replaces the percentage.
+- **Details:** category with a small rating chip beside it, then a semibold name, a one-line description from tablet up, and quiet delivery and low-stock notes. The rating only appears when a product has reviews.
+- **Price row:** below a thin divider, any real compare-at price struck through, then the price in bold, with a double chevron at the far right.
+- **Hover:** the name turns Awakened Violet, the chevron shifts slightly, and the photo zooms a little. The card itself doesn't lift.
+
 ### Chips
 - **Style:** translucent white (45%) with a white border (70%), in full pills 32px tall. They carry no shadow of their own.
 - **State:** text only, turning Awakened Violet on hover.
@@ -239,7 +272,7 @@ The thread is the signature shape. It's a narrow strip that the goo filter flare
 ## Do's and Don'ts
 
 ### Do:
-- **Do** build anything that opens from a pill with the Goo Shell, so the thread and material stay identical.
+- **Do** build anything that opens from a pill with the Goo Shell, so the thread and material stay identical. Edge drawers use the same glass without a thread.
 - **Do** hang the thread from the control that opened the shape.
 - **Do** keep hover and selected states to a text colour change.
 - **Do** push the page down for the persistent category pill on tablet and up, and float over a blurred page for the phone menu.
@@ -251,7 +284,7 @@ The thread is the signature shape. It's a narrow strip that the goo filter flare
 - **Don't** add a white or filled pill behind a hovered item.
 - **Don't** put a solid bar or border behind the header. The pills float.
 - **Don't** use orange, gift icons or other accent highlights on navigation.
-- **Don't** round product thumbnails to match the glass.
+- **Don't** round product thumbnails or image labels to match the glass.
 - **Don't** place text inside the filtered layer, or add a border or `box-shadow` to a single goo shape.
 - **Don't** add a second ambient animation near the thread.
 - **Don't** expand the search field in place. Search opens as a modal.

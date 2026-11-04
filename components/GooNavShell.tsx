@@ -156,7 +156,7 @@ export default function GooNavShell({
         className="absolute inset-x-0 top-0 pointer-events-none"
         style={{
           height: mainHeight + GAP + dropHeight + 12,
-          filter: `url(#${filterId}) drop-shadow(0 6px 10px rgba(67, 23, 105, 0.14))`,
+          filter: `url(#${filterId}) drop-shadow(0 6px 12px rgba(67, 23, 105, 0.24))`,
         }}
       >
         <div

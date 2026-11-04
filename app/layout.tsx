@@ -43,7 +43,7 @@ export default async function RootLayout({
       </head>
       <body
         suppressHydrationWarning
-        className="min-h-screen flex flex-col bg-white text-etsy-dark antialiased"
+        className="min-h-screen flex flex-col text-etsy-dark antialiased"
       >
         <Providers>
           <Header navCategories={navCategories} />
