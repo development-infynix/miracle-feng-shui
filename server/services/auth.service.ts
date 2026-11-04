@@ -26,75 +26,27 @@ export const authService = {
   },
 
   async validateCredentials(input: LoginInput) {
-    const rawEmail = input.email.trim().toLowerCase();
-    const cleanEmail = rawEmail === 'admin' ? 'admin@miraclefengshui.com' : rawEmail;
-    const cleanPassword = input.password.trim();
+    const email = input.email.trim().toLowerCase();
+    const password = input.password.trim();
 
-    const isDemoAdmin =
-      cleanEmail === 'admin@miraclefengshui.com' && cleanPassword === 'admin';
-
-    const demoAdminUser = {
-      id: 'demo-admin',
-      name: 'Miracle Admin',
-      email: 'admin@miraclefengshui.com',
-      passwordHash: '',
-      role: 'ADMIN' as const,
-      phone: '+91 98765 43210',
-    };
-
-    let user: any = null;
-    try {
-      user = await userRepository.findByEmail(cleanEmail);
-    } catch {
-      // Allow demo login to work even when the database is unavailable/misconfigured.
-      user = null;
-    }
-
-    // Fallback: If admin user wasn't found in DB or password differs, verify against demo credentials
-    if (!user && isDemoAdmin) {
-      try {
-        const passwordHash = await bcrypt.hash('admin', 12);
-        user = await userRepository.create({
-          name: 'Miracle Admin',
-          email: 'admin@miraclefengshui.com',
-          passwordHash,
-          role: 'ADMIN',
-          phone: '+91 98765 43210',
-        }) as any;
-      } catch {
-        // Database unavailable or create failed: use an in-memory demo admin session.
-        user = demoAdminUser;
-      }
-    }
-
-    if (!user) {
+    // Let any database error propagate: we must never hand out a session when
+    // the user lookup fails. No demo/in-memory admin fallback.
+    const user = await userRepository.findByEmail(email);
+    if (!user || !user.passwordHash) {
       throw ApiError.unauthorized('Invalid email or password');
     }
 
-    let isValid = false;
-    if (user.passwordHash) {
-      try {
-        isValid = await bcrypt.compare(cleanPassword, user.passwordHash);
-      } catch {
-        isValid = false;
-      }
-    }
-
-    // Explicit fallback for admin demo login
-    if (!isValid && isDemoAdmin) {
-      isValid = true;
-    }
-
+    const isValid = await bcrypt.compare(password, user.passwordHash);
     if (!isValid) {
       throw ApiError.unauthorized('Invalid email or password');
     }
 
     return {
-      id: user.id || demoAdminUser.id,
-      name: user.name || demoAdminUser.name,
-      email: user.email || demoAdminUser.email,
-      role: user.role || demoAdminUser.role,
-      phone: user.phone || demoAdminUser.phone,
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      phone: user.phone,
     };
   },
 

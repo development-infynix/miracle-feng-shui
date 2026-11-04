@@ -5,8 +5,10 @@ import { getToken } from 'next-auth/jwt';
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Dev-only: allow admin APIs without login (consistent with upload route)
-  if (process.env.NODE_ENV === 'development' && pathname.startsWith('/api/admin/')) {
+  // Explicit, opt-in dev bypass. Only when ALLOW_DEV_ADMIN==='true' (never just
+  // because NODE_ENV is development) so it can't silently ship to production.
+  const devAdmin = process.env.ALLOW_DEV_ADMIN === 'true';
+  if (devAdmin && (pathname.startsWith('/api/admin/') || pathname.startsWith('/admin'))) {
     return NextResponse.next();
   }
 
@@ -17,7 +19,7 @@ export async function middleware(req: NextRequest) {
 
   const token = await getToken({
     req,
-    secret: process.env.NEXTAUTH_SECRET || 'miracle-feng-shui-super-secret-jwt-key-2026',
+    secret: process.env.NEXTAUTH_SECRET,
   });
 
   const isAdminRoute = pathname.startsWith('/admin') || pathname.startsWith('/api/admin');
@@ -34,12 +36,11 @@ export async function middleware(req: NextRequest) {
       pathname.startsWith('/api/favorites') ||
       pathname.startsWith('/api/addresses'));
 
-  // Admin route protection: must have role === 'ADMIN' or verified admin cookie
+  // Admin route protection: must have an authenticated session with role === 'ADMIN'.
   if (isAdminRoute) {
-    const hasAdminCookie = req.cookies.get('mfs_admin_auth')?.value === 'true';
     const isSessionAdmin = token && token.role === 'ADMIN';
 
-    if (!isSessionAdmin && !hasAdminCookie) {
+    if (!isSessionAdmin) {
       if (pathname.startsWith('/api/')) {
         return NextResponse.json(
           { success: false, error: 'Unauthorized: Admin access required' },

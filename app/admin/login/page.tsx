@@ -16,53 +16,31 @@ export default function AdminLoginPage() {
     link.href = 'https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@300;400;500;600;700;800&display=swap';
     link.rel = 'stylesheet';
     document.head.appendChild(link);
-
-    try {
-      const auth = localStorage.getItem('mfs_admin_auth');
-      if (auth === 'true' && !window.location.search.includes('callbackUrl')) {
-        window.location.href = '/admin';
-      }
-    } catch { /* ignore */ }
   }, []);
 
   const performLogin = async (emailInput: string, passwordInput: string) => {
     setError('');
     setLoading(true);
 
-    const rawEmail = emailInput.trim().toLowerCase();
-    const cleanEmail = rawEmail === 'admin' ? 'admin@miraclefengshui.com' : rawEmail;
-    const cleanPass = passwordInput.trim();
-
     try {
       const res = await signIn('credentials', {
-        email: cleanEmail,
-        password: cleanPass,
+        email: emailInput.trim().toLowerCase(),
+        password: passwordInput.trim(),
         redirect: false,
       });
 
       if (res?.error || !res?.ok) {
-        localStorage.removeItem('mfs_admin_auth');
-        localStorage.removeItem('mfs_admin_user');
-        document.cookie = 'mfs_admin_auth=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
-        setError('Invalid credentials. Use admin@miraclefengshui.com · admin');
+        setError('Invalid email or password');
         setLoading(false);
-      } else {
-        localStorage.setItem('mfs_admin_auth', 'true');
-        localStorage.setItem('mfs_admin_user', cleanEmail);
-        document.cookie = 'mfs_admin_auth=true; path=/; max-age=2592000; SameSite=Lax';
-
-        let target = '/admin';
-        if (typeof window !== 'undefined') {
-          const params = new URLSearchParams(window.location.search);
-          const cb = params.get('callbackUrl');
-          if (cb && !cb.includes('/admin/login')) target = cb;
-        }
-        window.location.href = target;
+        return;
       }
+
+      let target = '/admin';
+      const params = new URLSearchParams(window.location.search);
+      const cb = params.get('callbackUrl');
+      if (cb && !cb.includes('/admin/login')) target = cb;
+      window.location.href = target;
     } catch {
-      localStorage.removeItem('mfs_admin_auth');
-      localStorage.removeItem('mfs_admin_user');
-      document.cookie = 'mfs_admin_auth=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
       setError('An error occurred during sign in');
       setLoading(false);
     }
@@ -71,12 +49,6 @@ export default function AdminLoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     await performLogin(email, password);
-  };
-
-  const handleFillDemo = () => {
-    setEmail('admin@miraclefengshui.com');
-    setPassword('admin');
-    setError('');
   };
 
   return (
@@ -111,23 +83,12 @@ export default function AdminLoginPage() {
           </div>
 
           {/* Bottom text inside banner */}
-          <div className="absolute bottom-10 left-6 z-10">
-            <span className="inline-block text-[10px] uppercase font-bold tracking-widest text-white/90 mb-0.5">
-              Admin Sanctuary
-            </span>
-          </div>
+          <div className="absolute bottom-10 left-6 z-10" />
         </div>
 
         {/* Sliding White Sheet with rounded-t-[32px] */}
         <div className="relative z-10 -mt-7 bg-white rounded-t-[32px] shadow-2xl px-6 pt-7 pb-8 flex-1 flex flex-col justify-between">
           <div>
-            {/* Brand Logo */}
-            <div className="flex justify-center mb-3">
-              <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-gray-100 shadow-md">
-                <img src="/images/miracle.jpeg" alt="Miracle Feng Shui" className="w-full h-full object-cover" />
-              </div>
-            </div>
-
             {/* Title & Subtitle matching Desktop */}
             <h1
               style={{ fontFamily: "'Bebas Neue', 'Montserrat', sans-serif" }}
@@ -141,7 +102,7 @@ export default function AdminLoginPage() {
 
             {/* Error Alert */}
             {error && (
-              <div className="bg-rose-50 border border-rose-200 text-rose-700 px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 mb-4 animate-in fade-in">
+              <div className="bg-rose-50 border border-rose-200 text-rose-700 px-3.5 py-2.5 rounded-lg text-xs font-semibold flex items-center gap-2 mb-4 animate-in fade-in">
                 <i className="fa-solid fa-circle-exclamation shrink-0" />
                 <span>{error}</span>
               </div>
@@ -158,10 +119,10 @@ export default function AdminLoginPage() {
                   <input
                     type="text"
                     required
-                    placeholder="admin@miraclefengshui.com"
+                    placeholder="Enter admin email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-3 text-xs sm:text-sm text-gray-900 focus:bg-white focus:outline-none focus:border-black transition-all"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3.5 py-3 text-xs sm:text-sm text-gray-900 focus:bg-white focus:outline-none focus:border-black transition-all"
                   />
                   <i className="fa-regular fa-envelope absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs pointer-events-none" />
                 </div>
@@ -179,7 +140,7 @@ export default function AdminLoginPage() {
                     placeholder="Enter your password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-3 text-xs sm:text-sm text-gray-900 focus:bg-white focus:outline-none focus:border-black transition-all"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3.5 py-3 text-xs sm:text-sm text-gray-900 focus:bg-white focus:outline-none focus:border-black transition-all"
                   />
                   <button
                     type="button"
@@ -210,7 +171,7 @@ export default function AdminLoginPage() {
                 type="submit"
                 disabled={loading}
                 style={{ backgroundColor: '#111111', color: '#ffffff' }}
-                className="w-full py-3.5 px-5 rounded-xl text-xs sm:text-sm font-bold tracking-wider uppercase bg-[#111111] hover:bg-black text-white flex items-center justify-center gap-2 shadow-sm hover:shadow-md transition-all cursor-pointer disabled:opacity-60 active:scale-[0.99] mt-1"
+                className="w-full py-3.5 px-5 rounded-lg text-xs sm:text-sm font-bold tracking-wider uppercase bg-[#111111] hover:bg-black text-white flex items-center justify-center gap-2 shadow-sm hover:shadow-md transition-all cursor-pointer disabled:opacity-60 active:scale-[0.99] mt-1"
               >
                 {loading ? (
                   <>
@@ -225,21 +186,6 @@ export default function AdminLoginPage() {
                 )}
               </button>
             </form>
-
-            {/* Demo credentials box matching Desktop */}
-            <div className="mt-4 bg-gray-50 border border-gray-200 rounded-xl p-3 flex items-center justify-between gap-3">
-              <div>
-                <span className="block font-bold text-[11px] text-gray-900">Demo credentials</span>
-                <span className="block text-[10.5px] text-gray-500 font-mono">admin@miraclefengshui.com &bull; admin</span>
-              </div>
-              <button
-                type="button"
-                onClick={handleFillDemo}
-                className="bg-white border border-gray-300 hover:border-black text-gray-700 hover:text-black px-2.5 py-1.5 rounded-lg text-[10.5px] font-bold transition-colors cursor-pointer shrink-0 shadow-2xs"
-              >
-                Auto-fill
-              </button>
-            </div>
           </div>
 
           {/* Back link */}
@@ -259,18 +205,14 @@ export default function AdminLoginPage() {
           DESKTOP VIEW (>= md): Existing 2-column layout kept intact
           ══════════════════════════════════════════════════════════════════════ */}
       <div className="hidden md:flex min-h-screen bg-[#F0F1F5] items-center justify-center p-6 md:p-8">
-        <div className="w-full max-w-4xl bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden grid grid-cols-2 my-auto animate-in fade-in zoom-in-95 duration-200">
+        <div className="w-full max-w-4xl bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden grid grid-cols-2 my-auto animate-in fade-in zoom-in-95 duration-200">
 
           {/* LEFT: Form Panel */}
           <div className="p-8 lg:p-10 flex flex-col justify-center">
             {/* Brand logo */}
             <Link href="/" className="inline-flex items-center gap-2.5 mb-5 no-underline">
-              <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-200 shrink-0">
-                <img src="/images/miracle.jpeg" alt="Miracle Feng Shui" className="w-full h-full object-cover" />
-              </div>
-              <span className="font-bold text-sm text-gray-900 tracking-tight">
-                Miracle Feng Shui
-              </span>
+              <img src="/images/logofull.svg" alt="Miracle Feng Shui" className="h-8 w-auto" />
+              <span className="font-bold text-sm text-gray-900 tracking-tight">Feng Shui</span>
             </Link>
 
             {/* Heading */}
@@ -286,7 +228,7 @@ export default function AdminLoginPage() {
 
             {/* Error Alert */}
             {error && (
-              <div className="bg-rose-50 border border-rose-200 text-rose-700 px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 mb-4 animate-in fade-in">
+              <div className="bg-rose-50 border border-rose-200 text-rose-700 px-3.5 py-2.5 rounded-lg text-xs font-semibold flex items-center gap-2 mb-4 animate-in fade-in">
                 <i className="fa-solid fa-circle-exclamation shrink-0" />
                 <span>{error}</span>
               </div>
@@ -303,10 +245,10 @@ export default function AdminLoginPage() {
                   <input
                     type="text"
                     required
-                    placeholder="admin@miraclefengshui.com"
+                    placeholder="Enter admin email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs lg:text-sm text-gray-900 focus:bg-white focus:outline-none focus:border-black transition-all"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3.5 py-2.5 text-xs lg:text-sm text-gray-900 focus:bg-white focus:outline-none focus:border-black transition-all"
                   />
                   <i className="fa-regular fa-envelope absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs pointer-events-none" />
                 </div>
@@ -324,7 +266,7 @@ export default function AdminLoginPage() {
                     placeholder="Enter your password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs lg:text-sm text-gray-900 focus:bg-white focus:outline-none focus:border-black transition-all"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3.5 py-2.5 text-xs lg:text-sm text-gray-900 focus:bg-white focus:outline-none focus:border-black transition-all"
                   />
                   <button
                     type="button"
@@ -342,7 +284,7 @@ export default function AdminLoginPage() {
                 type="submit"
                 disabled={loading}
                 style={{ backgroundColor: '#111111', color: '#ffffff' }}
-                className="w-full py-3 px-5 rounded-xl text-xs lg:text-sm font-bold tracking-wider uppercase bg-[#111111] hover:bg-black text-white flex items-center justify-center gap-2 shadow-sm hover:shadow-md transition-all cursor-pointer disabled:opacity-60 mt-1"
+                className="w-full py-3 px-5 rounded-lg text-xs lg:text-sm font-bold tracking-wider uppercase bg-[#111111] hover:bg-black text-white flex items-center justify-center gap-2 shadow-sm hover:shadow-md transition-all cursor-pointer disabled:opacity-60 mt-1"
               >
                 {loading ? (
                   <>
@@ -357,21 +299,6 @@ export default function AdminLoginPage() {
                 )}
               </button>
             </form>
-
-            {/* Demo credentials box */}
-            <div className="mt-4 bg-gray-50 border border-gray-200 rounded-xl p-3 flex items-center justify-between gap-3">
-              <div>
-                <span className="block font-bold text-[11px] text-gray-900">Demo credentials</span>
-                <span className="block text-[10.5px] text-gray-500 font-mono">admin@miraclefengshui.com &bull; admin</span>
-              </div>
-              <button
-                type="button"
-                onClick={handleFillDemo}
-                className="bg-white border border-gray-300 hover:border-black text-gray-700 hover:text-black px-2.5 py-1.5 rounded-lg text-[10.5px] font-bold transition-colors cursor-pointer shrink-0 shadow-2xs"
-              >
-                Auto-fill
-              </button>
-            </div>
 
             {/* Back link */}
             <div className="mt-5">

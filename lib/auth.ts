@@ -7,7 +7,7 @@ export const authOptions: NextAuthOptions = {
     strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
-  secret: process.env.NEXTAUTH_SECRET || 'miracle-feng-shui-super-secret-jwt-key-2026',
+  secret: process.env.NEXTAUTH_SECRET,
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -21,11 +21,9 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          const rawEmail = credentials.email.trim().toLowerCase();
-          const cleanEmail = rawEmail === 'admin' ? 'admin@miraclefengshui.com' : rawEmail;
           const user = await authService.validateCredentials({
-            email: cleanEmail,
-            password: credentials.password.trim(),
+            email: credentials.email,
+            password: credentials.password,
           });
           return user;
         } catch {

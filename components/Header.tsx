@@ -779,12 +779,12 @@ export function Header() {
         {/* Secondary Categories Navigation Bar (Desktop & Tablet) */}
         <nav className="border-t border-[#E1E3DF] bg-white hidden md:block">
           <div className="etsy-container">
-            <ul className="flex items-center justify-center gap-7 sm:gap-9 py-2.5 list-none m-0 p-0 overflow-x-auto text-[13.5px] sm:text-[14px] font-medium text-[#222222] whitespace-nowrap scrollbar-none mx-auto w-full">
+            <ul className="flex items-center justify-center gap-7 sm:gap-9 py-2.5 list-none m-0 p-0 overflow-x-auto text-[13px] font-semibold text-[#111111] whitespace-nowrap scrollbar-none mx-auto w-full">
               {secondaryNavItems.map((item) => (
                 <li key={item.name}>
                   <Link
                     href={item.href}
-                    className={`flex items-center gap-1.5 hover:text-etsy-orange hover:underline transition-colors ${item.isGift ? 'text-etsy-orange font-bold' : ''
+                    className={`flex items-center gap-1.5 hover:text-etsy-orange hover:underline transition-colors ${item.isGift ? 'text-etsy-orange' : ''
                       }`}
                   >
                     {item.isGift && <i className="fa-solid fa-gift text-[13px]" />}

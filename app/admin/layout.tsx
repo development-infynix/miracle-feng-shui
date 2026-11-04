@@ -15,34 +15,25 @@ export default function AdminLayout({
   const { data: session, status: sessionStatus } = useSession();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  const [adminUser, setAdminUser] = useState('admin@miraclefengshui.com');
+  const [adminUser, setAdminUser] = useState('Administrator');
 
   const isLoginPage = pathname === '/admin/login';
 
   useEffect(() => {
     if (isLoginPage) { setIsAuthenticated(true); return; }
-    try {
-      const auth = localStorage.getItem('mfs_admin_auth');
-      const user = localStorage.getItem('mfs_admin_user');
-      const isSessionAdmin = session?.user && (session.user as any).role === 'ADMIN';
-      if (auth === 'true' || isSessionAdmin) {
-        setIsAuthenticated(true);
-        if (user) setAdminUser(user);
-        else if (session?.user?.email) setAdminUser(session.user.email);
-      } else if (sessionStatus !== 'loading') {
-        setIsAuthenticated(false);
-        window.location.href = '/admin/login';
-      }
-    } catch {
-      if (sessionStatus !== 'loading') { setIsAuthenticated(false); window.location.href = '/admin/login'; }
+    // Trust only the server-issued NextAuth session (role === 'ADMIN').
+    const isSessionAdmin = session?.user && (session.user as any).role === 'ADMIN';
+    if (isSessionAdmin) {
+      setIsAuthenticated(true);
+      if (session?.user?.email) setAdminUser(session.user.email);
+    } else if (sessionStatus !== 'loading') {
+      setIsAuthenticated(false);
+      window.location.href = '/admin/login';
     }
   }, [pathname, isLoginPage, session, sessionStatus]);
 
   const handleSignOut = async () => {
     try {
-      localStorage.removeItem('mfs_admin_auth');
-      localStorage.removeItem('mfs_admin_user');
-      document.cookie = 'mfs_admin_auth=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
       await signOut({ redirect: false });
     } catch { /* ignore */ }
     router.replace('/admin/login');
@@ -66,6 +57,7 @@ export default function AdminLayout({
     { name: 'Customer Orders', href: '/admin/orders', icon: 'fa-cart-shopping' },
     { name: 'Products Catalog', href: '/admin/products', icon: 'fa-boxes-stacked' },
     { name: 'Categories', href: '/admin/categories', icon: 'fa-tags' },
+    { name: 'Customer Users', href: '/admin/users', icon: 'fa-users' },
     { name: 'Sections Layout', href: '/admin/homepage', icon: 'fa-layer-group' },
     { name: 'Live Storefront', href: '/', icon: 'fa-store', isExternal: true },
   ];

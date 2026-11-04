@@ -14,19 +14,31 @@ function slugify(text: string): string {
 async function main() {
   console.log('🌱 Starting Miracle Feng Shui database seeding...');
 
-  // 1. Seed Users (Admin + Customer)
-  const adminPasswordHash = await bcrypt.hash('admin', 12);
-  const customerPasswordHash = await bcrypt.hash('customer123', 12);
+  // 1. Seed Users (Admin)
+  // Admin password must come from ADMIN_SEED_PASSWORD. In production we fail
+  // hard rather than ship a guessable default.
+  const adminSeedPassword = process.env.ADMIN_SEED_PASSWORD;
+  if (!adminSeedPassword && process.env.NODE_ENV === 'production') {
+    throw new Error('Refusing to seed: ADMIN_SEED_PASSWORD must be set in production.');
+  }
+  if (!adminSeedPassword) {
+    console.warn('⚠️  ADMIN_SEED_PASSWORD not set — using dev-only default "admin". Never use this in production.');
+  }
+  const adminPasswordHash = await bcrypt.hash(adminSeedPassword || 'admin', 12);
+
+  const ADMIN_EMAIL: string = 'admin@fengshui.com';
+  // Previous admin identities that must not linger as extra ADMIN accounts.
+  const LEGACY_ADMIN_EMAILS = ['admin@miraclefengshui.com', 'admin@fengshui'];
 
   const admin = await prisma.user.upsert({
-    where: { email: 'admin@miraclefengshui.com' },
+    where: { email: ADMIN_EMAIL },
     update: {
       passwordHash: adminPasswordHash,
       role: 'ADMIN',
       name: 'Miracle Admin',
     },
     create: {
-      email: 'admin@miraclefengshui.com',
+      email: ADMIN_EMAIL,
       passwordHash: adminPasswordHash,
       name: 'Miracle Admin',
       role: 'ADMIN',
@@ -34,6 +46,18 @@ async function main() {
     },
   });
   console.log(`✅ Admin user seeded: ${admin.email}`);
+
+  // Remove legacy admin accounts so only one ADMIN credential exists;
+  // otherwise they stay usable with their old (weak) passwords.
+  const staleEmails = LEGACY_ADMIN_EMAILS.filter((e) => e !== ADMIN_EMAIL);
+  if (staleEmails.length > 0) {
+    const removed = await prisma.user.deleteMany({
+      where: { email: { in: staleEmails }, role: 'ADMIN' },
+    });
+    if (removed.count > 0) {
+      console.log(`🧹 Removed ${removed.count} legacy admin account(s): ${staleEmails.join(', ')}`);
+    }
+  }
 
   // 2. Seed Categories
 
@@ -157,45 +181,10 @@ async function main() {
   }
   console.log(`✅ ${createdProducts.length} Products seeded`);
 
-  // 6. Seed Sample Reviews
-  const firstProd = createdProducts[0];
-  const secondProd = createdProducts[1];
-  if (firstProd) {
-    await prisma.review.upsert({
-      where: {
-        userId_productId: {
-          userId: admin.id,
-          productId: firstProd.id,
-        },
-      },
-      update: {},
-      create: {
-        userId: admin.id,
-        productId: firstProd.id,
-        rating: 5,
-        comment: 'Breathtaking quality and powerful positive Chi energy! Arrived in auspicious packaging.',
-        productVariation: 'Standard Size',
-      },
-    });
-  }
-  if (secondProd) {
-    await prisma.review.upsert({
-      where: {
-        userId_productId: {
-          userId: admin.id,
-          productId: secondProd.id,
-        },
-      },
-      update: {},
-      create: {
-        userId: admin.id,
-        productId: secondProd.id,
-        rating: 5,
-        comment: 'Master blessed authentic item. Highly recommended for prosperity corner.',
-      },
-    });
-  }
-  console.log('✅ Sample reviews seeded');
+  // NOTE: Fake sample reviews are intentionally not seeded. Reviews are written
+  // by real authenticated customers only once the /api/reviews route ships
+  // (see docs/user-gap.md T-R1/T-R3). Seeding admin-authored 5-star reviews
+  // created fabricated social proof.
 
   console.log('🎉 Seeding completed successfully!');
 }

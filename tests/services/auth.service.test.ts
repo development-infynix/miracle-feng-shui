@@ -88,4 +88,36 @@ describe('AuthService', () => {
       })
     ).rejects.toThrow('Invalid email or password');
   });
+
+  it('no longer grants admin access via the removed demo backdoor (T-U1)', async () => {
+    // Even for the old demo email + password, login must go through the real
+    // DB lookup and hash. A missing user must throw, not return a session.
+    vi.spyOn(userRepository, 'findByEmail').mockResolvedValueOnce(null);
+
+    await expect(
+      authService.validateCredentials({
+        email: 'admin@miraclefengshui.com',
+        password: 'admin',
+      })
+    ).rejects.toThrow('Invalid email or password');
+  });
+
+  it('does not override a wrong password for the admin email (T-U1)', async () => {
+    const realHash = await bcrypt.hash('a-strong-different-password', 10);
+    vi.spyOn(userRepository, 'findByEmail').mockResolvedValueOnce({
+      id: 'admin-1',
+      name: 'Miracle Admin',
+      email: 'admin@miraclefengshui.com',
+      passwordHash: realHash,
+      role: 'ADMIN',
+      phone: null,
+    } as any);
+
+    await expect(
+      authService.validateCredentials({
+        email: 'admin@miraclefengshui.com',
+        password: 'admin',
+      })
+    ).rejects.toThrow('Invalid email or password');
+  });
 });

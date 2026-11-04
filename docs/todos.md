@@ -6,19 +6,21 @@ Consolidated work queue for **Miracle Feng Shui**. Detail and evidence for the u
 
 ## P0 — Security (do not deploy until these are done)
 
-- [ ] **T-U1: Remove the demo-admin backdoor.** Delete the forced `isValid = true` fallback (`auth.service.ts:84–86`), the `isDemoAdmin` shortcut, and the in-memory `demo-admin` session path (lines 33–43, 54–68). Login must fail when bcrypt fails — full stop. *(user-gap §3)*
-- [ ] **T-U2: Stop auto-creating the admin at login.** Admin should exist only via seed/env-driven bootstrap, never as a side effect of a failed lookup. The `catch` that swallows DB errors and returns an ADMIN session must be removed. *(user-gap §3)*
-- [ ] **T-U3: Drop the `admin` → `admin@miraclefengshui.com` email alias** in `auth.service.ts:30` and `lib/auth.ts` authorize. *(user-gap §3)*
-- [ ] **T-U4: Delete the `mfs_admin_auth` cookie bypass.** Middleware must rely on the NextAuth JWT role only (`middleware.ts:39–42`); remove the client-side cookie/localStorage writes in `app/admin/login/page.tsx:50–52` and `app/admin/layout.tsx`. *(user-gap §4)*
-- [ ] **T-U7: Remove hardcoded NEXTAUTH_SECRET fallbacks** (`middleware.ts:20`, `lib/auth.ts:10`) and throw at startup if the env var is missing. Treat the committed value as burned — rotate it everywhere. *(Duplicates T-03 in product-catelog.md — fix once, close both.)*
-- [ ] **T-U8: Seed a real admin password** from `ADMIN_SEED_PASSWORD` (or generate + print once) instead of `admin` (`prisma/seed.ts:18`), and remove the credentials hint from the admin login error (T-02 in product-catelog.md). Rotate the password on any DB seeded with `admin`.
-- [ ] **T-U5: Gate the dev auth bypasses behind an explicit env flag** (e.g. `ALLOW_DEV_ADMIN=true`), never on `NODE_ENV === 'development'` alone: middleware skip (`middleware.ts:9–11`) and `DEV_ADMIN` injection (`withAuth.ts:19–31, 46–49`). *(user-gap §4)*
+> Auth hardening landed 2026-11-04 (T-U1…T-U5, T-U7, T-U8, T-R3). Requires `NEXTAUTH_SECRET` to be set in every environment; for local admin convenience set `ALLOW_DEV_ADMIN=true` in `.env.local`. Regression tests added in `tests/services/auth.service.test.ts`.
+
+- [x] **T-U1: Remove the demo-admin backdoor.** Done. Deleted the forced `isValid = true` fallback, the `isDemoAdmin` shortcut and the in-memory `demo-admin` path in `auth.service.ts`. Login now fails whenever bcrypt fails. Covered by 2 regression tests.
+- [x] **T-U2: Stop auto-creating the admin at login.** Done. `validateCredentials` no longer creates rows or swallows DB errors; lookup failures propagate.
+- [x] **T-U3: Drop the `admin` → `admin@miraclefengshui.com` email alias** in `auth.service.ts` and `lib/auth.ts`. Done.
+- [x] **T-U4: Delete the `mfs_admin_auth` cookie bypass.** Done. Middleware relies on the NextAuth JWT role only; removed client-side cookie/localStorage writes in `app/admin/login/page.tsx` and `app/admin/layout.tsx`.
+- [x] **T-U7: Remove hardcoded NEXTAUTH_SECRET fallbacks** (`middleware.ts`, `lib/auth.ts`). Done — no fallback remains, so a missing secret now fails loudly. *(Closes T-03 in product-catelog.md.)*
+- [x] **T-U8: Seed a real admin password** from `ADMIN_SEED_PASSWORD`, throwing in production when unset (`prisma/seed.ts`); removed the credential hint + demo auto-fill box from the login page. *(Addresses T-02 in product-catelog.md.)*
+- [x] **T-U5: Gate the dev auth bypasses behind `ALLOW_DEV_ADMIN==='true'`** instead of `NODE_ENV === 'development'`, in both `middleware.ts` and `withAuth.ts`/`withRole`.
 
 ## P1 — Access Control & Data Integrity
 
 - [ ] **T-U6: Wrap every admin API route in `withRole('ADMIN')`.** Only `admin/products/[id]/detail` has it today. Apply to dashboard, orders, categories, homepage, products list/[id]/import/export/sample-csv. *(Overlaps T-01 in product-catelog.md.)*
 - [ ] **T-U10: Invalidate sessions on password change/reset.** Add a token version or `updatedAt`-based check in the JWT callback so an old 30-day token stops working after a credential change. *(user-gap §6)*
-- [ ] **T-R3: Delete the fake seeded reviews** (`prisma/seed.ts` ~160–175) or convert them to clearly-labeled demo data that's stripped before production. *(user-gap §5)*
+- [x] **T-R3: Delete the fake seeded reviews** (`prisma/seed.ts`). Done — admin-authored 5-star reviews no longer seeded.
 
 ## P1 — Reviews: decide build vs. strip
 

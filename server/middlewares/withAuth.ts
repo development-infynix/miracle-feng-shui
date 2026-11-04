@@ -23,9 +23,12 @@ const DEV_ADMIN: AuthenticatedUser = {
   role: 'ADMIN',
 };
 
+// Opt-in only. Never keyed off NODE_ENV alone, so a mis-set build can't leak it.
+const allowDevAdmin = () => process.env.ALLOW_DEV_ADMIN === 'true';
+
 export function withAuth(handler: AuthenticatedRouteHandler) {
   return async (req: NextRequest, segmentData?: any) => {
-    if (process.env.NODE_ENV === 'development') {
+    if (allowDevAdmin()) {
       const resolvedParams = segmentData?.params ? await segmentData.params : undefined;
       return handler(req, { user: DEV_ADMIN, params: resolvedParams });
     }
@@ -43,7 +46,7 @@ export function withAuth(handler: AuthenticatedRouteHandler) {
 
 export function withRole(role: 'ADMIN', handler: AuthenticatedRouteHandler) {
   return async (req: NextRequest, segmentData?: any) => {
-    if (process.env.NODE_ENV === 'development') {
+    if (allowDevAdmin()) {
       const resolvedParams = segmentData?.params ? await segmentData.params : undefined;
       return handler(req, { user: DEV_ADMIN, params: resolvedParams });
     }

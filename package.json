@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "eslint",
     "seed": "tsx prisma/seed.ts",
+    "seed:customers": "tsx prisma/seed-customers.ts",
     "test": "vitest run"
   },
   "dependencies": {
