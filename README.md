@@ -56,10 +56,10 @@ RAZORPAY_KEY_SECRET="rzp_test_placeholder_secret"
 RAZORPAY_WEBHOOK_SECRET="rzp_test_webhook_secret"
 ```
 
-### 3. Push Schema & Seed Data
+### 3. Apply Migrations & Seed Data
 ```bash
-# Push Prisma schema to Docker PostgreSQL
-npx prisma db push
+# Apply Prisma migrations to Docker PostgreSQL
+npx prisma migrate deploy
 
 # Seed Admin, Customer, Categories, Products, and Homepage sections
 npm run seed
@@ -109,15 +109,32 @@ RAZORPAY_KEY_SECRET="your_actual_live_secret"
 RAZORPAY_WEBHOOK_SECRET="your_actual_live_webhook_secret"
 ```
 
-### 3. Push Schema & Seed Production Database
+### 3. Apply Migrations & Seed Production Database
 You can initialize and seed the Neon database directly from your local terminal:
 
 ```bash
-# Apply schema to Neon database
-npx prisma db push
+# Apply migrations to Neon database
+npx prisma migrate deploy
 
 # Seed production catalog and initial admin
 npm run seed
+```
+
+---
+
+## 🗄️ Changing the Database Schema
+
+Every schema change is recorded in `prisma/migrations`. Don't use `prisma db push`, because it bypasses that record.
+
+1. Edit `prisma/schema.prisma`.
+2. Run `npx prisma migrate dev --name describe_change` against a development database.
+3. Commit the schema and the new migration folder together.
+4. Run `npx prisma migrate deploy` to apply it to production.
+
+**Database that already has these tables:** check that its schema matches the first migration, then run this once before `migrate deploy`:
+
+```bash
+npx prisma migrate resolve --applied 20240101000000_init
 ```
 
 ---

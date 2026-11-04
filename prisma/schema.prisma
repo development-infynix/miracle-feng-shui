@@ -120,7 +120,7 @@ model Product {
   inDemandCount         Int         @default(0)
   isFeatured            Boolean     @default(false)
   isActive              Boolean     @default(true)
-  ratingAvg             Float       @default(5.0)
+  ratingAvg             Float       @default(0.0)
   ratingCount           Int         @default(0)
   createdAt             DateTime    @default(now())
   updatedAt             DateTime    @updatedAt
