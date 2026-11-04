@@ -5,11 +5,31 @@ import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import type { NavCategory } from '@/lib/nav-categories';
-import { products } from '@/lib/placeholder-data';
+import { useStore } from '@/context/StoreContext';
 import { signIn, signOut, useSession } from 'next-auth/react';
 import { useLocale } from '@/context/CurrencyContext';
 import { Country, Currency, Language, translateCategory } from '@/lib/translations';
 import AddressManagerModal from '@/components/AddressManagerModal';
+import GooNavShell from '@/components/GooNavShell';
+import { TbChartBubbleFilled } from 'react-icons/tb';
+
+const INSTAGRAM_URL = 'https://www.instagram.com/fengshui.chitrahanson';
+// Add the page link here to make the Facebook icon clickable.
+const FACEBOOK_URL = '';
+const navSocialIconClass = 'w-6 h-6 transition-opacity group-hover:opacity-75';
+
+const navItemBase =
+  'group relative items-center justify-center rounded-full cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#3A1F62]';
+const navIconButton = `flex w-9 h-9 shrink-0 ${navItemBase}`;
+const navTextButton = `h-10 px-3 ${navItemBase}`;
+const navItemClass = `inline-flex h-10 px-3 gap-1.5 ${navItemBase}`;
+const navLabelClass = 'font-outfit text-[#111111] transition-colors group-hover:text-[#7A2FC0]';
+const navBadgeClass =
+  'min-w-4 h-4 px-1 inline-flex items-center justify-center rounded-full bg-[#431769] text-white text-[10px] font-bold leading-none';
+const mobileRowClass =
+  'group flex w-full h-11 items-center gap-3 px-3 rounded-2xl text-left cursor-pointer focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#3A1F62]';
+const mobileLabelClass = 'font-outfit transition-colors group-hover:text-[#7A2FC0]';
+const mobileIconClass = 'w-5 text-center text-[15px] text-[#431769]';
 
 export function Header({ navCategories }: { navCategories: NavCategory[] }) {
   const router = useRouter();
@@ -21,6 +41,7 @@ export function Header({ navCategories }: { navCategories: NavCategory[] }) {
   }
   const { count, userLoggedIn, setUserLoggedIn, favorites } = useCart();
   const { data: session, status } = useSession();
+  const { products } = useStore();
   const {
     country,
     currency,
@@ -35,9 +56,12 @@ export function Header({ navCategories }: { navCategories: NavCategory[] }) {
 
   const [query, setQuery] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const mobileSearchInputRef = useRef<HTMLInputElement>(null);
-  const [mobileSearchActive, setMobileSearchActive] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const searchPanelRef = useRef<HTMLDivElement>(null);
+  const [categoriesOpen, setCategoriesOpen] = useState(true);
+  const categoriesTriggerRef = useRef<HTMLButtonElement>(null);
+  const mobileMenuTriggerRef = useRef<HTMLButtonElement>(null);
   const [showRegionModal, setShowRegionModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isRegisterMode, setIsRegisterMode] = useState(false);
@@ -105,7 +129,6 @@ export function Header({ navCategories }: { navCategories: NavCategory[] }) {
   const profileRef = useRef<HTMLDivElement>(null);
 
   // Tooltip hover states
-  const [hoveredIcon, setHoveredIcon] = useState<string | null>(null);
 
   // Form states
   const [email, setEmail] = useState('');
@@ -146,17 +169,62 @@ export function Header({ navCategories }: { navCategories: NavCategory[] }) {
     };
   }, []);
 
-  // Lock body scroll while mobile search overlay is active to prevent page scrolling/bleed
+  // Phone menu: lock the blurred page behind it, close on Escape or a tap outside it.
   React.useEffect(() => {
-    if (mobileSearchActive) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
+    if (!mobileMenuOpen) return;
+    document.body.style.overflow = 'hidden';
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      setMobileMenuOpen(false);
+      mobileMenuTriggerRef.current?.focus();
+    };
+    const handlePointerDown = (e: PointerEvent) => {
+      const target = e.target as Element;
+      if (mobileMenuTriggerRef.current?.contains(target) || target.closest('#nav-mobile-menu')) return;
+      setMobileMenuOpen(false);
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('pointerdown', handlePointerDown);
     return () => {
       document.body.style.overflow = '';
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('pointerdown', handlePointerDown);
     };
-  }, [mobileSearchActive]);
+  }, [mobileMenuOpen]);
+
+  // Search modal: lock page scroll, close on Escape, keep Tab inside, restore focus on close.
+  React.useEffect(() => {
+    if (!searchOpen) return;
+    const previousFocus = document.activeElement as HTMLElement | null;
+    document.body.style.overflow = 'hidden';
+    const focusTimer = setTimeout(() => mobileSearchInputRef.current?.focus(), 60);
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setSearchOpen(false);
+        return;
+      }
+      if (e.key !== 'Tab' || !searchPanelRef.current) return;
+      const focusable = searchPanelRef.current.querySelectorAll<HTMLElement>('input, button, a[href]');
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last?.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first?.focus();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      clearTimeout(focusTimer);
+      document.body.style.overflow = '';
+      document.removeEventListener('keydown', handleKeyDown);
+      previousFocus?.focus();
+    };
+  }, [searchOpen]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -179,16 +247,29 @@ export function Header({ navCategories }: { navCategories: NavCategory[] }) {
           (p.maker && p.maker.toLowerCase().includes(q))
       )
       .slice(0, 8);
-  }, [query]);
+  }, [query, products]);
 
-  // Favorites and cart need an account: guests get the login modal instead of the page.
-  // While the session is still loading, the link works normally.
-  const openLoginIfGuest = (e: React.MouseEvent) => {
-    if (userLoggedIn || status !== 'unauthenticated') return;
-    e.preventDefault();
+  const closeMobileMenu = () => setMobileMenuOpen(false);
+
+  const openSignIn = () => {
     setIsRegisterMode(false);
     setShowAuthModal(true);
   };
+
+  const brandLink = (
+    <Link
+      href="/"
+      className="flex min-w-0 items-center gap-2 select-none rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3A1F62]"
+    >
+      <span className="w-7 h-7 md:w-9 md:h-9 rounded-full overflow-hidden shrink-0">
+        {/* The SVG has a transparent margin around its circle; the scale crops it off. */}
+        <img src="/images/logofull.svg" alt="" className="w-full h-full object-cover scale-[1.23]" />
+      </span>
+      <span className="font-serif text-[18px] md:text-[21px] font-bold text-[#111111] tracking-tight leading-none whitespace-nowrap">
+        Miracle feng shui
+      </span>
+    </Link>
+  );
 
   // Newest categories from the server (app/layout.tsx), then the link to all of them.
   const secondaryNavItems = [
@@ -302,18 +383,363 @@ export function Header({ navCategories }: { navCategories: NavCategory[] }) {
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-white border-b border-[#E0D7E8]">
-        {/* Top Header Row */}
-        <div className="etsy-container py-2 sm:py-2.5">
-          {/* Mobile Full-Screen Fixed Search Overlay (Zero overlap with page content below) */}
-          {mobileSearchActive && (
-            <div className="fixed inset-0 z-[9999] bg-white md:hidden flex flex-col animate-in fade-in duration-150">
+      {/* Phones: blurs the page behind the open menu. A tap on it closes the menu. */}
+      <div
+        aria-hidden="true"
+        className={`fixed inset-0 z-30 md:hidden bg-[#2B154C]/15 backdrop-blur-[6px] transition-[opacity,visibility] duration-300 motion-reduce:transition-none ${mobileMenuOpen ? 'opacity-100' : 'invisible opacity-0'}`}
+      />
+
+      <header className="sticky top-0 z-40 pointer-events-none pt-2.5 pb-1">
+        <div className="mx-auto w-full max-w-[1040px] px-3 sm:px-6">
+          {/* Tablet and up: main pill with the category pill below it */}
+          <div className="hidden md:block">
+            <GooNavShell
+              open={categoriesOpen}
+              triggerRef={categoriesTriggerRef}
+              dropId="nav-categories-pill"
+              openSpaceClassName="pb-[68px]"
+              drop={
+                <ul className="flex items-center p-1 list-none overflow-x-auto no-scrollbar font-outfit text-[14px] font-medium tracking-[0.01em] whitespace-nowrap">
+                  {secondaryNavItems.map((item, idx) => (
+                    <li key={item.key} className="flex items-center shrink-0">
+                      {idx > 0 && <span aria-hidden="true" className="h-4 w-px mx-0.5 bg-[#431769]/30" />}
+                      <Link
+                        href={item.href}
+                        className="group flex items-center h-9 px-4 rounded-full focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#3A1F62]"
+                      >
+                        {/* Text colour sits on this span: the global `a { color: inherit }` rule overrides colour utilities on the link. */}
+                        <span
+                          className={`flex items-center gap-1.5 transition-colors group-hover:text-[#7A2FC0] ${item.isViewAll ? 'text-[#431769]' : 'text-[#111111]'}`}
+                        >
+                          {item.label}
+                          {item.isViewAll && <i aria-hidden="true" className="fa-solid fa-arrow-right text-[11px]" />}
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              }
+            >
+              <div className="flex h-14 items-center gap-1 px-4">
+                {/* Left: brand */}
+                <div className="flex flex-1 min-w-0 items-center">{brandLink}</div>
+
+                {/* Centre: main links */}
+                <nav aria-label="Main" className="flex shrink-0 items-center gap-1 font-outfit text-[14px] font-medium tracking-[0.01em]">
+                  <button
+                    ref={categoriesTriggerRef}
+                    type="button"
+                    aria-expanded={categoriesOpen}
+                    aria-controls="nav-categories-pill"
+                    onClick={() => setCategoriesOpen((prev) => !prev)}
+                    className={`inline-flex ${navTextButton}`}
+                  >
+                    <span className={`flex items-center gap-1.5 font-outfit transition-colors group-hover:text-[#7A2FC0] ${categoriesOpen ? 'text-[#7A2FC0]' : 'text-[#111111]'}`}>
+                      {t('nav.categories', 'Categories')}
+                      <i
+                        aria-hidden="true"
+                        className={`fa-solid fa-chevron-down text-[10px] transition-transform duration-300 motion-reduce:transition-none ${categoriesOpen ? 'rotate-180' : ''}`}
+                      />
+                    </span>
+                  </button>
+
+                  <button type="button" onClick={() => setSearchOpen(true)} className={navItemClass}>
+                    <span className={navLabelClass}>{t('nav.search', 'Search')}</span>
+                  </button>
+
+                  {userLoggedIn ? (
+                    <>
+                      <Link href="/favorites" className={navItemClass}>
+                        <span className={navLabelClass}>{t('nav.favorites', 'Favourites')}</span>
+                        {favorites.length > 0 && <span className={navBadgeClass}>{favorites.length}</span>}
+                      </Link>
+                      <Link href="/cart" className={navItemClass}>
+                        <span className={navLabelClass}>{t('nav.cart', 'Cart')}</span>
+                        {count > 0 && <span className={navBadgeClass}>{count}</span>}
+                      </Link>
+                    </>
+                  ) : (
+                    <button type="button" onClick={openSignIn} className={navItemClass}>
+                      <span className={navLabelClass}>{t('nav.signin', 'Sign in')}</span>
+                    </button>
+                  )}
+                </nav>
+
+                {/* Right: social links and the account menu */}
+                <div className="flex flex-1 items-center justify-end gap-1">
+                  <a
+                    href={INSTAGRAM_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Instagram"
+                    className={navIconButton}
+                  >
+                    <img src="/images/instagram-badge.svg" alt="" className={navSocialIconClass} />
+                  </a>
+                  {FACEBOOK_URL ? (
+                    <a
+                      href={FACEBOOK_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="Facebook"
+                      className={navIconButton}
+                    >
+                      <img src="/images/facebook.svg" alt="" className={navSocialIconClass} />
+                    </a>
+                  ) : (
+                    <span aria-hidden="true" className="flex w-9 h-9 shrink-0 items-center justify-center">
+                      <img src="/images/facebook.svg" alt="" className="w-6 h-6" />
+                    </span>
+                  )}
+
+                  {userLoggedIn && (
+                    <div className="relative" ref={profileRef}>
+                      <button
+                        type="button"
+                        onClick={() => setProfileDropdownOpen((prev) => !prev)}
+                        aria-label="User account menu"
+                        aria-expanded={profileDropdownOpen}
+                        className={navIconButton}
+                      >
+                        <span className="w-7 h-7 rounded-full bg-[#431769] text-white flex items-center justify-center font-bold text-[12px] shrink-0">
+                          {userName.charAt(0).toUpperCase() || 'A'}
+                        </span>
+                      </button>
+
+                    {/* Sleek Dropdown Menu */}
+                    {profileDropdownOpen && (
+                      <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-2xl shadow-2xl border border-gray-100 p-3 z-50 animate-in fade-in slide-in-from-top-1 duration-150 text-left">
+                        {/* User Header */}
+                        <div className="px-3 pt-2 pb-3 border-b border-gray-100">
+                          <p className="font-bold text-[14.5px] text-[#111111] leading-snug">
+                            {userName}
+                          </p>
+                          <p className="text-[12px] text-gray-400 mt-0.5 truncate">
+                            {userEmail}
+                          </p>
+                        </div>
+  
+                        {/* Store Navigation Items */}
+                        <div className="py-2 text-[13px] space-y-0.5 text-gray-700">
+                          <Link
+                            href="/my-orders"
+                            onClick={() => setProfileDropdownOpen(false)}
+                            className="w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl hover:bg-gray-50 hover:text-black transition-colors"
+                          >
+                            <i className="fa-regular fa-calendar-check text-[14px] text-gray-400 w-4 text-center shrink-0" />
+                            <span className="font-medium text-gray-800">{t('nav.my_orders', 'My orders')}</span>
+                          </Link>
+  
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setProfileDropdownOpen(false);
+                              setShowAddressModal(true);
+                            }}
+                            className="w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl hover:bg-gray-50 hover:text-black transition-colors text-left cursor-pointer"
+                          >
+                            <i className="fa-solid fa-location-dot text-[14px] text-gray-400 w-4 text-center shrink-0" />
+                            <span className="font-medium text-gray-800">{t('nav.delivery_addresses', 'Delivery addresses')}</span>
+                          </button>
+  
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setProfileDropdownOpen(false);
+                              setShowProfileEditModal(true);
+                            }}
+                            className="w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl hover:bg-gray-50 hover:text-black transition-colors text-left cursor-pointer"
+                          >
+                            <i className="fa-regular fa-user text-[14px] text-gray-400 w-4 text-center shrink-0" />
+                            <span className="font-medium text-gray-800">{t('nav.edit_profile', 'Edit profile')}</span>
+                          </button>
+                        </div>
+  
+                        {/* Sign Out */}
+                        <div className="pt-2 mt-1 border-t border-gray-100">
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              await signOut({ redirect: false });
+                              setUserLoggedIn(false);
+                              setProfileDropdownOpen(false);
+                            }}
+                            className="w-full flex items-center gap-3.5 px-3 py-2 rounded-xl hover:bg-red-50 text-red-600 font-medium text-[13px] transition-colors text-left cursor-pointer"
+                          >
+                            <i className="fa-solid fa-arrow-right-from-bracket text-[13px] text-red-500 w-4 text-center shrink-0" />
+                            <span>{t('nav.sign_out', 'Sign out')}</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </GooNavShell>
+          </div>
+
+          {/* Phones: brand and menu button, with the menu dropping down from the pill */}
+          <div className="md:hidden">
+            <GooNavShell
+              open={mobileMenuOpen}
+              triggerRef={mobileMenuTriggerRef}
+              dropId="nav-mobile-menu"
+              mainHeight={52}
+              dropRadius={28}
+              dropClassName="w-full"
+              dropWrapperClassName="px-2"
+              drop={
+                <nav aria-label="Menu" className="max-h-[calc(100dvh-104px)] overflow-y-auto no-scrollbar p-2 font-outfit text-[15px] font-medium">
+                  {secondaryNavItems.map((item) => (
+                    <Link key={item.key} href={item.href} onClick={closeMobileMenu} className={mobileRowClass}>
+                      <span className={`${mobileLabelClass} ${item.isViewAll ? 'text-[#431769]' : 'text-[#111111]'}`}>
+                        {item.label}
+                      </span>
+                      {item.isViewAll && <i aria-hidden="true" className="fa-solid fa-arrow-right text-[12px] text-[#431769]" />}
+                    </Link>
+                  ))}
+
+                  <div aria-hidden="true" className="mx-3 my-1.5 h-px bg-[#431769]/20" />
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      closeMobileMenu();
+                      setSearchOpen(true);
+                    }}
+                    className={mobileRowClass}
+                  >
+                    <i aria-hidden="true" className={`fa-solid fa-magnifying-glass ${mobileIconClass}`} />
+                    <span className={`${mobileLabelClass} text-[#111111]`}>{t('nav.search', 'Search')}</span>
+                  </button>
+
+                  {userLoggedIn ? (
+                    <>
+                      <Link href="/favorites" onClick={closeMobileMenu} className={mobileRowClass}>
+                        <i aria-hidden="true" className={`fa-solid fa-heart ${mobileIconClass}`} />
+                        <span className={`${mobileLabelClass} flex-1 text-[#111111]`}>{t('nav.favorites', 'Favourites')}</span>
+                        {favorites.length > 0 && <span className={navBadgeClass}>{favorites.length}</span>}
+                      </Link>
+                      <Link href="/cart" onClick={closeMobileMenu} className={mobileRowClass}>
+                        <i aria-hidden="true" className={`fa-solid fa-bag-shopping ${mobileIconClass}`} />
+                        <span className={`${mobileLabelClass} flex-1 text-[#111111]`}>{t('nav.cart', 'Cart')}</span>
+                        {count > 0 && <span className={navBadgeClass}>{count}</span>}
+                      </Link>
+                      <Link href="/my-orders" onClick={closeMobileMenu} className={mobileRowClass}>
+                        <i aria-hidden="true" className={`fa-regular fa-calendar-check ${mobileIconClass}`} />
+                        <span className={`${mobileLabelClass} text-[#111111]`}>{t('nav.my_orders', 'My orders')}</span>
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          closeMobileMenu();
+                          setShowAddressModal(true);
+                        }}
+                        className={mobileRowClass}
+                      >
+                        <i aria-hidden="true" className={`fa-solid fa-location-dot ${mobileIconClass}`} />
+                        <span className={`${mobileLabelClass} text-[#111111]`}>{t('nav.delivery_addresses', 'Delivery addresses')}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          closeMobileMenu();
+                          setShowProfileEditModal(true);
+                        }}
+                        className={mobileRowClass}
+                      >
+                        <i aria-hidden="true" className={`fa-regular fa-user ${mobileIconClass}`} />
+                        <span className={`${mobileLabelClass} text-[#111111]`}>{t('nav.edit_profile', 'Edit profile')}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          closeMobileMenu();
+                          await signOut({ redirect: false });
+                          setUserLoggedIn(false);
+                        }}
+                        className={mobileRowClass}
+                      >
+                        <i aria-hidden="true" className={`fa-solid fa-arrow-right-from-bracket ${mobileIconClass}`} />
+                        <span className={`${mobileLabelClass} text-[#111111]`}>{t('nav.sign_out', 'Sign out')}</span>
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        closeMobileMenu();
+                        openSignIn();
+                      }}
+                      className={mobileRowClass}
+                    >
+                      <i aria-hidden="true" className={`fa-solid fa-user ${mobileIconClass}`} />
+                      <span className={`${mobileLabelClass} text-[#111111]`}>{t('nav.signin', 'Sign in')}</span>
+                    </button>
+                  )}
+
+                  <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" onClick={closeMobileMenu} className={mobileRowClass}>
+                    <img src="/images/instagram-badge.svg" alt="" className="w-5 h-5 shrink-0" />
+                    <span className={`${mobileLabelClass} text-[#111111]`}>Instagram</span>
+                  </a>
+                  {FACEBOOK_URL ? (
+                    <a href={FACEBOOK_URL} target="_blank" rel="noopener noreferrer" onClick={closeMobileMenu} className={mobileRowClass}>
+                      <img src="/images/facebook.svg" alt="" className="w-5 h-5 shrink-0" />
+                      <span className={`${mobileLabelClass} text-[#111111]`}>Facebook</span>
+                    </a>
+                  ) : (
+                    <div className="flex h-11 items-center gap-3 px-3">
+                      <img src="/images/facebook.svg" alt="" className="w-5 h-5 shrink-0" />
+                      <span className="text-[#111111]">Facebook</span>
+                    </div>
+                  )}
+                </nav>
+              }
+            >
+              <div className="flex h-[52px] items-center justify-between gap-2 pl-3 pr-2">
+                {brandLink}
+                <button
+                  ref={mobileMenuTriggerRef}
+                  type="button"
+                  aria-label="Menu"
+                  aria-expanded={mobileMenuOpen}
+                  aria-controls="nav-mobile-menu"
+                  onClick={() => setMobileMenuOpen((prev) => !prev)}
+                  className={navIconButton}
+                >
+                  <TbChartBubbleFilled
+                    aria-hidden="true"
+                    className={`text-[24px] transition-[color,rotate] duration-500 ease-out motion-reduce:transition-none group-hover:text-[#7A2FC0] ${mobileMenuOpen ? 'rotate-180 text-[#7A2FC0]' : 'rotate-0 text-[#431769]'}`}
+                  />
+                </button>
+              </div>
+            </GooNavShell>
+          </div>
+        </div>
+      </header>
+
+      {/* Search modal: full screen on phones, a centred panel from tablet up */}
+          {searchOpen && (
+            <div
+              className="fixed inset-0 z-[9999] flex flex-col bg-white md:items-center md:bg-[#2B154C]/35 md:px-4 md:pt-[12vh] md:backdrop-blur-sm animate-in fade-in duration-150"
+              onMouseDown={(e) => {
+                if (e.target === e.currentTarget) setSearchOpen(false);
+              }}
+            >
+              <div
+                ref={searchPanelRef}
+                role="dialog"
+                aria-modal="true"
+                aria-label={t('nav.search', 'Search')}
+                className="flex min-h-0 w-full flex-1 flex-col bg-white md:max-h-[70vh] md:max-w-xl md:flex-none md:overflow-hidden md:rounded-3xl md:shadow-[0_24px_60px_rgba(43,21,76,0.28)]"
+              >
               {/* Fixed Top Search Bar */}
               <div className="px-3.5 py-2.5 border-b border-gray-200 bg-white flex items-center gap-2.5 shadow-2xs">
                 <form
                   onSubmit={(e) => {
                     handleSearch(e);
-                    setMobileSearchActive(false);
+                    setSearchOpen(false);
                   }}
                   role="search"
                   className="flex-1 min-w-0 relative"
@@ -344,7 +770,7 @@ export function Header({ navCategories }: { navCategories: NavCategory[] }) {
                 <button
                   type="button"
                   onClick={() => {
-                    setMobileSearchActive(false);
+                    setSearchOpen(false);
                   }}
                   className="text-[14.5px] font-bold text-[#222222] hover:text-black shrink-0 px-2 py-1 cursor-pointer"
                 >
@@ -384,7 +810,7 @@ export function Header({ navCategories }: { navCategories: NavCategory[] }) {
                           onClick={() => {
                             setQuery(term);
                             router.push(`/shop?q=${encodeURIComponent(term)}`);
-                            setMobileSearchActive(false);
+                            setSearchOpen(false);
                           }}
                           className="px-3.5 py-1.5 rounded-full bg-[#FAF9F6] hover:bg-[#F3EEFC] text-gray-700 hover:text-[#3A1F62] text-xs font-medium border border-gray-200/80 shadow-2xs transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
                         >
@@ -410,7 +836,7 @@ export function Header({ navCategories }: { navCategories: NavCategory[] }) {
                             key={prod.id}
                             onClick={() => {
                               router.push(`/product/${prod.id}`);
-                              setMobileSearchActive(false);
+                              setSearchOpen(false);
                             }}
                             className="flex items-center gap-3 p-2 rounded-xl border border-gray-200/80 bg-white hover:border-[#3A1F62]/40 hover:bg-[#FAF8FD] transition-all cursor-pointer shadow-2xs active:scale-[0.99]"
                           >
@@ -448,7 +874,7 @@ export function Header({ navCategories }: { navCategories: NavCategory[] }) {
                           type="button"
                           onClick={(e) => {
                             handleSearch(e);
-                            setMobileSearchActive(false);
+                            setSearchOpen(false);
                           }}
                           className="mt-3 w-full py-2.5 rounded-xl bg-[#3A1F62] hover:bg-[#2B154C] text-white text-xs font-bold text-center transition-colors cursor-pointer shadow-xs flex items-center justify-center gap-2"
                         >
@@ -483,456 +909,8 @@ export function Header({ navCategories }: { navCategories: NavCategory[] }) {
                 )}
               </div>
             </div>
+            </div>
           )}
-
-          {/* Standard Header Row */}
-          <div className="flex items-center justify-between gap-1 sm:gap-2.5 md:gap-4 w-full">
-            {/* Left: Mobile Menu Button + Brand Logo */}
-            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-              {/* Mobile Menu Button */}
-              <button
-                type="button"
-                aria-label="Toggle navigation menu"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="lg:hidden p-1.5 -ml-1 rounded-full hover:bg-etsy-bg-soft text-etsy-dark shrink-0 cursor-pointer"
-              >
-                {mobileMenuOpen ? <i className="fa-solid fa-xmark text-[18px]" /> : <i className="fa-solid fa-bars text-[18px]" />}
-              </button>
-
-              {/* Logo: Round avatar + Brand Name (Increased sizes for mobile) */}
-              <Link
-                href="/"
-                className="flex items-center gap-2 sm:gap-2.5 shrink-0 select-none hover:opacity-90 transition-opacity"
-              >
-                <div className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-full overflow-hidden shadow-2xs shrink-0">
-                  {/* The SVG has a transparent margin around its circle; the scale crops it off. */}
-                  <img
-                    src="/images/logofull.svg"
-                    alt="Miracle feng shui"
-                    className="w-full h-full object-cover scale-[1.23]"
-                  />
-                </div>
-                <span className="font-serif text-[22px] sm:text-[25px] md:text-[28px] font-bold text-[#222222] tracking-tight leading-none">
-                  <span className="sm:hidden">Miracle</span>
-                  <span className="hidden sm:inline">Miracle feng shui</span>
-                </span>
-              </Link>
-
-              {/* Categories Trigger Button (Desktop Only) */}
-              <button
-                type="button"
-                onClick={() => router.push('/shop')}
-                className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full hover:bg-etsy-bg-soft text-[14px] font-semibold text-etsy-dark shrink-0 transition-colors ml-1"
-              >
-                <i className="fa-solid fa-bars text-[13px]" />
-                <span>{t('nav.categories', 'Categories')}</span>
-              </button>
-            </div>
-
-            {/* Middle: Desktop Search Bar */}
-            <form
-              onSubmit={handleSearch}
-              role="search"
-              className="hidden md:block flex-1 min-w-0 max-w-3xl mx-3 relative"
-            >
-              <div className="relative flex items-center">
-                <input
-                  type="text"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder={t('nav.search_placeholder', 'Search')}
-                  className="w-full h-10 md:h-11 pl-4 pr-12 rounded-full border border-gray-400 md:border-2 md:border-[#222222] focus:outline-none focus:border-[#3A1F62] text-[14.5px] text-[#222222] placeholder-gray-500 bg-white transition-all shadow-2xs"
-                />
-                {query && (
-                  <button
-                    type="button"
-                    onClick={() => setQuery('')}
-                    className="absolute right-11 text-gray-400 hover:text-gray-600 p-0.5 text-xs cursor-pointer"
-                    aria-label="Clear search text"
-                  >
-                    <i className="fa-solid fa-xmark text-[11px]" />
-                  </button>
-                )}
-                {/* Search Button with Logo Purple Background */}
-                <button
-                  type="submit"
-                  aria-label="Submit search"
-                  className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-[#3A1F62] hover:bg-[#2B154C] text-white flex items-center justify-center transition-colors shrink-0 cursor-pointer shadow-xs"
-                >
-                  <i className="fa-solid fa-magnifying-glass text-[12px]" />
-                </button>
-              </div>
-            </form>
-
-            {/* Right Actions: Mobile Search Icon 🔍 | Region Flag 🇮🇳/🇦🇪 | Profile / Sign In 👤 | Favourites ♥ | Cart 👜 */}
-            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-              {/* Mobile Search Icon Trigger Button */}
-              <button
-                type="button"
-                aria-label="Open search"
-                onClick={() => {
-                  setMobileSearchActive(true);
-                  setTimeout(() => mobileSearchInputRef.current?.focus(), 60);
-                }}
-                className="md:hidden w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center cursor-pointer transition-colors shrink-0"
-              >
-                <i className="fa-solid fa-magnifying-glass text-[17px] text-[#3A1F62]" />
-              </button>
-
-              {/* Region Button with Tooltip (Dynamic Flag: India 🇮🇳 or UAE 🇦🇪) */}
-              <div
-                className="relative"
-                onMouseEnter={() => setHoveredIcon('region')}
-                onMouseLeave={() => setHoveredIcon(null)}
-              >
-                <button
-                  type="button"
-                  aria-label="Select region, language and currency"
-                  onClick={() => setShowRegionModal(true)}
-                  className="w-8 h-8 sm:w-10 sm:h-10 rounded-full hover:bg-[#DCE8F5] flex items-center justify-center transition-colors cursor-pointer"
-                >
-                  {country === 'UAE' ? (
-                    /* UAE Flag */
-                    <svg className="w-5 h-5 rounded-full shadow-xs" viewBox="0 0 36 36" fill="none">
-                      <circle cx="18" cy="18" r="18" fill="#F4F4F4" />
-                      <path d="M0 6C0 2.686 2.686 0 6 0H36V12H0V6Z" fill="#00732F" />
-                      <path d="M0 12H36V24H0V12Z" fill="#FFFFFF" />
-                      <path d="M0 24H36V30C36 33.314 33.314 36 30 36H6C2.686 36 0 33.314 0 30V24Z" fill="#000000" />
-                      <path d="M0 6C0 2.686 2.686 0 6 0H12V36H6C2.686 36 0 33.314 0 30V6Z" fill="#FF0000" />
-                    </svg>
-                  ) : (
-                    /* Indian Flag */
-                    <svg className="w-5 h-5 rounded-full shadow-xs" viewBox="0 0 36 36" fill="none">
-                      <circle cx="18" cy="18" r="18" fill="#F4F4F4" />
-                      <path d="M0 6C0 2.686 2.686 0 6 0H30C33.314 0 36 2.686 36 6V12H0V6Z" fill="#FF9933" />
-                      <path d="M0 24H36V30C36 33.314 33.314 36 30 36H6C2.686 36 0 33.314 0 30V24Z" fill="#138808" />
-                      <path d="M0 12H36V24H0V12Z" fill="#FFFFFF" />
-                      <circle cx="18" cy="18" r="4.5" stroke="#000080" strokeWidth="1" fill="none" />
-                      <circle cx="18" cy="18" r="1.2" fill="#000080" />
-                    </svg>
-                  )}
-                </button>
-
-                {hoveredIcon === 'region' && (
-                  <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1.5 bg-[#1E2B37] text-white text-[12px] font-semibold px-3 py-1 rounded-md shadow-lg whitespace-nowrap z-50 animate-in fade-in">
-                    {country === 'UAE' ? '🇦🇪 UAE (AED)' : '🇮🇳 India (INR)'}
-                  </div>
-                )}
-              </div>
-
-              {/* Profile Dropdown / Sign In Trigger */}
-              {userLoggedIn ? (
-                <div className="relative" ref={profileRef}>
-                  <button
-                    type="button"
-                    onClick={() => setProfileDropdownOpen((prev) => !prev)}
-                    className="flex items-center gap-1.5 py-1 px-1.5 sm:py-1.5 sm:px-2.5 rounded-full hover:bg-gray-100 transition-colors border border-gray-200 cursor-pointer"
-                    aria-label="User account menu"
-                  >
-                    <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-[#111111] text-white flex items-center justify-center font-bold text-[11px] sm:text-[12px] shadow-xs shrink-0">
-                      {userName.charAt(0).toUpperCase() || 'A'}
-                    </div>
-                    <span className="hidden md:inline text-[13px] font-semibold text-[#111111] max-w-[90px] truncate">
-                      {userName.split(' ')[0]}
-                    </span>
-                    <i className="fa-solid fa-chevron-down text-[9px] text-gray-400 hidden sm:inline" />
-                  </button>
-
-                  {/* Sleek Dropdown Menu */}
-                  {profileDropdownOpen && (
-                    <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-2xl shadow-2xl border border-gray-100 p-3 z-50 animate-in fade-in slide-in-from-top-1 duration-150 text-left">
-                      {/* User Header */}
-                      <div className="px-3 pt-2 pb-3 border-b border-gray-100">
-                        <p className="font-bold text-[14.5px] text-[#111111] leading-snug">
-                          {userName}
-                        </p>
-                        <p className="text-[12px] text-gray-400 mt-0.5 truncate">
-                          {userEmail}
-                        </p>
-                      </div>
-
-                      {/* Store Navigation Items */}
-                      <div className="py-2 text-[13px] space-y-0.5 text-gray-700">
-                        <Link
-                          href="/my-orders"
-                          onClick={() => setProfileDropdownOpen(false)}
-                          className="w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl hover:bg-gray-50 hover:text-black transition-colors"
-                        >
-                          <i className="fa-regular fa-calendar-check text-[14px] text-gray-400 w-4 text-center shrink-0" />
-                          <span className="font-medium text-gray-800">{t('nav.my_orders', 'My orders')}</span>
-                        </Link>
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setProfileDropdownOpen(false);
-                            setShowAddressModal(true);
-                          }}
-                          className="w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl hover:bg-gray-50 hover:text-black transition-colors text-left cursor-pointer"
-                        >
-                          <i className="fa-solid fa-location-dot text-[14px] text-gray-400 w-4 text-center shrink-0" />
-                          <span className="font-medium text-gray-800">{t('nav.delivery_addresses', 'Delivery addresses')}</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setProfileDropdownOpen(false);
-                            setShowProfileEditModal(true);
-                          }}
-                          className="w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl hover:bg-gray-50 hover:text-black transition-colors text-left cursor-pointer"
-                        >
-                          <i className="fa-regular fa-user text-[14px] text-gray-400 w-4 text-center shrink-0" />
-                          <span className="font-medium text-gray-800">{t('nav.edit_profile', 'Edit profile')}</span>
-                        </button>
-                      </div>
-
-                      {/* Sign Out */}
-                      <div className="pt-2 mt-1 border-t border-gray-100">
-                        <button
-                          type="button"
-                          onClick={async () => {
-                            await signOut({ redirect: false });
-                            setUserLoggedIn(false);
-                            setProfileDropdownOpen(false);
-                          }}
-                          className="w-full flex items-center gap-3.5 px-3 py-2 rounded-xl hover:bg-red-50 text-red-600 font-medium text-[13px] transition-colors text-left cursor-pointer"
-                        >
-                          <i className="fa-solid fa-arrow-right-from-bracket text-[13px] text-red-500 w-4 text-center shrink-0" />
-                          <span>{t('nav.sign_out', 'Sign out')}</span>
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsRegisterMode(false);
-                    setShowAuthModal(true);
-                  }}
-                  aria-label="Sign in"
-                  className="w-8 h-8 sm:w-auto sm:h-auto sm:px-4 sm:py-1.5 rounded-full hover:bg-gray-100 text-[13.5px] font-semibold text-[#111111] transition-colors cursor-pointer flex items-center justify-center"
-                >
-                  <span className="hidden sm:inline">{t('nav.signin', 'Sign in')}</span>
-                  <i className="fa-solid fa-user text-[16px] text-[#222222] sm:hidden" />
-                </button>
-              )}
-
-              {/* Wishlist / Favourites Button with Tooltip */}
-              <div
-                className="relative"
-                onMouseEnter={() => setHoveredIcon('favourites')}
-                onMouseLeave={() => setHoveredIcon(null)}
-              >
-                <Link
-                  href="/favorites"
-                  onClick={openLoginIfGuest}
-                  aria-label="Favourites"
-                  className="w-8 h-8 sm:w-10 sm:h-10 rounded-full hover:bg-[#DCE8F5] text-etsy-dark flex items-center justify-center transition-colors relative"
-                >
-                  <i className="fa-solid fa-heart text-[16px] sm:text-[18px] text-[#222222]" />
-                  {favorites.length > 0 && (
-                    <span className="absolute -top-1 -right-1 sm:top-0.5 sm:right-0.5 bg-etsy-orange text-white text-[10px] font-bold rounded-full min-w-[16px] h-[16px] px-1 inline-flex items-center justify-center leading-none shadow-xs">
-                      {favorites.length}
-                    </span>
-                  )}
-                </Link>
-
-                {hoveredIcon === 'favourites' && (
-                  <div className="hidden sm:block absolute top-full left-1/2 -translate-x-1/2 mt-1.5 bg-[#1E2B37] text-white text-[12px] font-semibold px-3 py-1 rounded-md shadow-lg whitespace-nowrap z-50 animate-in fade-in">
-                    {t('nav.favorites', 'Favourites')}
-                  </div>
-                )}
-              </div>
-
-              {/* Cart Button with Tooltip */}
-              <div
-                className="relative"
-                onMouseEnter={() => setHoveredIcon('cart')}
-                onMouseLeave={() => setHoveredIcon(null)}
-              >
-                <Link
-                  href="/cart"
-                  onClick={openLoginIfGuest}
-                  aria-label="Cart"
-                  className="w-8 h-8 sm:w-10 sm:h-10 rounded-full hover:bg-[#DCE8F5] text-etsy-dark flex items-center justify-center transition-colors relative"
-                >
-                  <i className="fa-solid fa-bag-shopping text-[17px] sm:text-[18px] text-[#222222]" />
-                  {count > 0 && (
-                    <span className="absolute -top-1 -right-1 sm:top-0.5 sm:right-0.5 bg-etsy-orange text-white text-[10px] font-bold rounded-full min-w-[16px] h-[16px] px-1 inline-flex items-center justify-center leading-none shadow-xs">
-                      {count}
-                    </span>
-                  )}
-                </Link>
-
-                {hoveredIcon === 'cart' && (
-                  <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1.5 bg-[#1E2B37] text-white text-[12px] font-semibold px-3 py-1 rounded-md shadow-lg whitespace-nowrap z-50 animate-in fade-in">
-                    {t('nav.cart', 'Cart')}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Secondary Categories Navigation Bar (Desktop & Tablet) */}
-        <nav className="hidden md:block bg-gradient-to-b from-white to-[#F4F0F9] py-2.5">
-          <div className="etsy-container">
-            {/* One glass pill holding every category. The pill stays whole on narrow
-            screens; the list scrolls inside it. */}
-            <div className="w-fit max-w-full mx-auto overflow-hidden rounded-full border border-white/80 bg-gradient-to-b from-[#F3ECFB]/90 to-[#DCCDF0]/70 backdrop-blur-xl shadow-[0_8px_24px_rgba(67,23,105,0.2),inset_0_2px_3px_rgba(255,255,255,0.95),inset_0_-3px_8px_rgba(67,23,105,0.12)]">
-              <ul className="flex items-center p-1 list-none overflow-x-auto no-scrollbar font-outfit text-[14px] font-medium tracking-[0.01em] whitespace-nowrap">
-                {secondaryNavItems.map((item, idx) => (
-                  <li key={item.key} className="flex items-center shrink-0">
-                    {idx > 0 && <span aria-hidden="true" className="h-4 w-px mx-0.5 bg-[#431769]/30" />}
-                    <Link
-                      href={item.href}
-                      className="group flex items-center h-9 px-4 rounded-full focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#3A1F62]"
-                    >
-                      {/* Text colour sits on this span: the global `a { color: inherit }` rule overrides colour utilities on the link. */}
-                      <span
-                        className={`flex items-center gap-1.5 transition-colors group-hover:text-[#7A2FC0] ${item.isViewAll ? 'text-[#431769]' : 'text-[#111111]'
-                          }`}
-                      >
-                        {item.label}
-                        {item.isViewAll && <i aria-hidden="true" className="fa-solid fa-arrow-right text-[11px]" />}
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </nav>
-      </header>
-
-      {/* MOBILE NAVIGATION DRAWER */}
-      {mobileMenuOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity"
-            onClick={() => setMobileMenuOpen(false)}
-          />
-
-          {/* Drawer Content */}
-          <div className="fixed inset-y-0 left-0 max-w-xs w-full bg-white shadow-2xl z-50 flex flex-col p-5 overflow-y-auto animate-in slide-in-from-left duration-200">
-            {/* Drawer Header */}
-            <div className="flex items-center justify-between pb-4 border-b border-gray-100">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-full overflow-hidden">
-                  <img src="/images/logofull.svg" alt="Miracle feng shui" className="w-full h-full object-cover scale-[1.23]" />
-                </div>
-                <span className="font-serif font-semibold text-[18px] text-[#222222]">Miracle feng shui</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setMobileMenuOpen(false)}
-                className="p-1.5 rounded-full hover:bg-gray-100 text-gray-500"
-                aria-label="Close menu"
-              >
-                <i className="fa-solid fa-xmark text-[18px]" />
-              </button>
-            </div>
-
-            {/* User Quick Bar */}
-            <div className="py-4 border-b border-gray-100">
-              {userLoggedIn ? (
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-[#111111] text-white flex items-center justify-center font-bold text-[14px]">
-                    {userName.charAt(0).toUpperCase()}
-                  </div>
-                  <div className="overflow-hidden">
-                    <p className="font-bold text-[14px] text-gray-900 truncate">{userName}</p>
-                    <p className="text-[12px] text-gray-400 truncate">{userEmail}</p>
-                  </div>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    setShowAuthModal(true);
-                  }}
-                  className="w-full py-2.5 px-4 rounded-full bg-[#222222] text-white text-[14px] font-bold shadow-xs hover:bg-black transition-colors"
-                >
-                  {t('nav.signin_or_register', 'Sign in or Register')}
-                </button>
-              )}
-            </div>
-
-            {/* Categories Navigation */}
-            <div className="py-4 flex-1">
-              <p className="text-[12px] font-bold text-gray-400 uppercase tracking-wider mb-2">{t('nav.explore_categories', 'Explore Categories')}</p>
-              <div className="space-y-1">
-                {secondaryNavItems.map((item) => (
-                  <Link
-                    key={item.key}
-                    href={item.href}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-gray-50 text-[14px] font-medium text-[#222222] transition-colors"
-                  >
-                    <span className="flex items-center gap-2">
-                      {item.label}
-                    </span>
-                    <i className="fa-solid fa-chevron-right text-[11px] text-gray-300" />
-                  </Link>
-                ))}
-              </div>
-
-              {/* Quick links: Favorites & Orders */}
-              <div className="pt-4 mt-3 border-t border-gray-100 space-y-1">
-                <Link
-                  href="/favorites"
-                  onClick={(e) => {
-                    setMobileMenuOpen(false);
-                    openLoginIfGuest(e);
-                  }}
-                  className="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-gray-50 text-[14px] font-medium text-[#222222]"
-                >
-                  <span className="flex items-center gap-3">
-                    <i className="fa-solid fa-heart text-[15px] text-gray-500 w-5 text-center" />
-                    <span>{t('nav.favorites', 'Favourites')}</span>
-                  </span>
-                  {favorites.length > 0 && (
-                    <span className="bg-etsy-orange text-white text-[11px] font-bold px-2 py-0.5 rounded-full">
-                      {favorites.length}
-                    </span>
-                  )}
-                </Link>
-                <Link
-                  href="/my-orders"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 text-[14px] font-medium text-[#222222]"
-                >
-                  <i className="fa-regular fa-calendar-check text-[15px] text-gray-500 w-5 text-center" />
-                  <span>{t('nav.my_orders', 'My orders')}</span>
-                </Link>
-                <Link
-                  href="/cart"
-                  onClick={(e) => {
-                    setMobileMenuOpen(false);
-                    openLoginIfGuest(e);
-                  }}
-                  className="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-gray-50 text-[14px] font-medium text-[#222222]"
-                >
-                  <span className="flex items-center gap-3">
-                    <i className="fa-solid fa-bag-shopping text-[15px] text-gray-500 w-5 text-center" />
-                    <span>{t('nav.cart', 'Cart')}</span>
-                  </span>
-                  {count > 0 && (
-                    <span className="bg-etsy-orange text-white text-[11px] font-bold px-2 py-0.5 rounded-full">
-                      {count}
-                    </span>
-                  )}
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* AUTH MODAL */}
       {showAuthModal && (
