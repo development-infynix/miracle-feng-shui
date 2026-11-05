@@ -16,5 +16,13 @@ export const createOrderSchema = z.object({
   paymentMethod: z.enum(['RAZORPAY', 'COD']).default('RAZORPAY'),
 });
 
+export const requestCancellationSchema = z.object({
+  reason: z
+    .string()
+    .trim()
+    .min(3, 'Tell us why you wish to cancel so we can review your request.')
+    .max(500, 'Please keep your reason under 500 characters.'),
+});
+
 export type ShippingAddressInput = z.infer<typeof shippingAddressSchema>;
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;

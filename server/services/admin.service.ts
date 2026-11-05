@@ -25,6 +25,22 @@ const customerListPage = <T>(items: T[], total: number, page: number) => ({
   hasMore: page * CUSTOMER_LIST_PAGE_SIZE < total,
 });
 
+const UI_ORDER_STATUS = {
+  PENDING: 'Pending',
+  COD_PENDING: 'Pending',
+  PAID: 'Processing',
+  PROCESSING: 'Processing',
+  SHIPPED: 'Shipped',
+  DELIVERED: 'Delivered',
+  CANCELLATION_REQUESTED: 'Cancellation Requested',
+  CANCELLATION_APPROVED: 'Cancellation Approved',
+  CANCELLED: 'Cancelled',
+} as const;
+
+function uiOrderStatus(status: OrderStatus) {
+  return UI_ORDER_STATUS[status];
+}
+
 export const adminService = {
   async getDashboard() {
     return adminRepository.getDashboardStats();
@@ -146,7 +162,7 @@ export const adminService = {
   async getOrders(filters?: { status?: string; search?: string }) {
     let orderStatus: OrderStatus | undefined;
     if (filters?.status && filters.status !== 'all') {
-      orderStatus = filters.status.toUpperCase() as OrderStatus;
+      orderStatus = filters.status.toUpperCase().replace(/ /g, '_') as OrderStatus;
     }
 
     const orders = await adminRepository.findAllOrders({
@@ -156,19 +172,7 @@ export const adminService = {
 
     return orders.map((o) => {
       const addr = (o.shippingAddress as any) || {};
-      const rawStatus = (o.status || '').toUpperCase();
-      let uiStatus: 'Pending' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled' = 'Pending';
-      if (rawStatus === 'COD_PENDING' || rawStatus === 'PENDING') {
-        uiStatus = 'Pending';
-      } else if (rawStatus === 'PAID' || rawStatus === 'PROCESSING') {
-        uiStatus = 'Processing';
-      } else if (rawStatus === 'SHIPPED') {
-        uiStatus = 'Shipped';
-      } else if (rawStatus === 'DELIVERED') {
-        uiStatus = 'Delivered';
-      } else if (rawStatus === 'CANCELLED') {
-        uiStatus = 'Cancelled';
-      }
+      const uiStatus = uiOrderStatus(o.status);
 
       return {
         id: o.id,
@@ -186,6 +190,7 @@ export const adminService = {
         status: uiStatus,
         rawStatus: o.status,
         paymentStatus: o.paymentStatus,
+        cancellationReason: o.cancellationReason,
         items: o.items.map((it) => ({
           id: it.id,
           productId: it.productId,
@@ -219,12 +224,7 @@ export const adminService = {
       pincode: addr.pincode || '',
       totalAmount: updated.total,
       paymentMethod: updated.paymentMethod === 'RAZORPAY' ? 'UPI / Online Payment' : 'Cash on Delivery',
-      status: (updated.status.charAt(0) + updated.status.slice(1).toLowerCase()) as
-        | 'Pending'
-        | 'Processing'
-        | 'Shipped'
-        | 'Delivered'
-        | 'Cancelled',
+      status: uiOrderStatus(updated.status),
       rawStatus: updated.status,
       paymentStatus: updated.paymentStatus,
       items: updated.items.map((it) => ({

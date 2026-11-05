@@ -41,6 +41,13 @@ export const orderService = {
     const digitsOnly = (order.orderNumber || order.id || '').replace(/[^0-9]/g, '') || '984210984';
     const trackingNumber = order.trackingNumber || `IND${digitsOnly.padEnd(9, '0').slice(0, 9)}IN`;
 
+    const requestedCancellation = Boolean(order.cancellationRequestedAt);
+    // An unpaid online order has nothing to review: it closes by itself when the customer pays again.
+    const canCancel =
+      !requestedCancellation &&
+      (['PAID', 'COD_PENDING', 'PROCESSING'].includes(order.status) ||
+        (order.status === 'PENDING' && order.paymentStatus === 'PAID'));
+
     return {
       id: order.id,
       orderNumber: order.orderNumber || `MFS-${order.id?.slice(-6).toUpperCase() || '100000'}`,
@@ -72,6 +79,10 @@ export const orderService = {
       // Only what's really been recorded. The values above fall back to placeholders when nothing is.
       paymentId: order.razorpayPaymentId || null,
       tracking: order.trackingNumber ? { courier: order.courier || null, number: order.trackingNumber } : null,
+      canCancel,
+      // The owner moved the order on instead of approving the request.
+      cancellationDeclined:
+        requestedCancellation && !['CANCELLATION_REQUESTED', 'CANCELLATION_APPROVED', 'CANCELLED'].includes(order.status),
       estimatedDelivery,
       shopName: 'Miracle Feng Shui Studio',
       createdAt: order.createdAt,
@@ -202,6 +213,19 @@ export const orderService = {
   async getUserOrders(userId: string) {
     const orders = await orderRepository.findUserOrders(userId);
     return orders.map(this.formatOrder);
+  },
+
+  async requestCancellation(orderId: string, userId: string, reason: string) {
+    const order = await orderRepository.findById(orderId);
+    // Someone else's order looks the same as one that doesn't exist.
+    if (!order || order.userId !== userId) {
+      throw ApiError.notFound('Order not found');
+    }
+
+    if (!(await orderRepository.requestCancellation(orderId, userId, reason))) {
+      throw ApiError.conflict("This order can't be cancelled any more.");
+    }
+    return this.formatOrder(await orderRepository.findById(orderId));
   },
 
   async getOrderById(orderId: string, userId: string, userRole: string) {

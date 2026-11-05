@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { IoFunnelSharp } from 'react-icons/io5';
 
-const FILTER_OPTIONS = ['All', 'Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'] as const;
+const FILTER_OPTIONS = ['All', 'Pending', 'Processing', 'Shipped', 'Delivered', 'Cancellation Requested', 'Cancellation Approved', 'Cancelled'] as const;
 
 interface OrdersToolbarProps {
   searchQuery: string;

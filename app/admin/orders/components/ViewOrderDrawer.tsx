@@ -17,7 +17,7 @@ const inputClass =
 
 const labelClass = 'block text-xs font-semibold text-stone-500 mb-1.5';
 
-const STATUS_OPTIONS = ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'] as const;
+const STATUS_OPTIONS = ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancellation Requested', 'Cancellation Approved', 'Cancelled'] as const;
 
 export default function ViewOrderDrawer({ order, onClose, onSaved, onDeleted }: ViewOrderDrawerProps) {
   const [status, setStatus] = useState(order.status);
@@ -115,6 +115,15 @@ export default function ViewOrderDrawer({ order, onClose, onSaved, onDeleted }: 
               </div>
             </dl>
           </section>
+
+          {order.cancellationReason && (
+            <section>
+              <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-stone-500">Reason for cancellation</h4>
+              <p className="whitespace-pre-wrap break-words rounded-lg border border-stone-200 bg-white px-4 py-3 text-sm text-stone-700">
+                {order.cancellationReason}
+              </p>
+            </section>
+          )}
 
           <section>
             <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-stone-500">Shipping</h4>

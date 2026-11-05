@@ -22,6 +22,8 @@ enum OrderStatus {
   PROCESSING
   SHIPPED
   DELIVERED
+  CANCELLATION_REQUESTED
+  CANCELLATION_APPROVED
   CANCELLED
 }
 
@@ -190,6 +192,8 @@ model Order {
   razorpayPaymentId String?
   courier           String?
   trackingNumber    String?
+  cancellationReason      String?
+  cancellationRequestedAt DateTime?
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
 

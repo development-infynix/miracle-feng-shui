@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useLocale } from '@/context/CurrencyContext';
 import { downloadStandaloneTaxInvoice } from '@/lib/invoice';
 import { ProductLink } from '@/shop/components/ProductDrawerProvider';
+import CancelOrderModal from './CancelOrderModal';
 import {
   card,
   primaryButton,
@@ -47,10 +48,14 @@ export interface CustomerOrder {
   paymentStatus: string;
   status: string;
   tracking: { courier: string | null; number: string } | null;
+  canCancel?: boolean;
+  cancellationDeclined?: boolean;
   paymentId?: string | null;
   shopName: string;
   items: OrderItem[];
 }
+
+const RED_STATUSES = ['CANCELLATION_REQUESTED', 'CANCELLATION_APPROVED', 'CANCELLED'];
 
 const STATUS: Record<string, { key: string; label: string; icon: string }> = {
   PENDING: { key: 'profile.status_pending', label: 'Awaiting payment', icon: 'fa-regular fa-clock' },
@@ -59,6 +64,8 @@ const STATUS: Record<string, { key: string; label: string; icon: string }> = {
   PROCESSING: { key: 'profile.status_processing', label: 'Being prepared', icon: 'fa-solid fa-box' },
   SHIPPED: { key: 'profile.status_shipped', label: 'On its way', icon: 'fa-solid fa-truck-fast' },
   DELIVERED: { key: 'profile.status_delivered', label: 'Delivered', icon: 'fa-solid fa-circle-check' },
+  CANCELLATION_REQUESTED: { key: 'profile.status_cancel_requested', label: 'Cancellation requested', icon: 'fa-regular fa-clock' },
+  CANCELLATION_APPROVED: { key: 'profile.status_cancel_approved', label: 'Cancellation approved', icon: 'fa-solid fa-circle-xmark' },
   CANCELLED: { key: 'profile.status_cancelled', label: 'Cancelled', icon: 'fa-solid fa-circle-xmark' },
 };
 
@@ -82,25 +89,67 @@ export function invoicePayload(order: CustomerOrder) {
   };
 }
 
-function OrderCard({ order }: { order: CustomerOrder }) {
+function OrderCard({ order, onCancel }: { order: CustomerOrder; onCancel: () => void }) {
   const { formatPrice, t } = useLocale();
   const status = STATUS[order.status] ?? { key: '', label: order.status, icon: 'fa-regular fa-clock' };
-  const cancelled = order.status === 'CANCELLED';
+  const red = RED_STATUSES.includes(order.status);
 
   return (
     <li className="rounded-lg bg-white shadow-[0_6px_10px_rgba(67,23,105,0.14)]">
-      <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-2 border-b border-[#431769]/15 p-4 sm:px-6">
-        <div>
-          <p className="font-outfit text-[15px] font-semibold text-[#111111]">
-            {t('profile.order', 'Order')} #{order.orderNumber}
-          </p>
-          <p className="font-outfit text-[13px] text-[#5B4A70]">{order.date}</p>
+      <div className="space-y-2 border-b border-[#431769]/15 p-4 sm:px-6">
+        <div className="flex items-start justify-between gap-x-6">
+          <div className="min-w-0">
+            <p className="font-outfit text-[15px] font-semibold text-[#111111]">
+              {t('profile.order', 'Order')} #{order.orderNumber}
+            </p>
+            <p className="font-outfit text-[13px] text-[#5B4A70]">{order.date}</p>
+          </div>
+          <p className="font-outfit text-[18px] font-bold tabular-nums text-[#111111]">{formatPrice(order.total || order.totalAmount)}</p>
         </div>
-        <p className="font-outfit text-[18px] font-bold tabular-nums text-[#111111]">{formatPrice(order.total || order.totalAmount)}</p>
-        <p className={`flex w-full items-center gap-2 font-outfit text-[14px] font-medium ${cancelled ? 'text-[#8F1610]' : 'text-[#431769]'}`}>
-          <i aria-hidden="true" className={`${status.icon} text-[13px]`} />
-          {status.key ? t(status.key, status.label) : status.label}
-        </p>
+        {/* The status and what the customer can do about it share one line. */}
+        <div className="flex items-center justify-between gap-3">
+          <p aria-live="polite" className={`flex min-w-0 items-center gap-2 font-outfit text-[14px] font-medium ${red ? 'text-[#8F1610]' : 'text-[#431769]'}`}>
+            <i aria-hidden="true" className={`${status.icon} text-[13px]`} />
+            {status.key ? t(status.key, status.label) : status.label}
+          </p>
+          {order.canCancel && (
+            <button
+              type="button"
+              onClick={onCancel}
+              aria-label={`${t('profile.cancel_order', 'Cancel')}: ${t('profile.order', 'Order')} #${order.orderNumber}`}
+              className={`group inline-flex h-10 min-w-[96px] shrink-0 cursor-pointer items-center justify-center rounded-md border border-[#8F1610]/40 px-4 ${focusRing}`}
+            >
+              <span className="font-outfit text-[14px] font-semibold text-[#8F1610] transition-colors group-hover:text-[#5E0E0A]">
+                {t('profile.cancel_order', 'Cancel')}
+              </span>
+            </button>
+          )}
+          {/* Only money that was really taken can be refunded. Display only until the refund workflow is built. */}
+          {order.status === 'CANCELLATION_APPROVED' && order.paymentStatus === 'PAID' && (
+            <button
+              type="button"
+              disabled
+              className="inline-flex h-10 min-w-[96px] shrink-0 cursor-not-allowed items-center justify-center rounded-md border border-[#D9A400] bg-[#FFF3C4] px-4"
+            >
+              <span className="font-outfit text-[14px] font-semibold text-[#5C4300]">{t('profile.refund', 'Refund')}</span>
+            </button>
+          )}
+          {order.status === 'CANCELLATION_REQUESTED' && (
+            <button
+              type="button"
+              disabled
+              className="inline-flex h-10 min-w-[96px] shrink-0 cursor-not-allowed items-center justify-center gap-2 rounded-md border border-[#431769]/25 bg-[#F7F4EC] px-4"
+            >
+              <i aria-hidden="true" className="fa-regular fa-clock text-[13px] text-[#5B4A70]" />
+              <span className="font-outfit text-[14px] font-semibold text-[#5B4A70]">{t('profile.cancel_pending', 'Pending')}</span>
+            </button>
+          )}
+        </div>
+        {order.cancellationDeclined && (
+          <p className="w-full font-outfit text-[13px] text-[#5B4A70]">
+            {t('profile.cancel_declined', "Your cancellation request wasn't approved.")}
+          </p>
+        )}
         {order.tracking && (
           <p className="w-full font-outfit text-[13px] text-[#2B1A3F]">
             {order.tracking.courier ? `${order.tracking.courier}: ` : `${t('profile.tracking', 'Tracking')}: `}
@@ -161,6 +210,7 @@ export default function ProfileOrders() {
   const { t } = useLocale();
   const [orders, setOrders] = useState<CustomerOrder[] | null>(null);
   const [failed, setFailed] = useState(false);
+  const [cancelling, setCancelling] = useState<CustomerOrder | null>(null);
 
   const load = useCallback(async (signal?: AbortSignal) => {
     setFailed(false);
@@ -225,10 +275,25 @@ export default function ProfileOrders() {
   }
 
   return (
-    <ul className="list-none space-y-4">
-      {orders.map((order) => (
-        <OrderCard key={order.id} order={order} />
-      ))}
-    </ul>
+    <>
+      <ul className="list-none space-y-4">
+        {orders.map((order) => (
+          <OrderCard key={order.id} order={order} onCancel={() => setCancelling(order)} />
+        ))}
+      </ul>
+      {cancelling && (
+        <CancelOrderModal
+          orderId={cancelling.id}
+          orderNumber={cancelling.orderNumber}
+          onClose={() => setCancelling(null)}
+          onRequested={(updated) => {
+            setOrders((current) => current && current.map((order) => (order.id === updated.id ? updated : order)));
+            setCancelling(null);
+          }}
+          // The order changed while the popup was open, such as being shipped.
+          onRefused={() => void load()}
+        />
+      )}
+    </>
   );
 }

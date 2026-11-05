@@ -52,7 +52,7 @@ export const adminRepository = {
     ] = await Promise.all([
       prisma.order.findMany({
         where: {
-          status: { not: 'CANCELLED' },
+          status: { notIn: ['CANCELLED', 'CANCELLATION_APPROVED'] },
           orderNumber: { not: 'MFS-82914' },
           user: { role: 'CUSTOMER' },
         },

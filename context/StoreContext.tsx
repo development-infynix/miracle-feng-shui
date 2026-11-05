@@ -89,7 +89,14 @@ export interface BlogPostItem {
   collage?: string[];
 }
 
-export type OrderStatus = 'Pending' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
+export type OrderStatus =
+  | 'Pending'
+  | 'Processing'
+  | 'Shipped'
+  | 'Delivered'
+  | 'Cancellation Requested'
+  | 'Cancellation Approved'
+  | 'Cancelled';
 
 export interface StoreOrder {
   id: string;
@@ -1089,7 +1096,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const settledBalance = orders
     .filter((o) => {
-      if (o.status === 'Cancelled') return false;
+      if (o.status === 'Cancelled' || o.status === 'Cancellation Approved') return false;
       const m = (o.paymentMethod || '').toLowerCase();
       const isOnline = m.includes('online') || m.includes('upi') || m.includes('razorpay');
       const isDeliveredCOD = o.status === 'Delivered' && (m.includes('cash') || m.includes('cod'));
@@ -1099,7 +1106,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const pendingBalance = orders
     .filter((o) => {
-      if (o.status === 'Cancelled' || o.status === 'Delivered') return false;
+      if (o.status === 'Cancelled' || o.status === 'Cancellation Approved' || o.status === 'Delivered') return false;
       const m = (o.paymentMethod || '').toLowerCase();
       const isCOD = m.includes('cash') || m.includes('cod');
       return isCOD;
@@ -1107,7 +1114,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     .reduce((sum, o) => sum + o.totalAmount, 0);
 
   const totalOrderRevenue = orders
-    .filter((o) => o.status !== 'Cancelled')
+    .filter((o) => o.status !== 'Cancelled' && o.status !== 'Cancellation Approved')
     .reduce((sum, o) => sum + o.totalAmount, 0);
 
   return (

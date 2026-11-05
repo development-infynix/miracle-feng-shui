@@ -3,6 +3,8 @@ export type OrderUiStatus =
   | 'Processing'
   | 'Shipped'
   | 'Delivered'
+  | 'Cancellation Requested'
+  | 'Cancellation Approved'
   | 'Cancelled';
 
 export interface OrderItem {
@@ -30,6 +32,7 @@ export interface OrderItemData {
   status: OrderUiStatus;
   rawStatus: string;
   paymentStatus: string;
+  cancellationReason?: string | null;
   items: OrderItem[];
 }
 

@@ -257,6 +257,30 @@ export const orderRepository = {
     });
   },
 
+  /**
+   * Checked in the update itself, so a request can't slip in just after the order ships.
+   * A customer gets one request per order. Returns false if nothing changed.
+   */
+  async requestCancellation(orderId: string, userId: string, reason: string) {
+    const { count } = await prisma.order.updateMany({
+      where: {
+        id: orderId,
+        userId,
+        cancellationRequestedAt: null,
+        OR: [
+          { status: { in: ['PAID', 'COD_PENDING', 'PROCESSING'] } },
+          { status: 'PENDING', paymentStatus: 'PAID' },
+        ],
+      },
+      data: {
+        status: 'CANCELLATION_REQUESTED',
+        cancellationReason: reason,
+        cancellationRequestedAt: new Date(),
+      },
+    });
+    return count > 0;
+  },
+
   /** Closes earlier online orders the customer never paid for, when they start paying again. */
   async cancelUnpaidOnlineOrders(userId: string) {
     return prisma.order.updateMany({

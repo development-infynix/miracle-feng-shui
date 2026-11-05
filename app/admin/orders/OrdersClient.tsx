@@ -15,7 +15,8 @@ interface OrdersClientProps {
   status?: string;
 }
 
-const VALID_STATUSES = ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
+const VALID_STATUSES = ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancellation Requested', 'Cancellation Approved', 'Cancelled'];
+const isCancelled = (o: OrderItemData) => o.status === 'Cancelled' || o.status === 'Cancellation Approved';
 
 function ordersUrl(search: string, status: string) {
   const params = new URLSearchParams();
@@ -26,15 +27,20 @@ function ordersUrl(search: string, status: string) {
 }
 
 function computeStats(orders: OrderItemData[]): OrderStats {
-  const byStatus = { Pending: 0, Processing: 0, Shipped: 0, Delivered: 0, Cancelled: 0 } as Record<
-    'Pending' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled',
-    number
-  >;
+  const byStatus: OrderStats['byStatus'] = {
+    Pending: 0,
+    Processing: 0,
+    Shipped: 0,
+    Delivered: 0,
+    'Cancellation Requested': 0,
+    'Cancellation Approved': 0,
+    Cancelled: 0,
+  };
   for (const o of orders) byStatus[o.status] += 1;
 
   const settledBalance = orders
     .filter((o) => {
-      if (o.status === 'Cancelled') return false;
+      if (isCancelled(o)) return false;
       const method = (o.paymentMethod || '').toLowerCase();
       const isOnline = method.includes('online') || method.includes('upi') || method.includes('razorpay');
       const isDeliveredCod = o.status === 'Delivered' && (method.includes('cash') || method.includes('cod'));
@@ -44,7 +50,7 @@ function computeStats(orders: OrderItemData[]): OrderStats {
 
   const pendingBalance = orders
     .filter((o) => {
-      if (o.status === 'Cancelled' || o.status === 'Delivered') return false;
+      if (isCancelled(o) || o.status === 'Delivered') return false;
       const method = (o.paymentMethod || '').toLowerCase();
       const isCod = method.includes('cash') || method.includes('cod');
       return isCod;
@@ -52,7 +58,7 @@ function computeStats(orders: OrderItemData[]): OrderStats {
     .reduce((sum, o) => sum + o.totalAmount, 0);
 
   const totalRevenue = orders
-    .filter((o) => o.status !== 'Cancelled')
+    .filter((o) => !isCancelled(o))
     .reduce((sum, o) => sum + o.totalAmount, 0);
 
   return {

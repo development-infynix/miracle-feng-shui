@@ -83,8 +83,8 @@ export const updateProductSchema = productFields.partial();
 export type UpdateProductInput = z.infer<typeof updateProductSchema>;
 
 export const updateOrderStatusSchema = z.object({
-  status: z.string().transform((val) => val.toUpperCase()).pipe(
-    z.enum(['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'])
+  status: z.string().transform((val) => val.toUpperCase().replace(/ /g, '_')).pipe(
+    z.enum(['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLATION_REQUESTED', 'CANCELLATION_APPROVED', 'CANCELLED'])
   ),
 });
 

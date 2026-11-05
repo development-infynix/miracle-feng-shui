@@ -110,6 +110,8 @@ export default function AdminDashboardPage() {
     Processing: { bg: 'bg-[#EBF2FE]', text: 'text-[#1D4ED8]' },
     Shipped: { bg: 'bg-[#F3EEFC]', text: 'text-[#6D28D9]' },
     Delivered: { bg: 'bg-[#E6F4F1]', text: 'text-[#0F766E]' },
+    'Cancellation Requested': { bg: 'bg-[#FEE2E2]', text: 'text-[#B91C1C]' },
+    'Cancellation Approved': { bg: 'bg-[#FEE2E2]', text: 'text-[#B91C1C]' },
     Cancelled: { bg: 'bg-[#FEE2E2]', text: 'text-[#B91C1C]' },
   };
 
@@ -637,6 +639,8 @@ export default function AdminDashboardPage() {
                               <option value="Processing">Processing</option>
                               <option value="Shipped">Shipped</option>
                               <option value="Delivered">Delivered</option>
+                              <option value="Cancellation Requested">Cancellation Requested</option>
+                              <option value="Cancellation Approved">Cancellation Approved</option>
                               <option value="Cancelled">Cancelled</option>
                             </select>
 

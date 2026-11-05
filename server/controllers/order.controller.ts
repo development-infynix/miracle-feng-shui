@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { createOrderSchema } from '../validators/order.validator';
+import { createOrderSchema, requestCancellationSchema } from '../validators/order.validator';
 import { orderService } from '../services/order.service';
 import { apiResponse } from '../utils/apiResponse';
 import { handleError } from '../middlewares/handleError';
@@ -21,6 +21,16 @@ export const orderController = {
     try {
       const orders = await orderService.getUserOrders(user.id);
       return apiResponse.ok(orders);
+    } catch (error) {
+      return handleError(error);
+    }
+  },
+
+  async requestCancellation(req: NextRequest, user: AuthenticatedUser, orderId: string) {
+    try {
+      const { reason } = requestCancellationSchema.parse(await req.json());
+      const order = await orderService.requestCancellation(orderId, user.id, reason);
+      return apiResponse.ok(order);
     } catch (error) {
       return handleError(error);
     }
