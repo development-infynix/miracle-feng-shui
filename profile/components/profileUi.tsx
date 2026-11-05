@@ -33,23 +33,37 @@ export function Detail({ label, value, className = '' }: { label: string; value:
   );
 }
 
-type FieldProps = React.InputHTMLAttributes<HTMLInputElement> & { label: string; id: string; hint?: string };
+type FieldProps = React.InputHTMLAttributes<HTMLInputElement> & {
+  label: string;
+  id: string;
+  hint?: string;
+  /** A control beside the input, on the same line. */
+  action?: React.ReactNode;
+  /** A small control inside the input, at its end. */
+  inside?: React.ReactNode;
+};
 
-export const Field = React.forwardRef<HTMLInputElement, FieldProps>(function Field({ label, id, hint, className = '', ...input }, ref) {
+export const Field = React.forwardRef<HTMLInputElement, FieldProps>(function Field({ label, id, hint, action, inside, className = '', ...input }, ref) {
   return (
     <div className={className}>
       <label htmlFor={id} className="block font-outfit text-[13px] font-semibold text-[#431769]">
         {label}
       </label>
-      <input
-        {...input}
-        ref={ref}
-        id={id}
-        aria-describedby={hint ? `${id}-hint` : undefined}
-        // Replaces the site-wide outline with the field's own focus ring.
-        style={{ outline: 'none' }}
-        className="mt-1.5 h-12 w-full rounded-md border border-[#431769]/25 bg-white px-4 font-outfit text-[16px] text-[#111111] caret-[#7A2FC0] transition-[border-color,box-shadow] placeholder:text-[#5B4A70] focus:border-[#7A2FC0] focus:shadow-[0_0_0_3px_rgba(122,47,192,0.18)] disabled:cursor-not-allowed disabled:bg-[#F7F4EC] disabled:text-[#5B4A70]"
-      />
+      <div className="mt-1.5 flex items-center gap-2">
+        <div className="relative min-w-0 flex-1">
+          <input
+            {...input}
+            ref={ref}
+            id={id}
+            aria-describedby={hint ? `${id}-hint` : undefined}
+            // Replaces the site-wide outline with the field's own focus ring.
+            style={{ outline: 'none' }}
+            className={`h-12 w-full rounded-md border border-[#431769]/25 bg-white pl-4 ${inside ? 'pr-12' : 'pr-4'} font-outfit text-[16px] text-[#111111] caret-[#7A2FC0] transition-[border-color,box-shadow] placeholder:text-[#5B4A70] focus:border-[#7A2FC0] focus:shadow-[0_0_0_3px_rgba(122,47,192,0.18)] disabled:cursor-not-allowed disabled:bg-[#F7F4EC] disabled:text-[#5B4A70]`}
+          />
+          {inside && <div className="absolute inset-y-0 end-1 flex items-center">{inside}</div>}
+        </div>
+        {action}
+      </div>
       {hint && (
         <p id={`${id}-hint`} className="mt-1 font-outfit text-[13px] text-[#5B4A70]">
           {hint}
