@@ -11,7 +11,7 @@ export const cartRepository = {
       include: {
         items: {
           include: {
-            product: { include: productReviewCount },
+            product: { include: { category: true, ...productReviewCount } },
           },
           orderBy: { createdAt: 'asc' },
         },
@@ -24,7 +24,7 @@ export const cartRepository = {
         include: {
           items: {
             include: {
-              product: { include: productReviewCount },
+              product: { include: { category: true, ...productReviewCount } },
             },
             orderBy: { createdAt: 'asc' },
           },

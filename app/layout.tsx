@@ -54,7 +54,7 @@ export default async function RootLayout({
         <Providers>
           <Header navCategories={navCategories} />
           <main className="flex-grow">{children}</main>
-          <Footer />
+          <Footer categories={navCategories} />
           <GuestNotificationToast />
           <ScrollToTop />
         </Providers>

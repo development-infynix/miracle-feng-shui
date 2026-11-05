@@ -34,6 +34,8 @@ interface CartContextType {
   toggleGift: (itemId: string) => void;
   saveForLater: (itemId: string) => boolean;
   clearCart: () => void;
+  /** The saved cart hasn't arrived yet, so an empty list doesn't mean an empty cart. */
+  cartLoading: boolean;
   count: number;
   subtotal: number;
   savings: number;
@@ -65,6 +67,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [userLoggedIn, setUserLoggedInState] = useState(false);
   const [guestToast, setGuestToast] = useState<ToastInfo | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [cartSynced, setCartSynced] = useState(false);
 
   // Sync NextAuth session with local user status
   useEffect(() => {
@@ -158,7 +161,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             setItems(consolidateItems(resData.data.items));
           }
         })
-        .catch(() => {});
+        .catch(() => {})
+        .finally(() => setCartSynced(true));
 
       fetch('/api/favorites')
         .then((res) => (res.ok ? res.json() : null))
@@ -497,6 +501,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }, [status, userLoggedIn]);
 
+  const cartLoading = status === 'loading' || ((status === 'authenticated' || userLoggedIn) && !cartSynced);
   const count = items.reduce((sum, item) => sum + item.quantity, 0);
   const subtotal = items.reduce(
     (sum, item) => sum + item.product.price * item.quantity,
@@ -522,6 +527,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         toggleGift,
         saveForLater,
         clearCart,
+        cartLoading,
         count,
         subtotal,
         savings,

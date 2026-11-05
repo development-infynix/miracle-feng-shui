@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useEffect, useState, useTransition } from 'react';
+import React, { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import type { ProductSummary } from '@/lib/placeholder-data';
 import { useLocale } from '@/context/CurrencyContext';
 import { translateCategory } from '@/lib/translations';
+import { useSiteHeaderHeight } from '@/lib/useSiteHeaderHeight';
 import ShopAppliedFilters from './ShopAppliedFilters';
 import ShopFilterDrawer from './ShopFilterDrawer';
 import ShopProductGrid from './ShopProductGrid';
@@ -25,18 +26,7 @@ export default function ShopView({ filters, categories, products, total }: ShopV
   const { language, t } = useLocale();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [pending, startTransition] = useTransition();
-  // The site header changes height as its category pill opens and closes.
-  const [headerHeight, setHeaderHeight] = useState(138);
-
-  useEffect(() => {
-    const siteHeader = document.getElementById('site-header');
-    if (!siteHeader) return;
-    const measure = () => setHeaderHeight(siteHeader.offsetHeight);
-    measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(siteHeader);
-    return () => observer.disconnect();
-  }, []);
+  const headerHeight = useSiteHeaderHeight();
 
   const applyFilters = (next: ShopFilters) => {
     startTransition(() => router.push(shopUrl(next), { scroll: false }));

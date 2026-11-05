@@ -124,7 +124,7 @@ Everything that floats above the store is one body of liquid glass. A pill does 
 
 The glass is the only loud thing here. Products supply the colour and the imagery, so the chrome keeps to one family of lilac and plum, text stays dark and quiet, and interaction shows through a colour change, not extra shapes. The thread is the one authored motion moment, and it is worth more because nothing else competes with it.
 
-This system currently covers the storefront header, the search modal, the customer sign in modal, the shop page and the product details drawer. The rest of the storefront still uses an older Etsy-derived palette (the `etsy-*` tokens in `app/globals.css`), and the admin panel has its own restrained black-and-white working style. Treat the older storefront styling as not yet migrated, and don't copy it into new work. Leave the admin as it is unless asked.
+This system currently covers the storefront header, the search modal, the customer sign in modal, the shop page, the product details drawer, the cart page and the footer. The rest of the storefront still uses an older Etsy-derived palette (the `etsy-*` tokens in `app/globals.css`), and the admin panel has its own restrained black-and-white working style. Treat the older storefront styling as not yet migrated, and don't copy it into new work. Leave the admin as it is unless asked.
 
 **Key Characteristics:**
 - Floating lilac glass pills on the shared goo filter, never on a solid header bar.
@@ -154,7 +154,7 @@ A single violet family, from pale lilac glass to near-black plum, on a white pag
 ### Named Rules
 **The State Is Violet Rule.** Hover, selected and active all mean text turning Awakened Violet. If a state needs anything else, question the state first.
 
-**The Accent, Not The Ground Rule.** Purple belongs on the glass and small controls. Never tint a whole page or section lilac or purple: it was tried and read as generic AI styling, especially on phones.
+**The Accent, Not The Ground Rule.** Purple belongs on the glass and small controls. Never tint a whole page or section lilac or purple: it was tried and read as generic AI styling, especially on phones. The footer is the one exception, because it is a sheet of the glass itself.
 
 **The Products Own Colour Rule.** Purple is the only chrome colour. Orange, green and other accents don't belong on glass, including highlights on a category or link.
 
@@ -266,9 +266,29 @@ The thread is the signature shape. It's a narrow strip that the goo filter flare
 - **Loading in stages:** cards load only the fields they show. Opening a product shows those straight away and loads the full details for that product alone. Reviews load the first time the Reviews tab is opened.
 - **Tabs:** Product details and Reviews, as text tabs in the header, with the review count from the Review table. The selected tab turns Awakened Violet and draws a 2px line under itself.
 - **Product details:** photo and thumbnails at 6px, category and rating, a serif name, price, description, options, quantity, item details, materials and maker.
-- **Actions:** a fixed footer on the Product details tab, with Buy It Now as an outline and Add to Cart as the primary button. Guests see one primary button, Login to cart, which opens the sign in modal over the drawer.
+- **Actions:** a fixed footer on the Product details tab, with Buy It Now as an outline and Add to Cart as the primary button. If the product is already in the cart, these become View cart and a disabled Already in cart, and the quantity picker hides. Guests see one primary button, Login to cart, which opens the sign in modal over the drawer.
 - **Reviews:** the Reviews tab shows Add review to signed-in customers and Login to add review to guests, which opens the sign in modal over the drawer. The form takes a star rating and a comment, and saving never changes the rating on the product.
 - **Claims:** only show what's stored for the product. Don't add demand counts, certificates or delivery promises here.
+
+### Cart Page
+*`cart/`, with `app/cart/page.tsx` as a pointer.*
+
+- **Layout:** a stack of glass item cards on the white page, with a glass summary beside them that stays in view on desktop only.
+- **Item cards:** horizontal glass cards with 8px corners. A 6px photo is inset on the left, the category, name and price are in the middle, and a bento block of actions sits at the bottom right: Remove as an icon button and a quantity stepper capped at the stock, with View item and its double chevron across the full width below. Chosen options such as size aren't shown. On phones the prices stack vertically at the bottom left of the card, and the action block moves to the right with a shorter View label.
+- **Stock:** an out-of-stock item, or a quantity above the stock, is marked in the row in red and checkout is disabled until it's fixed, since the order would be refused.
+- **Phones:** no summary card. A full-width glass bar fixed to the bottom of the screen holds the total, item count and Checkout.
+- **Feedback:** Remove shows a glass pill at the bottom with Undo. It clears by itself.
+- **Empty states:** guests get Log in, and signed-in customers get Browse products. A skeleton shows while the saved cart loads, so an empty message never flashes.
+- **Honesty:** show only what checkout really does. No coupon field or gift option until they work, and no demand counts, protection claims or payment logos.
+
+### Footer
+*The end of every storefront page (`components/Footer.tsx`). A normal full-width footer, not a floating shape: it borrows the glass material only, with no pill, thread or goo filter.*
+
+- **Material:** the glass gradient from edge to edge, with the bright top rim, the soft plum shade along the bottom and an upward glass lift. It's the one full-width glass surface, and it stays at the very end of the page.
+- **Layout:** a 1280px container, matching the shop. The logo, a serif line naming what the shop sells and the social icons come first, then Shop (the 4 latest categories and All products), Your account and About. The copyright and region sit below a thin divider.
+- **Wordmark:** the shop's name in Royal Amethyst at 12%, stretched to the full container width and sinking past the bottom edge. It's decorative and hidden from screen readers.
+- **Guests:** account links open the sign in modal instead of leaving the page.
+- **Content:** every link goes to a real page. Don't add placeholder links, app store badges or company claims the shop can't back up.
 
 ### Chips
 - **Style:** translucent white (45%) with a white border (70%), in full pills 32px tall. They carry no shadow of their own.

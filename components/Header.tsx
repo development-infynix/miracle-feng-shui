@@ -13,11 +13,9 @@ import GooNavShell from '@/components/GooNavShell';
 import AuthModal from '@/home/components/authmodal';
 import GeneralSearchModal from '@/home/components/generalsearchmodal';
 import { TbChartBubbleFilled } from 'react-icons/tb';
+import { FACEBOOK_URL, INSTAGRAM_URL } from '@/lib/social-links';
 
 const NAV_CATEGORIES_CLOSED_KEY = 'mfs_nav_categories_closed';
-const INSTAGRAM_URL = 'https://www.instagram.com/fengshui.chitrahanson';
-// Add the page link here to make the Facebook icon clickable.
-const FACEBOOK_URL = 'https://facebook.com/miraclefengshui';
 const navSocialIconClass = 'w-6 h-6 transition-opacity group-hover:opacity-75';
 
 const navItemBase =

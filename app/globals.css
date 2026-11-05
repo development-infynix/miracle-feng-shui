@@ -274,3 +274,10 @@ html[data-nav-categories-closed] [data-goo-shell='nav-categories-pill'] {
 html[data-nav-categories-closed] #nav-categories-pill {
   visibility: hidden !important;
 }
+
+/* Room for the cart page's fixed checkout bar on phones, so it never covers the footer. */
+@media (max-width: 1023.98px) {
+  body[data-cart-bar] {
+    padding-bottom: 104px;
+  }
+}

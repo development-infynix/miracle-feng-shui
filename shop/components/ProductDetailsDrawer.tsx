@@ -127,7 +127,7 @@ function DrawerContent({ productId, seed, onClose, titleId }: {
 }) {
   const router = useRouter();
   const { status: sessionStatus } = useSession();
-  const { addItem, addFavorite, removeFavorite, isFavorite, userLoggedIn } = useCart();
+  const { items, cartLoading, addItem, addFavorite, removeFavorite, isFavorite, userLoggedIn } = useCart();
   const { formatPrice, language, t } = useLocale();
   const { product: details, status, retry } = useProductDetails(productId);
 
@@ -159,6 +159,7 @@ function DrawerContent({ productId, seed, onClose, titleId }: {
   const signedIn = sessionStatus === 'authenticated' || userLoggedIn;
   // Waits for the session check, so signed-in customers don't see the login button flash.
   const guest = sessionStatus === 'unauthenticated' && !userLoggedIn;
+  const inCart = shown ? items.some((item) => (item.product?.id ?? item.productId) === shown.id) : false;
 
   const askToSignIn = () => {
     window.dispatchEvent(new CustomEvent('open-auth-modal', { detail: { mode: 'signin' } }));
@@ -414,7 +415,7 @@ function DrawerContent({ productId, seed, onClose, titleId }: {
                   </section>
                 )}
 
-                {!outOfStock && (
+                {!outOfStock && !inCart && (
                   <section className="flex items-center justify-between gap-3 border-t border-[#431769]/15 pt-4">
                     <div className="flex items-center gap-3">
                       <span id="product-quantity-label" className={sectionLabel}>{t('product.quantity', 'Quantity')}</span>
@@ -526,11 +527,26 @@ function DrawerContent({ productId, seed, onClose, titleId }: {
             >
               <span className="font-outfit text-[15px] font-semibold text-white">{t('product.login_to_cart', 'Login to cart')}</span>
             </button>
+          ) : inCart ? (
+            <div className="grid grid-cols-2 gap-3">
+              <Link
+                href="/cart"
+                onClick={onClose}
+                className={`group flex h-12 items-center justify-center rounded-md border border-[#431769] ${focusRing}`}
+              >
+                <span className="font-outfit text-[15px] font-semibold text-[#431769] transition-colors group-hover:text-[#7A2FC0]">
+                  {t('product.view_cart_short', 'View cart')}
+                </span>
+              </Link>
+              <button type="button" disabled className="h-12 cursor-not-allowed rounded-md bg-[#431769] opacity-50">
+                <span className="font-outfit text-[15px] font-semibold text-white">{t('product.already_in_cart', 'Already in cart')}</span>
+              </button>
+            </div>
           ) : (
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
-                disabled={!details || !signedIn}
+                disabled={!details || !signedIn || cartLoading}
                 onClick={handleBuyNow}
                 className={`group h-12 cursor-pointer rounded-md border border-[#431769] disabled:cursor-wait disabled:opacity-50 ${focusRing}`}
               >
@@ -540,7 +556,7 @@ function DrawerContent({ productId, seed, onClose, titleId }: {
               </button>
               <button
                 type="button"
-                disabled={!details || !signedIn}
+                disabled={!details || !signedIn || cartLoading}
                 onClick={handleAddToCart}
                 className={`h-12 cursor-pointer rounded-md bg-[#431769] transition-colors hover:bg-[#3A1F62] disabled:cursor-wait disabled:opacity-50 ${focusRing}`}
               >
