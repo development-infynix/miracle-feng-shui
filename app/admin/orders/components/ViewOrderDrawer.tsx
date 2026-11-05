@@ -26,19 +26,20 @@ export default function ViewOrderDrawer({ order, onClose, onSaved, onDeleted }: 
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  const saveStatus = async () => {
-    if (status === order.status) return;
+  const saveStatus = async (next: typeof status) => {
+    if (next === order.status || saving) return;
+    setStatus(next);
     setSaving(true);
     setError('');
     try {
       const res = await fetch(`/api/admin/orders/${order.id}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: status.toUpperCase() }),
+        body: JSON.stringify({ status: next.toUpperCase() }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.success) throw new Error(data.error || 'Failed to update status.');
-      onSaved({ ...order, status });
+      onSaved({ ...order, status: next });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update status.');
       setStatus(order.status);
@@ -158,48 +159,50 @@ export default function ViewOrderDrawer({ order, onClose, onSaved, onDeleted }: 
           </section>
 
           <section>
-            <label htmlFor="order-status" className={labelClass}>
-              Fulfilment status
-            </label>
-            <div className="flex gap-2">
-              <select
-                id="order-status"
-                value={status}
-                onChange={(e) => setStatus(e.target.value as typeof status)}
-                className={inputClass}
-              >
-                {STATUS_OPTIONS.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-              <button
-                type="button"
-                onClick={saveStatus}
-                disabled={saving || status === order.status}
-                className="inline-flex h-10 shrink-0 items-center justify-center rounded-md bg-stone-900 px-4 text-sm font-medium text-white transition-colors hover:bg-stone-700 disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                {saving ? 'Saving...' : 'Save'}
-              </button>
-            </div>
+            <a
+              href={`/api/orders/${order.orderNumber}/invoice`}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-stone-300 bg-white px-4 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-100 no-underline"
+            >
+              <i className="fa-solid fa-file-pdf text-red-600" />
+              Invoice PDF
+            </a>
           </section>
         </div>
 
-        <footer className="flex shrink-0 items-center justify-end gap-3 border-t border-stone-200 bg-[#fafaf9] px-5 py-4">
-          <a
-            href={`/api/orders/${order.orderNumber}/invoice`}
-            target="_blank"
-            rel="noreferrer"
-            className="mr-auto inline-flex h-10 items-center justify-center gap-2 rounded-md border border-stone-300 px-4 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-100 no-underline"
-          >
-            <i className="fa-solid fa-file-pdf text-red-600" />
-            Invoice PDF
-          </a>
+        <footer className="flex shrink-0 items-center gap-2 border-t border-stone-200 bg-[#fafaf9] px-4 py-3">
+          <label htmlFor="order-status" className={`${labelClass} sr-only`}>
+            Fulfilment status
+          </label>
+          <div className="relative min-w-0 flex-1">
+            <select
+              id="order-status"
+              value={status}
+              onChange={(e) => saveStatus(e.target.value as typeof status)}
+              disabled={saving}
+              className={`${inputClass} h-10 min-w-0 w-full disabled:opacity-60`}
+            >
+              {STATUS_OPTIONS.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+            {saving && (
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-y-0 right-6 flex items-center text-[11px] font-semibold text-stone-500"
+              >
+                Saving…
+              </span>
+            )}
+          </div>
+
           <button
             type="button"
             onClick={() => setConfirmDelete(true)}
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-red-600 px-4 text-sm font-medium text-white transition-colors hover:bg-red-700"
+            className="inline-flex h-10 shrink-0 items-center justify-center rounded-md bg-red-600 px-3 sm:px-4 text-sm font-medium text-white transition-colors hover:bg-red-700"
           >
             Delete
           </button>

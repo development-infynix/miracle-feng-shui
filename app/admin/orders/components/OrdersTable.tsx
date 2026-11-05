@@ -1,12 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
-import Image from 'next/image';
+import React from 'react';
 import { MdKeyboardDoubleArrowRight } from 'react-icons/md';
 import { OrderItemData } from '../types';
-
-const FALLBACK_IMAGE =
-  'https://images.unsplash.com/photo-1518895949257-7621c3c786d7?auto=format&fit=crop&w=600&q=80';
 
 function StatusBadge({ value }: { value: string }) {
   const normalized = (value || '').toLowerCase();
@@ -28,17 +24,6 @@ function StatusBadge({ value }: { value: string }) {
     >
       {value}
     </span>
-  );
-}
-
-function TableThumb({ src, alt }: { src: string; alt: string }) {
-  const [failed, setFailed] = useState(false);
-  const imageSrc = src && !failed ? src : FALLBACK_IMAGE;
-
-  return (
-    <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md border border-gray-200 bg-gray-100">
-      <Image src={imageSrc} alt={alt} fill sizes="48px" unoptimized className="object-cover" onError={() => setFailed(true)} />
-    </div>
   );
 }
 
@@ -64,19 +49,11 @@ export default function OrdersTable({ orders, onView }: OrdersTableProps) {
         </thead>
         <tbody className="divide-y divide-gray-100">
           {orders.map((order) => {
-            const firstItem = order.items[0];
             const itemCount = order.items.reduce((sum, it) => sum + it.quantity, 0);
             return (
               <tr key={order.id} className="transition-colors hover:bg-gray-50/70">
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
-                    {firstItem ? (
-                      <TableThumb src={firstItem.image} alt={firstItem.productName} />
-                    ) : (
-                      <div className="flex h-12 w-12 items-center justify-center rounded-md border border-gray-200 bg-gray-100 text-gray-300">
-                        <i className="fa-solid fa-box-open" />
-                      </div>
-                    )}
                     <div className="min-w-0">
                       <p className="truncate font-semibold text-gray-900">#{order.orderNumber}</p>
                       <p className="text-[11px] text-gray-500 whitespace-nowrap">{order.date}</p>
@@ -88,10 +65,7 @@ export default function OrdersTable({ orders, onView }: OrdersTableProps) {
                   <p className="text-[11px] text-gray-500 truncate max-w-[160px]">{order.city}{order.state ? `, ${order.state}` : ''}</p>
                 </td>
                 <td className="px-4 py-3">
-                  <p className="text-gray-700 tabular-nums">{itemCount} {itemCount === 1 ? 'item' : 'items'}</p>
-                  <p className="text-[11px] text-gray-500 truncate max-w-[180px]" title={firstItem?.productName}>
-                    {firstItem ? `${firstItem.productName}${order.items.length > 1 ? ` +${order.items.length - 1} more` : ''}` : '—'}
-                  </p>
+                  <p className="text-gray-700 tabular-nums font-semibold">{itemCount} {itemCount === 1 ? 'item' : 'items'}</p>
                 </td>
                 <td className="px-4 py-3">
                   <StatusBadge value={order.status} />
