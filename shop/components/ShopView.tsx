@@ -46,9 +46,9 @@ export default function ShopView({ filters, categories, products, total }: ShopV
       </h1>
 
       {/* Sticks under the site header. Products start below it and only ever scroll beneath it. */}
-      <div className="sticky z-30 bg-white" style={{ top: headerHeight }}>
+      <div className="sticky z-30 bg-[#F7F4EC]" style={{ top: headerHeight }}>
         {/* The site header is see-through, so this covers products passing behind its pills. */}
-        <div aria-hidden="true" className="absolute inset-x-0 bottom-full bg-white" style={{ height: headerHeight }} />
+        <div aria-hidden="true" className="absolute inset-x-0 bottom-full bg-[#F7F4EC]" style={{ height: headerHeight }} />
 
         <div className={`${CONTAINER} flex items-center justify-between gap-3 py-3`}>
           <div className="min-w-0 flex-1">

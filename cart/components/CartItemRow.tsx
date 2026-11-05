@@ -37,9 +37,9 @@ export default function CartItemRow({ item, onQuantityChange, onRemove }: CartIt
     <>
       <p className="flex flex-col tabular-nums sm:flex-row sm:flex-wrap sm:items-baseline sm:gap-x-2">
         {originalPrice && (
-          <span className="font-outfit text-[13px] text-[#5B4A70] line-through sm:text-[15px]">{formatPrice(originalPrice * quantity)}</span>
+          <span className="font-outfit text-[15px] text-[#5B4A70] line-through">{formatPrice(originalPrice * quantity)}</span>
         )}
-        <span className="font-outfit text-[17px] font-bold text-[#111111] sm:text-[20px]">{formatPrice(product.price * quantity)}</span>
+        <span className="font-outfit text-[20px] font-bold leading-tight text-[#111111]">{formatPrice(product.price * quantity)}</span>
       </p>
       {quantity > 1 && (
         <p className="mt-0.5 font-outfit text-[13px] tabular-nums text-[#5B4A70]">

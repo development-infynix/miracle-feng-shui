@@ -243,16 +243,7 @@ export default function CheckoutPage() {
       const scriptLoaded = await loadRazorpayScript();
 
       if (!scriptLoaded || !(window as any).Razorpay) {
-        // Fallback demo simulator if external Razorpay CDN is unreachable
-        console.warn('Razorpay SDK unavailable; fallback to direct confirmation');
-        const fallbackOrder = orderData.data;
-        const fallbackNum = fallbackOrder?.orderNumber || fallbackOrder?.orderId || orderId;
-        if (typeof window !== 'undefined') {
-          sessionStorage.setItem('last_order', JSON.stringify(fallbackOrder));
-        }
-        if (clearCart) clearCart();
-        router.push(fallbackNum ? `/order-confirmation?orderNumber=${encodeURIComponent(fallbackNum)}` : '/order-confirmation');
-        return;
+        throw new Error("We couldn't open the payment window, and you haven't been charged. Check your connection and try again.");
       }
 
       const options = {
@@ -297,12 +288,14 @@ export default function CheckoutPage() {
             if (clearCart) clearCart();
             router.push(verifiedNum ? `/order-confirmation?orderNumber=${encodeURIComponent(verifiedNum)}` : '/order-confirmation');
           } catch (err: any) {
-            setCheckoutError(err.message || 'Payment verification error');
+            console.error('Payment verification failed:', err);
+            setCheckoutError("We couldn't confirm your payment yet. Please don't pay again. Check My Orders in a few minutes, or contact us if it doesn't appear as paid.");
             setIsProcessing(false);
           }
         },
         modal: {
           ondismiss: () => {
+            setCheckoutError("Your payment wasn't completed. Your cart is still saved, so you can try again.");
             setIsProcessing(false);
           },
         },
@@ -318,7 +311,7 @@ export default function CheckoutPage() {
 
   if (items.length === 0) {
     return (
-      <div className="bg-[#FAF9F5]/40 min-h-[calc(100vh-140px)] flex flex-col items-center justify-center py-20 px-4 text-center text-[#222222]">
+      <div className="min-h-[calc(100vh-140px)] flex flex-col items-center justify-center py-20 px-4 text-center text-[#222222]">
         <div className="w-16 h-16 rounded-full bg-white border border-[#E1E3DF] flex items-center justify-center text-[#222222] mb-4 shadow-xs">
           <i className="fa-solid fa-bag-shopping text-2xl" />
         </div>
@@ -340,7 +333,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="bg-[#FAF9F5]/40 min-h-[calc(100vh-140px)] pb-20 text-[#222222]">
+    <div className="min-h-[calc(100vh-140px)] pb-20 text-[#222222]">
       {/* SECURE CHECKOUT SUBHEADER BAR */}
       <div className="bg-white border-b border-[#E1E3DF] py-3.5 mb-6">
         <div className="w-full max-w-[760px] sm:max-w-[800px] mx-auto px-4 sm:px-6 flex items-center justify-between">
@@ -1137,6 +1130,11 @@ export default function CheckoutPage() {
                 )}
               </button>
             </div>
+            {checkoutError && (
+              <p role="alert" className="mt-3 text-right text-[13.5px] font-medium text-[#8F1610]">
+                {checkoutError}
+              </p>
+            )}
           </div>
         )}
       </main>

@@ -17,7 +17,7 @@ export default function FavoritesPage() {
   };
 
   return (
-    <div className="bg-white min-h-[calc(100vh-140px)] flex flex-col justify-start relative pb-20">
+    <div className="min-h-[calc(100vh-140px)] flex flex-col justify-start relative pb-20">
       <div className="etsy-container py-6 sm:py-7 max-w-[1320px]">
         {/* Top Header Row: "Favourite items" + "Sign in" button + "Private" & Pencil */}
         <div className="flex flex-wrap items-center justify-between gap-4 mb-4 sm:mb-5">

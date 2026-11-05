@@ -121,7 +121,7 @@ export default function AboutPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-[#222222]">
+    <div className="min-h-screen text-[#222222]">
       {/* Sticky Secondary Subnav (Clean navigation row without duplicate logo/name) */}
       <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#E8E4DA] transition-all duration-200">
         <div className="etsy-container flex items-center justify-between h-13">

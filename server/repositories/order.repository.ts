@@ -212,30 +212,61 @@ export const orderRepository = {
     });
   },
 
+  /**
+   * Marks an order paid exactly once, so the browser and the webhook can both report the same payment.
+   * Returns false if it was already paid, in which case nothing else changes.
+   */
   async markOrderAsPaid(orderId: string, razorpayPaymentId: string) {
     return prisma.$transaction(async (tx) => {
-      const order = await tx.order.update({
-        where: { id: orderId },
+      const { count } = await tx.order.updateMany({
+        where: { id: orderId, paymentStatus: { not: 'PAID' } },
         data: {
           status: 'PAID',
           paymentStatus: 'PAID',
           razorpayPaymentId,
         },
+      });
+      if (count === 0) return false;
+
+      const order = await tx.order.findUniqueOrThrow({
+        where: { id: orderId },
         include: { items: true },
       });
 
       for (const item of order.items) {
-        await tx.product.update({
-          where: { id: item.productId },
+        const { count: reduced } = await tx.product.updateMany({
+          where: { id: item.productId, stock: { gte: item.quantity } },
           data: { stock: { decrement: item.quantity } },
         });
+        if (reduced === 0) {
+          // The money is already taken, so the order stands. The owner has to resolve the shortage.
+          console.error(`[Orders] ${order.orderNumber} was paid for more of product ${item.productId} than is in stock.`);
+          await tx.product.update({ where: { id: item.productId }, data: { stock: 0 } });
+        }
       }
 
+      // Only what was bought: a late payment shouldn't empty a cart the customer has since refilled.
       await tx.cartItem.deleteMany({
-        where: { cart: { userId: order.userId } },
+        where: {
+          cart: { userId: order.userId },
+          productId: { in: order.items.map((item) => item.productId) },
+        },
       });
 
-      return order;
+      return true;
+    });
+  },
+
+  /** Closes earlier online orders the customer never paid for, when they start paying again. */
+  async cancelUnpaidOnlineOrders(userId: string) {
+    return prisma.order.updateMany({
+      where: {
+        userId,
+        paymentMethod: 'RAZORPAY',
+        status: 'PENDING',
+        paymentStatus: { not: 'PAID' },
+      },
+      data: { status: 'CANCELLED' },
     });
   },
 };

@@ -9,7 +9,6 @@ import { translateProductTitle } from '@/lib/translations';
 import { useSiteHeaderHeight } from '@/lib/useSiteHeaderHeight';
 import CartItemRow from './CartItemRow';
 import { CartCheckoutBar, CartSummary } from './CartSummary';
-import CartSuggestions from './CartSuggestions';
 import { isCartItemBlocked } from './cartStock';
 
 const NOTICE_MS = 6000;
@@ -147,7 +146,6 @@ export default function CartView() {
         </div>
       )}
 
-      <CartSuggestions excludeIds={items.map((item) => item.product.id)} />
 
       {/* Stays mounted so screen readers announce what changes inside it. */}
       <div role="status" className="pointer-events-none fixed inset-x-0 bottom-24 z-50 flex justify-center px-3 lg:bottom-6">
