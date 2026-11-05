@@ -3,7 +3,7 @@
 import React, { useEffect, useId, useRef, useState } from 'react';
 
 const GAP = 24;
-const FILL = 'linear-gradient(to bottom, #F3ECFB, #DCCDF0)';
+const FILL = 'linear-gradient(to bottom, var(--color-veil-top), var(--color-veil-bottom))';
 // How much of the drop shape stays visible while tucked inside the main pill.
 const TUCKED_HEIGHT = 44;
 
@@ -31,6 +31,8 @@ interface GooNavShellProps {
    * render has the right height.
    */
   openSpaceClassName?: string;
+  /** Keep the drop shape in the page flow, so its space is always reserved and nothing shifts as it pours. */
+  dropInFlow?: boolean;
 }
 
 /**
@@ -54,6 +56,7 @@ export default function GooNavShell({
   dropClassName = 'w-fit max-w-full',
   dropWrapperClassName = '',
   openSpaceClassName,
+  dropInFlow = false,
 }: GooNavShellProps) {
   // Unique per shell: a filter inside a display:none shell can't be shared with a visible one.
   const filterId = `nav-goo-${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
@@ -207,8 +210,8 @@ export default function GooNavShell({
 
       {/* Drop content */}
       <div
-        className={`absolute inset-x-0 z-10 flex justify-center pointer-events-none ${dropWrapperClassName}`}
-        style={{ top: mainHeight + GAP }}
+        className={`${dropInFlow ? 'relative' : 'absolute inset-x-0'} z-10 flex justify-center pointer-events-none ${dropWrapperClassName}`}
+        style={dropInFlow ? { marginTop: GAP } : { top: mainHeight + GAP }}
       >
         <div
           ref={dropRef}

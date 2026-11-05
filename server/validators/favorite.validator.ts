@@ -5,3 +5,8 @@ export const toggleFavoriteSchema = z.object({
 });
 
 export type ToggleFavoriteInput = z.infer<typeof toggleFavoriteSchema>;
+
+export const favoriteListQuerySchema = z.object({
+  skip: z.coerce.number().int().min(0).default(0),
+  take: z.coerce.number().int().min(1).max(50).default(15),
+});

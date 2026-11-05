@@ -2,7 +2,7 @@ import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import { userRepository } from '../repositories/user.repository';
 import { ApiError } from '../utils/ApiError';
-import { RegisterInput, LoginInput } from '../validators/auth.validator';
+import { RegisterInput, LoginInput, UpdateProfileInput } from '../validators/auth.validator';
 import { emailService } from './email.service';
 
 export const authService = {
@@ -48,6 +48,41 @@ export const authService = {
       role: user.role,
       phone: user.phone,
     };
+  },
+
+  async getProfile(userId: string) {
+    const profile = await userRepository.findById(userId);
+    if (!profile) {
+      throw ApiError.notFound('User profile not found');
+    }
+    const { passwordHash: _hash, resetToken: _token, resetTokenExpiry: _expiry, ...safeProfile } = profile;
+    return safeProfile;
+  },
+
+  async updateProfile(userId: string, input: UpdateProfileInput) {
+    return userRepository.update(userId, {
+      name: input.name,
+      ...(input.phone !== undefined && { phone: input.phone || null }),
+    });
+  },
+
+  /** Throws unless this is the account's current password. Login trims passwords, so this does too. */
+  async verifyCurrentPassword(userId: string, currentPassword: string) {
+    const user = await userRepository.findById(userId);
+    if (!user || !(await bcrypt.compare(currentPassword.trim(), user.passwordHash))) {
+      throw ApiError.badRequest("That password isn't correct. Try again, or reset it by email.");
+    }
+    return user;
+  },
+
+  async changePassword(userId: string, currentPassword: string, newPassword: string) {
+    // Checked again here: the earlier Verify step only unlocks the form, and proves nothing to the server.
+    const user = await this.verifyCurrentPassword(userId, currentPassword);
+    if (await bcrypt.compare(newPassword, user.passwordHash)) {
+      throw ApiError.badRequest('Choose a new password that is different from your current one.');
+    }
+    await userRepository.updatePassword(user.id, await bcrypt.hash(newPassword, 12));
+    return { changed: true };
   },
 
   async requestPasswordReset(rawEmail: string) {

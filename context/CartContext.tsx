@@ -21,6 +21,9 @@ export interface ToastInfo {
   type?: 'favorite' | 'cart' | 'info';
 }
 
+/** `error` is the reason to show the customer. A guest gets the sign-in prompt instead, so has none. */
+export type AddItemResult = { ok: true } | { ok: false; error?: string };
+
 interface CartContextType {
   items: CartItem[];
   addItem: (
@@ -28,14 +31,16 @@ interface CartContextType {
     quantity?: number,
     selectedVariations?: Record<string, string>,
     personalizationText?: string
-  ) => boolean;
-  removeItem: (itemId: string) => void;
+  ) => Promise<AddItemResult>;
+  removeItem: (itemId: string) => Promise<void>;
   setQty: (itemId: string, quantity: number) => void;
   toggleGift: (itemId: string) => void;
   saveForLater: (itemId: string) => boolean;
   clearCart: () => void;
   /** The saved cart hasn't arrived yet, so an empty list doesn't mean an empty cart. */
   cartLoading: boolean;
+  /** Reloads the cart from the server, for current prices and stock. */
+  refreshCart: () => Promise<void>;
   count: number;
   subtotal: number;
   savings: number;
@@ -251,13 +256,26 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     };
   }, [showGuestToast]);
 
-  const addItem = useCallback((
+  const refreshCart = useCallback(async () => {
+    try {
+      const res = await fetch('/api/cart');
+      const resData = res.ok ? await res.json() : null;
+      if (resData?.data?.items && Array.isArray(resData.data.items)) {
+        setItems(consolidateItems(resData.data.items));
+      }
+    } catch {
+      // Keeps what's already shown. The server checks prices and stock again when the order is placed.
+    }
+  }, []);
+
+  // Waits for the server, so nothing shows as added until it really has been.
+  const addItem = useCallback(async (
     product: Product,
     quantity: number = 1,
     selectedVariations?: Record<string, string>,
     personalizationText?: string
-  ): boolean => {
-    if (quantity <= 0) return false;
+  ): Promise<AddItemResult> => {
+    if (quantity <= 0) return { ok: false };
 
     const isAuthed = status === 'authenticated' || userLoggedIn;
     if (!isAuthed) {
@@ -266,105 +284,61 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         'to add to your basket.',
         'cart'
       );
-      return false;
+      return { ok: false };
     }
 
-    // Create unique key based on product + variations
-    const varKey = selectedVariations
-      ? Object.entries(selectedVariations)
-          .map(([k, v]) => `${k}:${v}`)
-          .sort()
-          .join('|')
-      : '';
-    const pText = personalizationText || '';
-    const fallbackItemId = `${product.id}-${varKey}-${pText}`;
-
-    setItems((prev) => {
-      const matchIndex = prev.findIndex((item) => {
-        const itemProdId = item.product?.id || item.productId;
-        const itemVarKey = item.selectedVariations
-          ? Object.entries(item.selectedVariations)
-              .map(([k, v]) => `${k}:${v}`)
-              .sort()
-              .join('|')
-          : '';
-        const itemPText = item.personalizationText || '';
-        return (
-          (itemProdId === product.id || item.id === fallbackItemId) &&
-          itemVarKey === varKey &&
-          itemPText === pText
-        );
-      });
-
-      if (matchIndex > -1) {
-        const updated = [...prev];
-        updated[matchIndex] = {
-          ...updated[matchIndex],
-          quantity: updated[matchIndex].quantity + quantity,
-        };
-        return updated;
-      }
-
-      return [
-        ...prev,
-        {
-          id: fallbackItemId,
-          product,
+    try {
+      const res = await fetch('/api/cart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           productId: product.id,
           quantity,
           selectedVariations,
           personalizationText,
-          isGift: false,
-        },
-      ];
-    });
+        }),
+      });
+      const resData = await res.json();
+      if (!res.ok || !Array.isArray(resData?.data?.items)) {
+        return { ok: false, error: resData?.details?.[0]?.message || resData?.error };
+      }
+      setItems(consolidateItems(resData.data.items));
+      return { ok: true };
+    } catch (err) {
+      console.error('Failed to add item to cart:', err);
+      return { ok: false };
+    }
+  }, [status, userLoggedIn, showGuestToast]);
 
-    // Persist to backend and update state with consolidated response
-    fetch('/api/cart', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        productId: product.id,
-        quantity,
-        selectedVariations,
-        personalizationText,
-      }),
-    })
+  const removeItem = useCallback((itemId: string): Promise<void> => {
+    const dropLocally = () =>
+      setItems((prev) =>
+        prev.filter(
+          (item) => item.id !== itemId && item.productId !== itemId && item.product?.id !== itemId
+        )
+      );
+
+    const isAuthed = status === 'authenticated' || userLoggedIn;
+    // Guests have no server cart, so the removal is instant.
+    if (!isAuthed) {
+      dropLocally();
+      return Promise.resolve();
+    }
+
+    // Logged in: keep the row (and its spinner) until the server confirms the delete.
+    return fetch(`/api/cart/${encodeURIComponent(itemId)}`, { method: 'DELETE' })
       .then((res) => (res.ok ? res.json() : null))
       .then((resData) => {
         if (resData?.data?.items && Array.isArray(resData.data.items)) {
           setItems(consolidateItems(resData.data.items));
+        } else {
+          dropLocally();
         }
       })
       .catch((err) => {
-        console.error('Failed to sync cart item to DB:', err);
+        // Leave the item in place so the customer can retry instead of silently losing it.
+        console.error('Failed to delete cart item from DB:', err);
       });
-
-    return true;
-  }, [status, userLoggedIn, showGuestToast]);
-
-  const removeItem = useCallback((itemId: string) => {
-    setItems((prev) =>
-      prev.filter(
-        (item) => item.id !== itemId && item.productId !== itemId && item.product?.id !== itemId
-      )
-    );
-
-    const isAuthed = status === 'authenticated' || userLoggedIn;
-    if (isAuthed) {
-      fetch(`/api/cart/${encodeURIComponent(itemId)}`, {
-        method: 'DELETE',
-      })
-        .then((res) => (res.ok ? res.json() : null))
-        .then((resData) => {
-          if (resData?.data?.items && Array.isArray(resData.data.items)) {
-            setItems(consolidateItems(resData.data.items));
-          }
-        })
-        .catch((err) => {
-          console.error('Failed to delete cart item from DB:', err);
-        });
-    }
   }, [status, userLoggedIn]);
 
   const setQty = useCallback((itemId: string, quantity: number) => {
@@ -528,6 +502,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         saveForLater,
         clearCart,
         cartLoading,
+        refreshCart,
         count,
         subtotal,
         savings,

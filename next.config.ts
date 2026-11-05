@@ -10,6 +10,12 @@ const nextConfig: NextConfig = {
         destination: '/shop?product=:id',
         permanent: true,
       },
+      // Checkout is a drawer on the cart page now.
+      { source: '/checkout', destination: '/cart', permanent: true },
+      // Orders and favorites now live on the profile page.
+      { source: '/my-orders', destination: '/profile?tab=orders', permanent: true },
+      { source: '/orders', destination: '/profile?tab=orders', permanent: true },
+      { source: '/favorites', destination: '/profile?tab=favorites', permanent: true },
     ];
   },
   images: {

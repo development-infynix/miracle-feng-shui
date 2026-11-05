@@ -122,7 +122,7 @@ export default function ShopFilterDrawer({
         role="dialog"
         aria-modal="true"
         aria-label={t('shop.filters', 'Filters')}
-        className={`absolute inset-y-0 right-0 flex w-full max-w-[400px] flex-col overflow-hidden bg-gradient-to-b from-[#F3ECFB] to-[#DCCDF0] shadow-[-6px_0_24px_rgba(67,23,105,0.18),inset_2px_0_2px_rgba(255,255,255,0.7)] transition-transform duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${slidIn ? 'translate-x-0' : 'translate-x-full'}`}
+        className={`absolute inset-y-0 right-0 flex w-full max-w-[400px] flex-col overflow-hidden glass-veil shadow-[-6px_0_24px_rgba(67,23,105,0.18),inset_2px_0_2px_rgba(255,255,255,0.7)] transition-transform duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${slidIn ? 'translate-x-0' : 'translate-x-full'}`}
       >
         <header className="flex h-16 shrink-0 items-center justify-between gap-3 pl-6 pr-3">
           <h2>

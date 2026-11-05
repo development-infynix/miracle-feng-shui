@@ -10,7 +10,7 @@ import { isCartItemBlocked } from './cartStock';
 const FALLBACK_IMAGE = '/images/miracle.jpeg';
 const LOW_STOCK = 10;
 const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#3A1F62]';
-const control = 'rounded-md border border-[#431769]/25 bg-white/45';
+const control = 'rounded-md border border-[#431769]/25 bg-white';
 const iconButton = `group flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center ${control} ${focusRing}`;
 const icon = 'text-[14px] text-[#111111] transition-colors group-hover:text-[#7A2FC0]';
 const stepButton = `group flex h-10 w-9 cursor-pointer sm:w-10 items-center justify-center rounded-md disabled:cursor-not-allowed disabled:opacity-40 ${focusRing}`;
@@ -18,12 +18,14 @@ const stepIcon = 'text-[12px] text-[#111111] transition-colors group-hover:text-
 
 interface CartItemRowProps {
   item: CartItem;
+  /** Delete is in flight: dim the card, block its controls, and show a spinner. */
+  removing?: boolean;
   onQuantityChange: (quantity: number) => void;
   onRemove: () => void;
 }
 
 /** A horizontal glass card: the photo inset on the left, details in the middle, a bento block of actions on the right. */
-export default function CartItemRow({ item, onQuantityChange, onRemove }: CartItemRowProps) {
+export default function CartItemRow({ item, removing = false, onQuantityChange, onRemove }: CartItemRowProps) {
   const { formatPrice, language, t } = useLocale();
   const { product, quantity } = item;
   const title = translateProductTitle(product.name, language, product.id);
@@ -50,9 +52,19 @@ export default function CartItemRow({ item, onQuantityChange, onRemove }: CartIt
   );
 
   return (
-    <li className="grid grid-cols-[88px_minmax(0,1fr)] gap-x-3 gap-y-3 rounded-lg bg-gradient-to-b from-[#F3ECFB] to-[#DCCDF0] p-2.5 shadow-[0_6px_10px_rgba(67,23,105,0.14),inset_0_-3px_5px_rgba(67,23,105,0.1)] sm:grid-cols-[160px_minmax(0,1fr)_auto] sm:gap-x-5 sm:p-3">
+    <li className={`relative grid grid-cols-[88px_minmax(0,1fr)] gap-x-3 gap-y-3 rounded-lg bg-white p-2.5 shadow-[0_6px_10px_rgba(67,23,105,0.14)] sm:grid-cols-[160px_minmax(0,1fr)_auto] sm:gap-x-5 sm:p-3 ${removing ? 'pointer-events-none select-none' : ''}`}>
+      {/* Delete-in-flight overlay: covers the card so its controls can't be used twice. */}
+      {removing && (
+        <div
+          aria-busy="true"
+          className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-white/70 backdrop-blur-[1px]"
+        >
+          <i aria-hidden="true" className="fa-solid fa-spinner animate-spin text-[22px] text-[#431769]" />
+          <span className="sr-only">{t('cart.removing', 'Removing…')}</span>
+        </div>
+      )}
       {/* The name is the link for keyboards and screen readers, so the photo isn't announced twice. */}
-      <ProductLink product={product} aria-hidden="true" tabIndex={-1} className="group block self-start overflow-hidden rounded-md bg-white/50">
+      <ProductLink product={product} aria-hidden="true" tabIndex={-1} className="group block self-start overflow-hidden rounded-md bg-[#F3ECFB]">
         <img
           src={product.images[0] || FALLBACK_IMAGE}
           alt=""

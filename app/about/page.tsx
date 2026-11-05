@@ -318,23 +318,23 @@ export default function AboutPage() {
 
         {/* INTERACTIVE SLIDE-OVER DRAWER */}
         {activePanel && (
-          <div className="fixed inset-0 z-50 flex justify-end bg-black/40 backdrop-blur-xs transition-opacity animate-in fade-in duration-200">
+          <div className="fixed inset-0 z-50 flex justify-end bg-[#2B154C]/25 backdrop-blur-md transition-opacity animate-in fade-in duration-200">
             <div
-              className="w-full max-w-lg bg-white h-full shadow-2xl overflow-y-auto p-6 sm:p-10 flex flex-col justify-between border-l border-gray-200 animate-in slide-in-from-right duration-300"
+              className="w-full max-w-lg glass-veil glass-content h-full shadow-[-6px_0_24px_rgba(67,23,105,0.18),inset_2px_0_2px_rgba(255,255,255,0.7)] overflow-y-auto p-6 sm:p-10 flex flex-col justify-between animate-in slide-in-from-right duration-300"
               role="dialog"
               aria-modal="true"
             >
               <div>
                 {/* Close Button */}
-                <div className="flex items-center justify-between pb-6 border-b border-gray-100">
-                  <span className="text-xs uppercase font-bold tracking-wider text-[#3A1F62]">
+                <div className="flex items-center justify-between pb-6 border-b border-[#431769]/15">
+                  <span className="text-xs uppercase font-bold tracking-wider text-[#431769]">
                     Deep Dive
                   </span>
                   <button
                     type="button"
                     onClick={() => setActivePanel(null)}
                     aria-label="Close panel"
-                    className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center justify-center transition-all cursor-pointer"
+                    className="w-10 h-10 rounded-full bg-white/45 text-[#111111] flex items-center justify-center transition-all cursor-pointer"
                   >
                     <i className="fa-solid fa-xmark text-base" />
                   </button>
@@ -343,28 +343,28 @@ export default function AboutPage() {
                 {/* Panel Content Based on Selected Tab */}
                 {activePanel === 'items' && (
                   <div className="mt-8">
-                    <div className="w-16 h-16 rounded-2xl bg-[#F3EEFC] text-[#3A1F62] flex items-center justify-center text-2xl mb-6 shadow-inner">
+                    <div className="w-16 h-16 rounded-2xl bg-white/45 text-[#431769] flex items-center justify-center text-2xl mb-6 shadow-inner">
                       <i className="fa-solid fa-gem" />
                     </div>
-                    <span className="text-xs font-bold text-amber-700 uppercase tracking-wide">
+                    <span className="text-xs font-bold text-[#431769] uppercase tracking-wide">
                       Our Living Archive
                     </span>
-                    <h2 className="text-2xl sm:text-3xl font-serif font-bold text-[#140D1F] mt-1 mb-4">
+                    <h2 className="text-2xl sm:text-3xl font-serif font-bold text-[#111111] mt-1 mb-4">
                       120,000+ Sacred Artifacts
                     </h2>
-                    <p className="text-gray-600 text-sm sm:text-base leading-relaxed mb-6">
+                    <p className="text-[#2B1A3F] text-sm sm:text-base leading-relaxed mb-6">
                       Miracle Feng Shui celebrates the transformative power of authentic earthly elements. It is the one sanctuary where you can discover certified A-Grade Burmese jade pendants, 7 Chakra Gemstone trees, hand-hammered 7-metal singing bowls, and tailor-blessed Pixiu wealth rings.
                     </p>
-                    <div className="p-4 rounded-2xl bg-[#FAF9F6] border border-[#E8E4DA] space-y-3 text-xs text-gray-700">
-                      <div className="flex items-center gap-2 font-bold text-[#3A1F62]">
+                    <div className="p-4 rounded-2xl bg-white/45 border border-[#431769]/15 space-y-3 text-xs text-[#111111]">
+                      <div className="flex items-center gap-2 font-bold text-[#431769]">
                         <i className="fa-solid fa-check-circle" />
                         Zero Synthetic Resin or Imitation Glass
                       </div>
-                      <div className="flex items-center gap-2 font-bold text-[#3A1F62]">
+                      <div className="flex items-center gap-2 font-bold text-[#431769]">
                         <i className="fa-solid fa-check-circle" />
                         Ethically Mined Crystals with Natural Inclusions
                       </div>
-                      <div className="flex items-center gap-2 font-bold text-[#3A1F62]">
+                      <div className="flex items-center gap-2 font-bold text-[#431769]">
                         <i className="fa-solid fa-check-circle" />
                         Individually Inspected by Senior Gemologists
                       </div>
@@ -374,19 +374,19 @@ export default function AboutPage() {
 
                 {activePanel === 'artisans' && (
                   <div className="mt-8">
-                    <div className="w-16 h-16 rounded-2xl bg-[#FFF7ED] text-[#C2410C] flex items-center justify-center text-2xl mb-6 shadow-inner">
+                    <div className="w-16 h-16 rounded-2xl bg-white/45 text-[#431769] flex items-center justify-center text-2xl mb-6 shadow-inner">
                       <i className="fa-solid fa-hands" />
                     </div>
-                    <span className="text-xs font-bold text-amber-700 uppercase tracking-wide">
+                    <span className="text-xs font-bold text-[#431769] uppercase tracking-wide">
                       Generational Lineage
                     </span>
-                    <h2 className="text-2xl sm:text-3xl font-serif font-bold text-[#140D1F] mt-1 mb-4">
+                    <h2 className="text-2xl sm:text-3xl font-serif font-bold text-[#111111] mt-1 mb-4">
                       150+ Hereditary Master Carvers
                     </h2>
-                    <p className="text-gray-600 text-sm sm:text-base leading-relaxed mb-6">
+                    <p className="text-[#2B1A3F] text-sm sm:text-base leading-relaxed mb-6">
                       Every single day, master artisans pour ancestral knowledge, devotion, and stillness into every stroke of the carving chisel. Rather than automated factories, our artisan workshops sustain families, preserve historic carving methods, and safeguard the spiritual soul of each mineral.
                     </p>
-                    <div className="p-4 rounded-2xl bg-[#FFF7ED] border border-[#FFEDD5] space-y-2 text-xs text-amber-900">
+                    <div className="p-4 rounded-2xl bg-white/45 border border-[#431769]/15 space-y-2 text-xs text-[#111111]">
                       <p className="font-bold flex items-center gap-2">
                         <i className="fa-solid fa-heart" />
                         Fair-Trade & Cultural Sustainability
@@ -400,46 +400,46 @@ export default function AboutPage() {
 
                 {activePanel === 'homes' && (
                   <div className="mt-8">
-                    <div className="w-16 h-16 rounded-2xl bg-[#ECFDF5] text-emerald-700 flex items-center justify-center text-2xl mb-6 shadow-inner">
+                    <div className="w-16 h-16 rounded-2xl bg-white/45 text-[#431769] flex items-center justify-center text-2xl mb-6 shadow-inner">
                       <i className="fa-solid fa-house-chimney-window" />
                     </div>
-                    <span className="text-xs font-bold text-emerald-700 uppercase tracking-wide">
+                    <span className="text-xs font-bold text-[#431769] uppercase tracking-wide">
                       Global Harmony
                     </span>
-                    <h2 className="text-2xl sm:text-3xl font-serif font-bold text-[#140D1F] mt-1 mb-4">
+                    <h2 className="text-2xl sm:text-3xl font-serif font-bold text-[#111111] mt-1 mb-4">
                       98,000+ Harmonized Sanctuaries
                     </h2>
-                    <p className="text-gray-600 text-sm sm:text-base leading-relaxed mb-6">
+                    <p className="text-[#2B1A3F] text-sm sm:text-base leading-relaxed mb-6">
                       Whether you are welcoming prosperity into a new home, cleansing heavy office energy, or seeking peaceful meditation in your living space, Miracle Feng Shui empowers you with exact directional placement manuals and personalized guidance.
                     </p>
-                    <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-200 text-xs">
-                      <div className="flex items-center justify-between font-bold text-gray-900 mb-1">
+                    <div className="p-3.5 rounded-xl bg-white/45 border border-[#431769]/15 text-xs">
+                      <div className="flex items-center justify-between font-bold text-[#111111] mb-1">
                         <span>Verified Patron Rating</span>
-                        <span className="text-amber-600">4.98 / 5.0 ★</span>
+                        <span className="text-[#431769]">4.98 / 5.0 ★</span>
                       </div>
-                      <p className="text-gray-500">Based on over 24,000+ verified customer reviews worldwide.</p>
+                      <p className="text-[#5B4A70]">Based on over 24,000+ verified customer reviews worldwide.</p>
                     </div>
                   </div>
                 )}
 
                 {activePanel === 'values' && (
                   <div className="mt-8">
-                    <div className="w-16 h-16 rounded-2xl bg-[#F3EEFC] text-[#3A1F62] flex items-center justify-center text-2xl mb-6 shadow-inner">
+                    <div className="w-16 h-16 rounded-2xl bg-white/45 text-[#431769] flex items-center justify-center text-2xl mb-6 shadow-inner">
                       <i className="fa-solid fa-scale-balanced" />
                     </div>
-                    <span className="text-xs font-bold text-[#3A1F62] uppercase tracking-wide">
+                    <span className="text-xs font-bold text-[#431769] uppercase tracking-wide">
                       Ethical Foundations
                     </span>
-                    <h2 className="text-2xl sm:text-3xl font-serif font-bold text-[#140D1F] mt-1 mb-4">
+                    <h2 className="text-2xl sm:text-3xl font-serif font-bold text-[#111111] mt-1 mb-4">
                       Our 5 Guiding Principles
                     </h2>
-                    <ul className="space-y-4 text-sm text-gray-700">
+                    <ul className="space-y-4 text-sm text-[#111111]">
                       <li className="flex items-start gap-3">
                         <span className="w-6 h-6 rounded-full bg-[#3A1F62] text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
                           1
                         </span>
                         <div>
-                          <strong className="block text-gray-900">We Commit to Pure Intention:</strong>
+                          <strong className="block text-[#111111]">We Commit to Pure Intention:</strong>
                           Never sell plastic or false representations of natural earth crystals.
                         </div>
                       </li>
@@ -448,7 +448,7 @@ export default function AboutPage() {
                           2
                         </span>
                         <div>
-                          <strong className="block text-gray-900">We Honor Master Lineage:</strong>
+                          <strong className="block text-[#111111]">We Honor Master Lineage:</strong>
                           Champion human craftsmanship over automated assembly lines.
                         </div>
                       </li>
@@ -457,7 +457,7 @@ export default function AboutPage() {
                           3
                         </span>
                         <div>
-                          <strong className="block text-gray-900">We Minimize Earth Waste:</strong>
+                          <strong className="block text-[#111111]">We Minimize Earth Waste:</strong>
                           Utilize plastic-free cardboard packaging, hemp cordage, and reusable silk pouches.
                         </div>
                       </li>
@@ -466,7 +466,7 @@ export default function AboutPage() {
                           4
                         </span>
                         <div>
-                          <strong className="block text-gray-900">We Consecrate with Care:</strong>
+                          <strong className="block text-[#111111]">We Consecrate with Care:</strong>
                           Cleanse and invoke high-frequency blessing sound waves before dispatch.
                         </div>
                       </li>
@@ -475,7 +475,7 @@ export default function AboutPage() {
                           5
                         </span>
                         <div>
-                          <strong className="block text-gray-900">We Lead with Compassion:</strong>
+                          <strong className="block text-[#111111]">We Lead with Compassion:</strong>
                           Treat every patron as a sacred guest on their spiritual wellness journey.
                         </div>
                       </li>
@@ -485,18 +485,18 @@ export default function AboutPage() {
               </div>
 
               {/* Panel Footer CTA */}
-              <div className="pt-8 mt-8 border-t border-gray-100 flex flex-col gap-2">
+              <div className="pt-8 mt-8 border-t border-[#431769]/15 flex flex-col gap-2">
                 <Link
                   href="/shop"
                   onClick={() => setActivePanel(null)}
-                  className="w-full py-3 rounded-full bg-[#3A1F62] text-white text-center font-bold text-xs hover:bg-[#2B154C] transition-colors"
+                  className="block w-full py-3.5 rounded-md bg-[#431769] text-center transition-colors hover:bg-[#3A1F62]"
                 >
-                  Browse Sacred Catalog
+                  <span className="font-outfit text-[14px] font-semibold text-white">Browse Sacred Catalog</span>
                 </Link>
                 <button
                   type="button"
                   onClick={() => setActivePanel(null)}
-                  className="w-full py-2.5 rounded-full text-xs font-semibold text-gray-500 hover:text-gray-900 cursor-pointer"
+                  className="w-full py-2.5 rounded-full text-xs font-semibold text-[#5B4A70] hover:text-[#7A2FC0] cursor-pointer"
                 >
                   Close Window
                 </button>

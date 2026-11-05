@@ -18,6 +18,11 @@ export const addressRepository = {
     });
   },
 
+  async countUserAddresses(userId: string, tx?: Prisma.TransactionClient) {
+    const client = tx || prisma;
+    return client.address.count({ where: { userId } });
+  },
+
   async clearDefault(userId: string, tx?: Prisma.TransactionClient) {
     const client = tx || prisma;
     return client.address.updateMany({
@@ -39,6 +44,7 @@ export const addressRepository = {
         state: input.state,
         pincode: input.pincode,
         country: input.country || 'India',
+        type: input.type || 'Home',
         isDefault: input.isDefault ?? false,
       },
     });

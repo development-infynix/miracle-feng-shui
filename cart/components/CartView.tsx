@@ -8,14 +8,17 @@ import { useLocale } from '@/context/CurrencyContext';
 import { translateProductTitle } from '@/lib/translations';
 import { useSiteHeaderHeight } from '@/lib/useSiteHeaderHeight';
 import CartItemRow from './CartItemRow';
+import CheckoutDrawer from './CheckoutDrawer';
 import { CartCheckoutBar, CartSummary } from './CartSummary';
 import { isCartItemBlocked } from './cartStock';
 
 const NOTICE_MS = 6000;
+// Keep the delete spinner up this long so quick removes don't just flash.
+const MIN_REMOVE_MS = 400;
 const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#3A1F62]';
 const primaryLink = `inline-flex h-12 cursor-pointer items-center justify-center rounded-md bg-[#431769] px-6 transition-colors hover:bg-[#3A1F62] ${focusRing}`;
 
-type Notice = { title: string; item: CartItem };
+type Notice = { title: string; item: CartItem; error?: string };
 
 function CartSkeleton() {
   return (
@@ -39,6 +42,8 @@ export default function CartView() {
   const { language, t } = useLocale();
   const headerHeight = useSiteHeaderHeight();
   const [notice, setNotice] = useState<Notice | null>(null);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [removingIds, setRemovingIds] = useState<Set<string>>(new Set());
   const noticeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => () => {
@@ -51,16 +56,26 @@ export default function CartView() {
     if (next) noticeTimer.current = setTimeout(() => setNotice(null), NOTICE_MS);
   };
 
-  const handleRemove = (item: CartItem) => {
-    removeItem(item.id);
+  const handleRemove = async (item: CartItem) => {
+    if (removingIds.has(item.id)) return;
+    setRemovingIds((prev) => new Set(prev).add(item.id));
+    const start = Date.now();
+    await removeItem(item.id);
+    const remaining = MIN_REMOVE_MS - (Date.now() - start);
+    if (remaining > 0) await new Promise((resolve) => setTimeout(resolve, remaining));
+    setRemovingIds((prev) => {
+      const next = new Set(prev);
+      next.delete(item.id);
+      return next;
+    });
     showNotice({ title: translateProductTitle(item.product.name, language, item.product.id), item });
   };
 
-  const undoRemove = () => {
+  const undoRemove = async () => {
     if (!notice) return;
     const { item } = notice;
-    addItem(item.product, item.quantity, item.selectedVariations, item.personalizationText);
-    showNotice(null);
+    const result = await addItem(item.product, item.quantity, item.selectedVariations, item.personalizationText);
+    showNotice(result.ok ? null : { ...notice, error: result.error || t('cart.undo_failed', "Couldn't put this back in your cart.") });
   };
 
   const guest = status === 'unauthenticated' && !userLoggedIn;
@@ -70,8 +85,8 @@ export default function CartView() {
   // The fixed checkout bar would otherwise cover the bottom of the footer on phones.
   useEffect(() => {
     if (!hasItems) return;
-    document.body.setAttribute('data-cart-bar', '');
-    return () => document.body.removeAttribute('data-cart-bar');
+    document.body.setAttribute('data-bottom-bar', '');
+    return () => document.body.removeAttribute('data-bottom-bar');
   }, [hasItems]);
   const itemsLabel =
     count === 1 ? t('cart.one_item', '1 item') : t('cart.item_count', '{count} items').replace('{count}', String(count));
@@ -97,6 +112,7 @@ export default function CartView() {
                 <CartItemRow
                   key={item.id}
                   item={item}
+                  removing={removingIds.has(item.id)}
                   onQuantityChange={(quantity) => setQty(item.id, quantity)}
                   onRemove={() => handleRemove(item)}
                 />
@@ -106,9 +122,9 @@ export default function CartView() {
 
           {/* Desktop only. Phones get the fixed checkout bar instead. */}
           <div className="hidden lg:sticky lg:block" style={{ top: headerHeight + 16 }}>
-            <CartSummary count={count} subtotal={subtotal} blocked={blocked} />
+            <CartSummary count={count} subtotal={subtotal} blocked={blocked} onCheckout={() => setCheckoutOpen(true)} />
           </div>
-          <CartCheckoutBar count={count} subtotal={subtotal} blocked={blocked} />
+          <CartCheckoutBar count={count} subtotal={subtotal} blocked={blocked} onCheckout={() => setCheckoutOpen(true)} />
         </div>
       ) : cartLoading ? (
         <div className="mt-6">
@@ -147,14 +163,16 @@ export default function CartView() {
       )}
 
 
+      <CheckoutDrawer open={checkoutOpen} onClose={() => setCheckoutOpen(false)} />
+
       {/* Stays mounted so screen readers announce what changes inside it. */}
       <div role="status" className="pointer-events-none fixed inset-x-0 bottom-24 z-50 flex justify-center px-3 lg:bottom-6">
         {notice && (
-          <div className="pointer-events-auto flex max-w-[560px] items-center gap-3 rounded-full bg-gradient-to-b from-[#F3ECFB] to-[#DCCDF0] py-2.5 pl-5 pr-4 shadow-[0_6px_10px_rgba(67,23,105,0.14),inset_0_2px_0_rgba(255,255,255,0.7),inset_0_-3px_5px_rgba(67,23,105,0.16)]">
+          <div className="pointer-events-auto flex max-w-[560px] items-center gap-3 rounded-full glass-veil py-2.5 pl-5 pr-4 shadow-[0_6px_10px_rgba(67,23,105,0.14),inset_0_2px_0_rgba(255,255,255,0.7),inset_0_-3px_5px_rgba(67,23,105,0.16)]">
             <p className="min-w-0 truncate font-outfit text-[14px] text-[#111111]">
-              {t('cart.removed_notice', 'Removed: {title}').replace('{title}', notice.title)}
+              {notice.error || t('cart.removed_notice', 'Removed: {title}').replace('{title}', notice.title)}
             </p>
-            <button type="button" onClick={undoRemove} className={`group shrink-0 cursor-pointer rounded-sm ${focusRing}`}>
+            <button type="button" onClick={() => void undoRemove()} className={`group shrink-0 cursor-pointer rounded-sm ${focusRing}`}>
               <span className="font-outfit text-[14px] font-semibold text-[#431769] underline underline-offset-2 transition-colors group-hover:text-[#7A2FC0]">
                 {t('cart.undo', 'Undo')}
               </span>

@@ -46,7 +46,8 @@ export function Footer({ categories }: { categories: NavCategory[] }) {
   const { status } = useSession();
   const { country, language, t } = useLocale();
 
-  if (pathname?.startsWith('/admin')) return null;
+  // The admin has its own layout, and the profile page is a focused account screen.
+  if (pathname?.startsWith('/admin') || pathname?.startsWith('/profile')) return null;
 
   const region =
     country === 'UAE'
@@ -61,7 +62,7 @@ export function Footer({ categories }: { categories: NavCategory[] }) {
   };
 
   return (
-    <footer className="mt-16 w-full overflow-hidden bg-gradient-to-b from-[#F3ECFB] to-[#DCCDF0] shadow-[0_-6px_10px_rgba(67,23,105,0.14),inset_0_2px_0_rgba(255,255,255,0.7),inset_0_-3px_5px_rgba(67,23,105,0.16)]">
+    <footer className="mt-16 w-full overflow-hidden glass-veil shadow-[0_-6px_10px_rgba(67,23,105,0.14),inset_0_2px_0_rgba(255,255,255,0.7),inset_0_-3px_5px_rgba(67,23,105,0.16)]">
       <div className="mx-auto w-full max-w-[1280px] px-4 pt-10 sm:px-6 sm:pt-14">
         <div className="grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-[1.5fr_1fr_1fr_1fr] md:gap-x-10">
           <div className="col-span-2 md:col-span-1">
@@ -101,8 +102,8 @@ export function Footer({ categories }: { categories: NavCategory[] }) {
           </FooterGroup>
 
           <FooterGroup title={t('footer.account', 'Your account')}>
-            <FooterLink href="/my-orders" label={t('nav.my_orders', 'My Orders')} onClick={requireLogin} />
-            <FooterLink href="/favorites" label={t('nav.favorites', 'Favorites')} onClick={requireLogin} />
+            <FooterLink href="/profile?tab=orders" label={t('nav.my_orders', 'My Orders')} onClick={requireLogin} />
+            <FooterLink href="/profile?tab=favorites" label={t('nav.favorites', 'Favorites')} onClick={requireLogin} />
             <FooterLink href="/cart" label={t('nav.cart', 'Cart')} onClick={requireLogin} />
           </FooterGroup>
 

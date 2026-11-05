@@ -1,3 +1,4 @@
+import { COD_ENABLED } from '@/lib/payment-options';
 import { orderRepository } from '../repositories/order.repository';
 import { cartRepository } from '../repositories/cart.repository';
 import { productRepository } from '../repositories/product.repository';
@@ -68,6 +69,9 @@ export const orderService = {
       status: order.status,
       courier: order.courier || 'BlueDart Express',
       trackingNumber,
+      // Only what's really been recorded. The values above fall back to placeholders when nothing is.
+      paymentId: order.razorpayPaymentId || null,
+      tracking: order.trackingNumber ? { courier: order.courier || null, number: order.trackingNumber } : null,
       estimatedDelivery,
       shopName: 'Miracle Feng Shui Studio',
       createdAt: order.createdAt,
@@ -108,6 +112,10 @@ export const orderService = {
   },
 
   async createFromCart(userId: string, input: CreateOrderInput) {
+    if (input.paymentMethod === 'COD' && !COD_ENABLED) {
+      throw ApiError.badRequest('Cash on delivery is not available right now. Please pay online.');
+    }
+
     const cart = await cartRepository.findOrCreateCart(userId);
     if (!cart.items || cart.items.length === 0) {
       throw ApiError.badRequest('Cannot place an order with an empty cart');

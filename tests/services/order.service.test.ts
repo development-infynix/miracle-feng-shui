@@ -1,3 +1,5 @@
+vi.mock('@/lib/payment-options', () => ({ COD_ENABLED: true }));
+
 import { describe, it, expect, vi } from 'vitest';
 import { orderService } from '@/server/services/order.service';
 import { cartRepository } from '@/server/repositories/cart.repository';

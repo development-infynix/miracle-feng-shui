@@ -54,7 +54,7 @@ export const userRepository = {
 
   async update(
     id: string,
-    data: { name?: string; phone?: string },
+    data: { name?: string; phone?: string | null },
     tx?: Prisma.TransactionClient
   ) {
     const client = tx || prisma;

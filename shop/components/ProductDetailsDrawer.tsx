@@ -138,6 +138,8 @@ function DrawerContent({ productId, seed, onClose, titleId }: {
   const [personalization, setPersonalization] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
+  const [adding, setAdding] = useState(false);
+  const [addError, setAddError] = useState('');
   const addedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const tabRefs = useRef<Record<Tab, HTMLButtonElement | null>>({ details: null, reviews: null });
 
@@ -150,6 +152,7 @@ function DrawerContent({ productId, seed, onClose, titleId }: {
   const title = shown ? translateProductTitle(shown.name, language, shown.id) : '';
   const stock = shown?.stock;
   const outOfStock = stock === 0;
+  if (stock !== undefined && stock > 0 && quantity > stock) setQuantity(stock);
   const lowStock = stock !== undefined && stock > 0 && stock < LOW_STOCK;
   const originalPrice = shown?.originalPrice && shown.originalPrice > shown.price ? shown.originalPrice : null;
   const rating = shown?.rating ?? 0;
@@ -188,21 +191,31 @@ function DrawerContent({ productId, seed, onClose, titleId }: {
     else addFavorite((details ?? shown) as Product);
   };
 
-  const addToCart = () => {
-    if (!details) return false;
+  const addToCart = async () => {
+    if (!details || adding) return false;
+    setAdding(true);
+    setAddError('');
+    setAdded(false);
     const selected = Object.fromEntries(variations.map((v) => [v.name, choices[v.name] ?? v.options[0]]));
-    return addItem(details, quantity, selected, personalization.trim() || undefined);
+    const result = await addItem(details, quantity, selected, personalization.trim() || undefined);
+    setAdding(false);
+    if (result.ok) return true;
+
+    setAddError(result.error || t('product.add_failed', "We couldn't add this to your cart. Please try again."));
+    // The usual reason is stock running out while this was open, so show what's left now.
+    retry();
+    return false;
   };
 
-  const handleAddToCart = () => {
-    if (!addToCart()) return;
+  const handleAddToCart = async () => {
+    if (!(await addToCart())) return;
     setAdded(true);
     if (addedTimer.current) clearTimeout(addedTimer.current);
     addedTimer.current = setTimeout(() => setAdded(false), ADDED_MESSAGE_MS);
   };
 
-  const handleBuyNow = () => {
-    if (!addToCart()) return;
+  const handleBuyNow = async () => {
+    if (!(await addToCart())) return;
     onClose();
     router.push('/cart');
   };
@@ -503,6 +516,11 @@ function DrawerContent({ productId, seed, onClose, titleId }: {
 
       {tab === 'details' && !unavailable && (
         <footer className="shrink-0 border-t border-[#431769]/15 p-4">
+          {addError && (
+            <p role="alert" className="mb-3 font-outfit text-[14px] font-medium text-[#8F1610]">
+              {addError}
+            </p>
+          )}
           <p role="status" className="font-outfit text-[14px] text-[#2B1A3F] empty:hidden">
             {added && (
               <span className="mb-3 flex items-center justify-between gap-3">
@@ -546,8 +564,8 @@ function DrawerContent({ productId, seed, onClose, titleId }: {
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
-                disabled={!details || !signedIn || cartLoading}
-                onClick={handleBuyNow}
+                disabled={!details || !signedIn || cartLoading || adding}
+                onClick={() => void handleBuyNow()}
                 className={`group h-12 cursor-pointer rounded-md border border-[#431769] disabled:cursor-wait disabled:opacity-50 ${focusRing}`}
               >
                 <span className="font-outfit text-[15px] font-semibold text-[#431769] transition-colors group-hover:text-[#7A2FC0]">
@@ -556,11 +574,11 @@ function DrawerContent({ productId, seed, onClose, titleId }: {
               </button>
               <button
                 type="button"
-                disabled={!details || !signedIn || cartLoading}
-                onClick={handleAddToCart}
+                disabled={!details || !signedIn || cartLoading || adding}
+                onClick={() => void handleAddToCart()}
                 className={`h-12 cursor-pointer rounded-md bg-[#431769] transition-colors hover:bg-[#3A1F62] disabled:cursor-wait disabled:opacity-50 ${focusRing}`}
               >
-                <span className="font-outfit text-[15px] font-semibold text-white">{t('product.add_to_cart', 'Add to Cart')}</span>
+                <span className="font-outfit text-[15px] font-semibold text-white">{adding ? t('product.adding', 'Adding…') : t('product.add_to_cart', 'Add to Cart')}</span>
               </button>
             </div>
           )}
@@ -603,7 +621,7 @@ export default function ProductDetailsDrawer({ open, onClose, productId, seed }:
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className={`absolute inset-y-0 right-0 flex w-full max-w-[520px] flex-col overflow-hidden bg-gradient-to-b from-[#F3ECFB] to-[#DCCDF0] shadow-[-6px_0_24px_rgba(67,23,105,0.18),inset_2px_0_2px_rgba(255,255,255,0.7)] transition-transform duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${slidIn ? 'translate-x-0' : 'translate-x-full'}`}
+        className={`absolute inset-y-0 right-0 flex w-full max-w-[520px] flex-col overflow-hidden glass-veil shadow-[-6px_0_24px_rgba(67,23,105,0.18),inset_2px_0_2px_rgba(255,255,255,0.7)] transition-transform duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${slidIn ? 'translate-x-0' : 'translate-x-full'}`}
       >
         {/* The key starts everything fresh for each product: tab, quantity, choices and loaded reviews. */}
         <DrawerContent key={productId} productId={productId} seed={seed} onClose={onClose} titleId={titleId} />

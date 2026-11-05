@@ -88,7 +88,7 @@ export const paymentService = {
     // No order is saved unless Razorpay accepts it, because the customer would have no way to pay.
     if (!razorpay) {
       console.error('[PaymentService] RAZORPAY_KEY_ID or RAZORPAY_KEY_SECRET is not set.');
-      throw ApiError.internal('Online payment is unavailable right now. Please try again or choose cash on delivery.');
+      throw ApiError.internal('Online payment is unavailable right now. Please try again shortly.');
     }
 
     let razorpayOrderId: string;
@@ -105,7 +105,7 @@ export const paymentService = {
       razorpayOrderId = rzpOrder.id;
     } catch (rzpErr: any) {
       console.error('[PaymentService] Razorpay order creation failed:', rzpErr?.error?.description || rzpErr?.message);
-      throw ApiError.internal('We could not start the payment. Please try again or choose cash on delivery.');
+      throw ApiError.internal('We could not start the payment. Please try again shortly.');
     }
 
     await orderRepository.cancelUnpaidOnlineOrders(userId);

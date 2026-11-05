@@ -71,6 +71,7 @@ model Address {
   state     String
   pincode   String
   country   String   @default("India")
+  type      String   @default("Home")
   isDefault Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

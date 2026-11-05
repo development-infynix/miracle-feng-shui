@@ -1,6 +1,7 @@
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { authService } from '@/server/services/auth.service';
+import { userRepository } from '@/server/repositories/user.repository';
 
 export const authOptions: NextAuthOptions = {
   session: {
@@ -34,7 +35,15 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
+      // Refreshes from the database, never from what the browser sent, after the customer edits their profile.
+      if (trigger === 'update' && token.id) {
+        const fresh = await userRepository.findById(token.id as string);
+        if (fresh) {
+          token.name = fresh.name;
+          token.phone = fresh.phone;
+        }
+      }
       if (user) {
         token.id = user.id;
         token.role = (user as any).role || 'CUSTOMER';
@@ -45,6 +54,7 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (session.user) {
         (session.user as any).id = token.id as string;
+        session.user.name = token.name;
         (session.user as any).role = token.role as 'CUSTOMER' | 'ADMIN';
         (session.user as any).phone = token.phone as string | null;
       }

@@ -59,7 +59,7 @@ export default function ShopView({ filters, categories, products, total }: ShopV
             aria-haspopup="dialog"
             aria-expanded={drawerOpen}
             onClick={() => setDrawerOpen(true)}
-            className="group inline-flex h-11 shrink-0 cursor-pointer items-center gap-2 rounded-md bg-gradient-to-b from-[#F3ECFB] to-[#DCCDF0] px-4 shadow-[0_6px_10px_rgba(67,23,105,0.14),inset_0_2px_2px_rgba(255,255,255,0.7),inset_0_-3px_5px_rgba(67,23,105,0.16)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3A1F62]"
+            className="group inline-flex h-11 shrink-0 cursor-pointer items-center gap-2 rounded-md glass-veil px-4 shadow-[0_6px_10px_rgba(67,23,105,0.14),inset_0_2px_2px_rgba(255,255,255,0.7),inset_0_-3px_5px_rgba(67,23,105,0.16)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3A1F62]"
           >
             <i aria-hidden="true" className="fa-solid fa-sliders text-[14px] text-[#431769]" />
             <span className="font-outfit text-[15px] font-medium text-[#111111] transition-colors group-hover:text-[#7A2FC0]">

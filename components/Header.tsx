@@ -8,7 +8,6 @@ import type { NavCategory } from '@/lib/nav-categories';
 import { signOut, useSession } from 'next-auth/react';
 import { useLocale } from '@/context/CurrencyContext';
 import { Country, Currency, Language, translateCategory } from '@/lib/translations';
-import AddressManagerModal from '@/components/AddressManagerModal';
 import GooNavShell from '@/components/GooNavShell';
 import AuthModal from '@/home/components/authmodal';
 import GeneralSearchModal from '@/home/components/generalsearchmodal';
@@ -95,16 +94,11 @@ export function Header({ navCategories }: { navCategories: NavCategory[] }) {
 
   // Profile Dropdown & Modal States
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
-  const [showProfileEditModal, setShowProfileEditModal] = useState(false);
-  const [showAddressModal, setShowAddressModal] = useState(false);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
 
   // User Profile Data
   const [userName, setUserName] = useState('');
   const [userEmail, setUserEmail] = useState('');
-  const [userPhone, setUserPhone] = useState('');
-  const [userAddress, setUserAddress] = useState('');
-  const [savedToast, setSavedToast] = useState(false);
 
   // Synchronize session with header profile and login status
   useEffect(() => {
@@ -125,12 +119,6 @@ export function Header({ navCategories }: { navCategories: NavCategory[] }) {
         .then((data) => {
           if (data && data.success && data.data) {
             if (data.data.name) setUserName(data.data.name);
-            if (data.data.phone) setUserPhone(data.data.phone);
-            if (data.data.addresses && data.data.addresses.length > 0) {
-              const def = data.data.addresses.find((a: any) => a.isDefault) || data.data.addresses[0];
-              const fullAddr = [def.line1, def.line2, def.city, def.state, def.pincode, def.country].filter(Boolean).join(', ');
-              setUserAddress(fullAddr || def.line1);
-            }
           }
         })
         .catch(() => {});
@@ -233,50 +221,6 @@ export function Header({ navCategories }: { navCategories: NavCategory[] }) {
     { key: 'view-all', label: t('nav.view_all', 'View all'), href: '/shop', isViewAll: true },
   ];
 
-  const handleSaveAddress = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await fetch('/api/addresses', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: userName || 'Valued Customer',
-          phone: userPhone || '+971 50 123 4567',
-          line1: userAddress.trim(),
-          city: 'Dubai',
-          state: 'Dubai',
-          pincode: '00000',
-          country: country || 'United Arab Emirates',
-          isDefault: true,
-        }),
-      });
-    } catch {
-      // Gracefully fall back to local update
-    }
-    setShowAddressModal(false);
-    setSavedToast(true);
-    setTimeout(() => setSavedToast(false), 3000);
-  };
-
-  const handleSaveProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await fetch('/api/auth/profile', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: userName.trim(),
-          phone: userPhone.trim(),
-        }),
-      });
-    } catch {
-      // Gracefully fall back to local update
-    }
-    setShowProfileEditModal(false);
-    setSavedToast(true);
-    setTimeout(() => setSavedToast(false), 3000);
-  };
-
   return (
     <>
       {/* Phones: blurs the page behind the open menu. A tap on it closes the menu. */}
@@ -351,7 +295,7 @@ export function Header({ navCategories }: { navCategories: NavCategory[] }) {
 
                   {userLoggedIn ? (
                     <>
-                      <Link href="/favorites" className={navItemClass}>
+                      <Link href="/profile?tab=favorites" className={navItemClass}>
                         <span className={navLabelClass}>{t('nav.favorites', 'Favourites')}</span>
                         {favorites.length > 0 && <span className={navBadgeClass}>{favorites.length}</span>}
                       </Link>
@@ -410,51 +354,36 @@ export function Header({ navCategories }: { navCategories: NavCategory[] }) {
 
                     {/* Sleek Dropdown Menu */}
                     {profileDropdownOpen && (
-                      <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-2xl shadow-2xl border border-gray-100 p-3 z-50 animate-in fade-in slide-in-from-top-1 duration-150 text-left">
+                      <div className="absolute right-0 top-full mt-2 w-72 glass-veil glass-content rounded-[28px] shadow-[0_6px_10px_rgba(67,23,105,0.14),inset_0_2px_0_rgba(255,255,255,0.7),inset_0_-3px_5px_rgba(67,23,105,0.16)] p-3 z-50 animate-in fade-in slide-in-from-top-1 duration-150 text-left">
                         {/* User Header */}
-                        <div className="px-3 pt-2 pb-3 border-b border-gray-100">
+                        <div className="px-3 pt-2 pb-3 border-b border-[#431769]/15">
                           <p className="font-bold text-[14.5px] text-[#111111] leading-snug">
                             {userName}
                           </p>
-                          <p className="text-[12px] text-gray-400 mt-0.5 truncate">
+                          <p className="text-[12px] text-[#5B4A70] mt-0.5 truncate">
                             {userEmail}
                           </p>
                         </div>
   
                         {/* Store Navigation Items */}
-                        <div className="py-2 text-[13px] space-y-0.5 text-gray-700">
+                        <div className="py-2 text-[13px] space-y-0.5 text-[#111111]">
                           <Link
-                            href="/my-orders"
+                            href="/profile?tab=orders"
                             onClick={() => setProfileDropdownOpen(false)}
-                            className="w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl hover:bg-gray-50 hover:text-black transition-colors"
+                            className="group w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl hover:text-[#7A2FC0] transition-colors"
                           >
-                            <i className="fa-regular fa-calendar-check text-[14px] text-gray-400 w-4 text-center shrink-0" />
-                            <span className="font-medium text-gray-800">{t('nav.my_orders', 'My orders')}</span>
+                            <i className="fa-regular fa-calendar-check text-[14px] text-[#431769] w-4 text-center shrink-0" />
+                            <span className="font-medium text-[#111111] transition-colors group-hover:text-[#7A2FC0]">{t('nav.my_orders', 'My orders')}</span>
                           </Link>
   
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setProfileDropdownOpen(false);
-                              setShowAddressModal(true);
-                            }}
-                            className="w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl hover:bg-gray-50 hover:text-black transition-colors text-left cursor-pointer"
+                          <Link
+                            href="/profile"
+                            onClick={() => setProfileDropdownOpen(false)}
+                            className="group w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-colors"
                           >
-                            <i className="fa-solid fa-location-dot text-[14px] text-gray-400 w-4 text-center shrink-0" />
-                            <span className="font-medium text-gray-800">{t('nav.delivery_addresses', 'Delivery addresses')}</span>
-                          </button>
-  
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setProfileDropdownOpen(false);
-                              setShowProfileEditModal(true);
-                            }}
-                            className="w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl hover:bg-gray-50 hover:text-black transition-colors text-left cursor-pointer"
-                          >
-                            <i className="fa-regular fa-user text-[14px] text-gray-400 w-4 text-center shrink-0" />
-                            <span className="font-medium text-gray-800">{t('nav.edit_profile', 'Edit profile')}</span>
-                          </button>
+                            <i className="fa-regular fa-user text-[14px] text-[#431769] w-4 text-center shrink-0" />
+                            <span className="font-medium text-[#111111] transition-colors group-hover:text-[#7A2FC0]">{t('profile.title', 'Your profile')}</span>
+                          </Link>
                         </div>
   
                         {/* Sign Out */}
@@ -466,9 +395,9 @@ export function Header({ navCategories }: { navCategories: NavCategory[] }) {
                               setUserLoggedIn(false);
                               setProfileDropdownOpen(false);
                             }}
-                            className="w-full flex items-center gap-3.5 px-3 py-2 rounded-xl hover:bg-red-50 text-red-600 font-medium text-[13px] transition-colors text-left cursor-pointer"
+                            className="w-full flex items-center gap-3.5 px-3 py-2 rounded-xl text-[#8F1610] font-medium text-[13px] transition-colors text-left cursor-pointer"
                           >
-                            <i className="fa-solid fa-arrow-right-from-bracket text-[13px] text-red-500 w-4 text-center shrink-0" />
+                            <i className="fa-solid fa-arrow-right-from-bracket text-[13px] text-[#8F1610] w-4 text-center shrink-0" />
                             <span>{t('nav.sign_out', 'Sign out')}</span>
                           </button>
                         </div>
@@ -523,7 +452,7 @@ export function Header({ navCategories }: { navCategories: NavCategory[] }) {
 
                   {userLoggedIn ? (
                     <>
-                      <Link href="/favorites" onClick={closeMobileMenu} className={mobileRowClass}>
+                      <Link href="/profile?tab=favorites" onClick={closeMobileMenu} className={mobileRowClass}>
                         <i aria-hidden="true" className={`fa-solid fa-heart ${mobileIconClass}`} />
                         <span className={`${mobileLabelClass} flex-1 text-[#111111]`}>{t('nav.favorites', 'Favourites')}</span>
                         {favorites.length > 0 && <span className={navBadgeClass}>{favorites.length}</span>}
@@ -533,32 +462,14 @@ export function Header({ navCategories }: { navCategories: NavCategory[] }) {
                         <span className={`${mobileLabelClass} flex-1 text-[#111111]`}>{t('nav.cart', 'Cart')}</span>
                         {count > 0 && <span className={navBadgeClass}>{count}</span>}
                       </Link>
-                      <Link href="/my-orders" onClick={closeMobileMenu} className={mobileRowClass}>
+                      <Link href="/profile?tab=orders" onClick={closeMobileMenu} className={mobileRowClass}>
                         <i aria-hidden="true" className={`fa-regular fa-calendar-check ${mobileIconClass}`} />
                         <span className={`${mobileLabelClass} text-[#111111]`}>{t('nav.my_orders', 'My orders')}</span>
                       </Link>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          closeMobileMenu();
-                          setShowAddressModal(true);
-                        }}
-                        className={mobileRowClass}
-                      >
-                        <i aria-hidden="true" className={`fa-solid fa-location-dot ${mobileIconClass}`} />
-                        <span className={`${mobileLabelClass} text-[#111111]`}>{t('nav.delivery_addresses', 'Delivery addresses')}</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          closeMobileMenu();
-                          setShowProfileEditModal(true);
-                        }}
-                        className={mobileRowClass}
-                      >
+                      <Link href="/profile" onClick={closeMobileMenu} className={mobileRowClass}>
                         <i aria-hidden="true" className={`fa-regular fa-user ${mobileIconClass}`} />
-                        <span className={`${mobileLabelClass} text-[#111111]`}>{t('nav.edit_profile', 'Edit profile')}</span>
-                      </button>
+                        <span className={`${mobileLabelClass} text-[#111111]`}>{t('profile.title', 'Your profile')}</span>
+                      </Link>
                       <button
                         type="button"
                         onClick={async () => {
@@ -750,114 +661,6 @@ export function Header({ navCategories }: { navCategories: NavCategory[] }) {
         </div>
       )}
 
-      {/* 1. DELIVERY ADDRESSES MODAL */}
-      {showAddressModal && (
-        <AddressManagerModal
-          onClose={() => setShowAddressModal(false)}
-          onAddressSelect={(addr) => {
-            setUserAddress(`${addr.line1}${addr.line2 ? ', ' + addr.line2 : ''}, ${addr.city}, ${addr.state} - ${addr.pincode}`);
-            setSavedToast(true);
-            setTimeout(() => setSavedToast(false), 3000);
-          }}
-          userName={userName}
-          userPhone={userPhone}
-        />
-      )}
-
-      {/* 2. EDIT PROFILE MODAL */}
-      {showProfileEditModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto animate-in fade-in"
-          onClick={() => setShowProfileEditModal(false)}
-        >
-          <div
-            className="bg-white rounded-[24px] max-w-md w-full p-6 sm:p-7 shadow-2xl relative my-auto border border-gray-100 animate-in zoom-in-95 duration-200"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              type="button"
-              onClick={() => setShowProfileEditModal(false)}
-              className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 text-gray-500 hover:text-black cursor-pointer"
-            >
-              <i className="fa-solid fa-xmark text-[16px]" />
-            </button>
-
-            <div className="flex items-center gap-3 mb-5 text-left">
-              <div className="w-10 h-10 rounded-full bg-purple-50 text-purple-700 flex items-center justify-center shrink-0">
-                <i className="fa-solid fa-gear text-[18px]" />
-              </div>
-              <div>
-                <h2 className="text-[20px] font-bold text-[#222222]">
-                  Edit Profile &amp; Account
-                </h2>
-                <p className="text-[12.5px] text-[#595959]">
-                  Update your contact details and sanctuary preferences
-                </p>
-              </div>
-            </div>
-
-            <form onSubmit={handleSaveProfile} className="space-y-4 text-left">
-              <div>
-                <label className="text-[12.5px] font-bold text-[#222222] block mb-1">
-                  Full Name:
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={userName}
-                  onChange={(e) => setUserName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E1E3DF] text-[13.5px] text-[#222222] focus:outline-none focus:ring-2 focus:ring-[#F1641E]"
-                />
-              </div>
-
-              <div>
-                <label className="text-[12.5px] font-bold text-[#222222] block mb-1">
-                  Email Address:
-                </label>
-                <input
-                  type="email"
-                  required
-                  value={userEmail}
-                  onChange={(e) => setUserEmail(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E1E3DF] text-[13.5px] text-[#222222] focus:outline-none focus:ring-2 focus:ring-[#F1641E]"
-                />
-              </div>
-
-              <div>
-                <label className="text-[12.5px] font-bold text-[#222222] block mb-1">
-                  Phone Number:
-                </label>
-                <input
-                  type="tel"
-                  value={userPhone}
-                  onChange={(e) => setUserPhone(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E1E3DF] text-[13.5px] text-[#222222] focus:outline-none focus:ring-2 focus:ring-[#F1641E]"
-                />
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#E1E3DF]">
-                <button
-                  type="button"
-                  onClick={() => setShowProfileEditModal(false)}
-                  style={{ border: '1.5px solid #222222', color: '#222222', backgroundColor: '#FFFFFF' }}
-                  className="px-5 py-2 rounded-full hover:bg-[#F5F5F1] text-[13.5px] font-bold transition-colors cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  style={{ backgroundColor: '#222222', color: '#FFFFFF' }}
-                  className="px-6 py-2 rounded-full hover:bg-black text-[13.5px] font-bold transition-all shadow-sm hover:shadow-md cursor-pointer"
-                >
-                  Save Changes
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
       {/* 3. DOWNLOAD INVOICES MODAL */}
       {showInvoiceModal && (
         <div
@@ -951,14 +754,6 @@ export function Header({ navCategories }: { navCategories: NavCategory[] }) {
               </button>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Confirmation Toast for Saved Profile / Address */}
-      {savedToast && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[#222222] text-white px-4 py-2.5 rounded-full shadow-2xl flex items-center gap-2 text-[13px] font-bold animate-in slide-in-from-bottom-3 duration-200">
-          <i className="fa-solid fa-check text-emerald-400 text-[13px]" />
-          <span>Settings saved successfully!</span>
         </div>
       )}
     </>

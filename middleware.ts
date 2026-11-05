@@ -28,7 +28,8 @@ export async function middleware(req: NextRequest) {
   const isProtectedCustomerRoute =
     !isInvoiceRoute &&
     !isOrderDetailRoute &&
-    (pathname === '/checkout' ||
+    (pathname.startsWith('/profile') ||
+      pathname.startsWith('/order-confirmation') ||
       pathname.startsWith('/my-orders') ||
       pathname.startsWith('/orders') ||
       pathname.startsWith('/api/cart') ||
@@ -75,7 +76,8 @@ export const config = {
   matcher: [
     '/admin/:path*',
     '/api/admin/:path*',
-    '/checkout',
+    '/profile',
+    '/order-confirmation',
     '/my-orders',
     '/orders',
     '/api/cart/:path*',

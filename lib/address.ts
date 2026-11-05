@@ -14,120 +14,98 @@ export interface SavedAddress {
   country: string;
 }
 
-const STORAGE_KEY = 'mfs_saved_addresses_v2';
+export type AddressInput = Omit<SavedAddress, 'id'>;
 
-export function getSavedAddresses(): SavedAddress[] {
-  if (typeof window === 'undefined') return [];
+// Addresses used to be kept only in the browser. Anything still here moves to the account once.
+const OLD_STORAGE_KEY = 'mfs_saved_addresses_v2';
+
+async function request<T>(url: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(url, init);
+  const json = await res.json();
+  if (!res.ok || !json.success) {
+    throw new Error(json.details?.[0]?.message || json.error || 'Something went wrong. Please try again.');
+  }
+  return json.data as T;
+}
+
+const send = <T,>(url: string, method: string, body?: unknown) =>
+  request<T>(url, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+
+function fromApi(address: any): SavedAddress {
+  return {
+    id: address.id,
+    type: address.type || 'Home',
+    isPrimary: Boolean(address.isDefault),
+    name: address.name,
+    phone: address.phone,
+    line1: address.line1,
+    line2: address.line2 || undefined,
+    city: address.city,
+    state: address.state,
+    pincode: address.pincode,
+    country: address.country || 'India',
+  };
+}
+
+function toApi({ isPrimary, ...address }: Partial<AddressInput>) {
+  return { ...address, ...(isPrimary !== undefined && { isDefault: isPrimary }) };
+}
+
+function readOldAddresses(): SavedAddress[] {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
+    const raw = localStorage.getItem(OLD_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
     return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
   }
 }
 
-export function saveAddress(address: Partial<SavedAddress> & { name: string; phone: string; line1: string; city: string; state: string; pincode: string }): { addresses: SavedAddress[]; active: SavedAddress } {
-  if (typeof window === 'undefined') {
-    const dummy: SavedAddress = {
-      id: address.id || 'addr-1',
-      type: address.type || 'Home',
-      isPrimary: true,
-      name: address.name,
-      phone: address.phone,
-      line1: address.line1,
-      line2: address.line2,
-      city: address.city,
-      state: address.state,
-      pincode: address.pincode,
-      country: address.country || 'India',
-    };
-    return { addresses: [dummy], active: dummy };
-  }
-
-  const existing = getSavedAddresses();
-  const isFirst = existing.length === 0;
-  const shouldBePrimary = isFirst || !!address.isPrimary;
-
-  const id = address.id || `addr-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
-  const type: AddressType = address.type || 'Home';
-
-  const newEntry: SavedAddress = {
-    id,
-    type,
-    isPrimary: shouldBePrimary,
-    name: address.name.trim(),
-    phone: address.phone.trim(),
-    line1: address.line1.trim(),
-    line2: address.line2?.trim() || undefined,
-    city: address.city.trim(),
-    state: address.state.trim(),
-    pincode: address.pincode.trim(),
-    country: address.country || (address.state?.toLowerCase().includes('dubai') || address.state?.toLowerCase().includes('abu dhabi') ? 'United Arab Emirates' : 'India'),
-  };
-
-  let updatedList: SavedAddress[] = [];
-
-  const existingIdx = existing.findIndex((a) => a.id === id);
-  if (existingIdx >= 0) {
-    // Update existing
-    updatedList = existing.map((a) => {
-      if (a.id === id) return newEntry;
-      if (shouldBePrimary) return { ...a, isPrimary: false };
-      return a;
-    });
-  } else {
-    // Add new
-    if (shouldBePrimary) {
-      updatedList = [newEntry, ...existing.map((a) => ({ ...a, isPrimary: false }))];
-    } else {
-      updatedList = [...existing, newEntry];
-    }
-  }
-
-  // Ensure at least one address is marked primary
-  if (!updatedList.some((a) => a.isPrimary) && updatedList.length > 0) {
-    updatedList[0].isPrimary = true;
-  }
-
+function clearOldAddresses() {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedList));
-  } catch {}
-
-  return {
-    addresses: updatedList,
-    active: newEntry,
-  };
+    localStorage.removeItem(OLD_STORAGE_KEY);
+  } catch {
+    // Storage can be blocked, and then there was nothing to clear.
+  }
 }
 
-export function setPrimaryAddress(id: string): SavedAddress[] {
-  if (typeof window === 'undefined') return [];
-  const existing = getSavedAddresses();
-  const updated = existing.map((a) => ({
-    ...a,
-    isPrimary: a.id === id,
-  }));
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-  } catch {}
-  return updated;
-}
+/** The signed-in customer's addresses, primary first. */
+export async function listAddresses(): Promise<SavedAddress[]> {
+  const addresses = (await request<any[]>('/api/addresses')).map(fromApi);
+  const old = readOldAddresses();
+  if (old.length === 0) return addresses;
 
-export function deleteSavedAddress(id: string): SavedAddress[] {
-  if (typeof window === 'undefined') return [];
-  const existing = getSavedAddresses();
-  const updated = existing.filter((a) => a.id !== id);
-  if (updated.length > 0 && !updated.some((a) => a.isPrimary)) {
-    updated[0].isPrimary = true;
+  // An account that already has addresses keeps them, and the browser's copy is dropped.
+  if (addresses.length > 0) {
+    clearOldAddresses();
+    return addresses;
   }
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-  } catch {}
-  return updated;
+
+  // One that can't be saved, such as an incomplete one, is skipped so the rest still move across.
+  const ordered = [...old].sort((a, b) => Number(b.isPrimary) - Number(a.isPrimary));
+  for (const { id: _id, ...address } of ordered) {
+    await send('/api/addresses', 'POST', toApi(address)).catch(() => null);
+  }
+  clearOldAddresses();
+  return (await request<any[]>('/api/addresses')).map(fromApi);
 }
 
-export function getPrimaryAddress(): SavedAddress | null {
-  const addresses = getSavedAddresses();
-  return addresses.find((a) => a.isPrimary) || (addresses.length > 0 ? addresses[0] : null);
+export async function createAddress(address: AddressInput) {
+  return fromApi(await send('/api/addresses', 'POST', toApi(address)));
+}
+
+export async function updateAddress(id: string, address: Partial<AddressInput>) {
+  return fromApi(await send(`/api/addresses/${encodeURIComponent(id)}`, 'PATCH', toApi(address)));
+}
+
+export async function setPrimaryAddress(id: string) {
+  return updateAddress(id, { isPrimary: true });
+}
+
+export async function deleteAddress(id: string) {
+  await send(`/api/addresses/${encodeURIComponent(id)}`, 'DELETE');
 }

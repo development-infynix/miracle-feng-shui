@@ -22,11 +22,11 @@ export default function ShopProductCard({ product }: { product: ProductSummary }
   const originalPrice = product.originalPrice && product.originalPrice > product.price ? product.originalPrice : null;
 
   return (
-    <article className="relative flex h-full flex-col overflow-hidden rounded-lg bg-gradient-to-b from-[#F3ECFB] to-[#DCCDF0] shadow-[0_6px_10px_rgba(67,23,105,0.14),inset_0_-3px_5px_rgba(67,23,105,0.1)]">
+    <article className="relative flex h-full flex-col overflow-hidden rounded-lg bg-white shadow-[0_6px_10px_rgba(67,23,105,0.14)]">
       <ProductLink product={product}
         className="group flex flex-1 flex-col rounded-lg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#3A1F62]"
       >
-        <div className="relative mx-2 mt-2 aspect-[4/3] overflow-hidden rounded-md bg-white/50 sm:mx-2.5 sm:mt-2.5">
+        <div className="relative mx-2 mt-2 aspect-[4/3] overflow-hidden rounded-md bg-[#F3ECFB] sm:mx-2.5 sm:mt-2.5">
           <img
             src={product.images[0] || FALLBACK_IMAGE}
             alt=""
@@ -55,7 +55,7 @@ export default function ShopProductCard({ product }: { product: ProductSummary }
             {(product.rating ?? 0) > 0 && (
               <span
                 aria-label={t('shop.rating_label', 'Rated {rating} out of 5').replace('{rating}', product.rating.toFixed(1))}
-                className="inline-flex h-6 shrink-0 items-center gap-1 rounded-md border border-white/70 bg-white/45 px-1.5 font-outfit text-[12px] font-semibold tabular-nums text-[#111111]"
+                className="inline-flex h-6 shrink-0 items-center gap-1 rounded-md border border-[#431769]/15 bg-[#F7F4EC] px-1.5 font-outfit text-[12px] font-semibold tabular-nums text-[#111111]"
               >
                 <i aria-hidden="true" className="fa-solid fa-star text-[10px] text-[#431769]" />
                 {product.rating.toFixed(1)}

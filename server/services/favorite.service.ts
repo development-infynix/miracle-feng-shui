@@ -9,6 +9,15 @@ export const favoriteService = {
     return favorites.map((f) => productService.formatProduct(f.product));
   },
 
+  async listPage(userId: string, range: { skip: number; take: number }) {
+    const { items, total } = await favoriteRepository.findUserFavoritesPage(userId, range);
+    return {
+      items: items.map((f) => productService.formatProductCard(f.product)),
+      total,
+      hasMore: range.skip + items.length < total,
+    };
+  },
+
   async toggle(userId: string, productId: string) {
     const product = await productRepository.findBySlugOrId(productId);
     if (!product) {

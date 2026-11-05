@@ -12,7 +12,7 @@ export default function TermsAndConditionsPage() {
   const lastUpdated = 'September 16, 2026';
 
   return (
-    <div className="min-h-screen bg-[#FAF9F6] text-[#222222] py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen text-[#222222] py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl w-full mx-auto">
         {/* Breadcrumb */}
         <nav aria-label="Breadcrumb" className="mb-6">

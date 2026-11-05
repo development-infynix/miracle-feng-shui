@@ -13,6 +13,7 @@ colors:
   muted-plum: "#5B4A70"
   veil-plum: "#2B154C"
   page-white: "#FFFFFF"
+  page-ground: "#F7F4EC"
 typography:
   wordmark:
     fontFamily: "Charter, 'Charter Bitstream', Cambria, Georgia, serif"
@@ -124,7 +125,7 @@ Everything that floats above the store is one body of liquid glass. A pill does 
 
 The glass is the only loud thing here. Products supply the colour and the imagery, so the chrome keeps to one family of lilac and plum, text stays dark and quiet, and interaction shows through a colour change, not extra shapes. The thread is the one authored motion moment, and it is worth more because nothing else competes with it.
 
-This system currently covers the storefront header, the search modal, the customer sign in modal, the shop page, the product details drawer, the cart page and the footer. The rest of the storefront still uses an older Etsy-derived palette (the `etsy-*` tokens in `app/globals.css`), and the admin panel has its own restrained black-and-white working style. Treat the older storefront styling as not yet migrated, and don't copy it into new work. Leave the admin as it is unless asked.
+This system currently covers the storefront header, the search modal, the customer sign in modal, the shop page, the product details drawer, the cart page, the profile page and the footer. The rest of the storefront still uses an older Etsy-derived palette (the `etsy-*` tokens in `app/globals.css`), and the admin panel has its own restrained black-and-white working style. Treat the older storefront styling as not yet migrated, and don't copy it into new work. Leave the admin as it is unless asked.
 
 **Key Characteristics:**
 - Floating lilac glass pills on the shared goo filter, never on a solid header bar.
@@ -135,7 +136,7 @@ This system currently covers the storefront header, the search modal, the custom
 
 ## Colors
 
-A single violet family, from pale lilac glass to near-black plum, on a white page.
+A single violet family, from pale lilac glass to near-black plum, on a warm cream page.
 
 ### Primary
 - **Royal Amethyst:** taken from the logo. Used for the logo mark, count badges, the account avatar, section labels, the **View all** link and panel icons.
@@ -149,10 +150,13 @@ A single violet family, from pale lilac glass to near-black plum, on a white pag
 - **Dusk Plum:** longer messages on glass, such as "no results" text.
 - **Muted Plum:** secondary text on glass, such as placeholders and product categories. Never use a neutral gray on glass.
 - **Veil Plum:** the tint behind blurred overlays, at 15% over the page for the phone menu and 25% for the search modal.
-- **Page White:** the page background and text on Royal Amethyst. The page stays plain white so the glass is the only purple surface.
+- **Page Ground:** the page background, a warm cream. It stays neutral so the veil is the only purple surface.
+- **Page White:** content cards, and text on Royal Amethyst.
 
 ### Named Rules
 **The State Is Violet Rule.** Hover, selected and active all mean text turning Awakened Violet. If a state needs anything else, question the state first.
+
+**The Veil Is The Interface Rule.** The veil (the Lilac Mist to Lilac Depth gradient, `glass-veil` in code) belongs to everything that frames the shop: navbar, footer, drawers, pop-ups, the cart summary and checkout bar. Content cards are white on the cream page, so the photos stay the main colour. Pop-ups share one overlay: Veil Plum at 25% with blur.
 
 **The Accent, Not The Ground Rule.** Purple belongs on the glass and small controls. Never tint a whole page or section lilac or purple: it was tried and read as generic AI styling, especially on phones. The footer is the one exception, because it is a sheet of the glass itself.
 
@@ -242,8 +246,8 @@ The thread is the signature shape. It's a narrow strip that the goo filter flare
 - **Style:** a solid Royal Amethyst block with sharp 6px corners, 48px tall, with white text. Hover deepens it to Deep Plum, and it dims while submitting. Keep it to a form's single main action.
 
 ### Shop Filter Bar
-- **Layout:** a full-width white bar that sticks directly under the site header, with applied filters on the left and a glass Filters button with sharp 6px corners on the right. The button shows a badge counting active choices.
-- **Scrolling:** products start below the bar and only ever scroll beneath it. The area behind the site header is white on this page too, so products never show around the pills or under the button.
+- **Layout:** a full-width bar in the page colour that sticks directly under the site header, with applied filters on the left and a glass Filters button with sharp 6px corners on the right. The button shows a badge counting active choices.
+- **Scrolling:** products start below the bar and only ever scroll beneath it. The area behind the site header is the page colour on this page too, so products never show around the pills or under the button.
 - **Heading:** the shop has no visible page heading, because the navbar's Products link and the applied filters already say where you are. A screen-reader heading names the page.
 - **Applied filters:** removable pills with a clear-all link. Sort isn't listed, since it doesn't hide anything.
 
@@ -253,7 +257,7 @@ The thread is the signature shape. It's a narrow strip that the goo filter flare
 - **Footer:** Clear all, when something is active, and a primary button stating the result count, such as "Show 7 products".
 
 ### Shop Product Card
-- **Shape:** a contained glass card with 8px corners, using the glass gradient and glass lift. The card frames the photo: a 4:3 image with 6px corners sits inset from the card edges, and cards in a row share one height.
+- **Shape:** a contained white card with 8px corners and the soft glass lift shadow. The card frames the photo: a 4:3 image with 6px corners sits inset from the card edges, and cards in a row share one height.
 - **On the photo:** Out of stock and Bestseller as small sharp labels at top left, with a round glass heart at top right. Discounts show only in the price row.
 - **Details:** category with a small rating chip beside it, then a semibold name and a quiet low-stock note when it applies. The rating is the number an admin entered, and it's hidden when that's 0. Customer reviews don't affect it.
 - **Price row:** below a thin divider, any real compare-at price struck through, then the price in bold, with a double chevron at the far right.
@@ -273,16 +277,42 @@ The thread is the signature shape. It's a narrow strip that the goo filter flare
 ### Cart Page
 *`cart/`, with `app/cart/page.tsx` as a pointer.*
 
-- **Layout:** a stack of glass item cards on the white page, with a glass summary beside them that stays in view on desktop only.
-- **Item cards:** horizontal glass cards with 8px corners. A 6px photo is inset on the left, the category, name and price are in the middle, and a bento block of actions sits at the bottom right: Remove as an icon button and a quantity stepper capped at the stock, with View item and its double chevron across the full width below. Chosen options such as size aren't shown. On phones the prices stack vertically at the bottom left of the card, and the action block moves to the right with a shorter View label.
+- **Layout:** a stack of white item cards on the cream page, with a glass summary beside them that stays in view on desktop only.
+- **Item cards:** horizontal white cards with 8px corners. A 6px photo is inset on the left, the category, name and price are in the middle, and a bento block of actions sits at the bottom right: Remove as an icon button and a quantity stepper capped at the stock, with View item and its double chevron across the full width below. Chosen options such as size aren't shown. On phones the prices stack vertically at the bottom left of the card, and the action block moves to the right with a shorter View label.
 - **Stock:** an out-of-stock item, or a quantity above the stock, is marked in the row in red and checkout is disabled until it's fixed, since the order would be refused.
 - **Phones:** no summary card. A full-width glass bar fixed to the bottom of the screen holds the total, item count and Checkout.
 - **Feedback:** Remove shows a glass pill at the bottom with Undo. It clears by itself.
 - **Empty states:** guests get Log in, and signed-in customers get Browse products. A skeleton shows while the saved cart loads, so an empty message never flashes.
 - **Honesty:** show only what checkout really does. No coupon field or gift option until they work, and no demand counts, protection claims or payment logos.
 
+### Profile Page
+*`profile/`, with `app/profile/page.tsx` as a pointer. `/profile?tab=settings|favorites|orders`.*
+
+- **Layout:** on desktop, a sticky 300px column of veil on the left, with white content cards on the right. On phones, a compact identity card at the top, and the three menus in a full-width veil bar fixed to the bottom of the screen. The active one fills with Royal Amethyst and white text, matching the cart's Checkout button.
+- **Identity card:** large serif initials in Royal Amethyst, then name, email and the date they joined.
+- **Menu:** Settings, Favorites and Orders. On desktop, the selected one turns Awakened Violet, with no fill.
+- **Settings:** Account details shows label-above-value until Edit, and the email stays locked. The Address book lists saved addresses, and adding or editing opens the Address Details drawer, the same glass from the right edge as the other drawers. With no addresses, the card shows a primary Add address button. Change password has two steps: the new password field stays disabled until the current password is verified, and the server checks it again on save.
+- **Favorites:** shop product cards, 15 at a time from the server. A card leaves the grid as soon as its heart is turned off.
+- **Orders:** real statuses and invoices. Courier and tracking only show when they've been recorded, with no invented dates or tracking numbers.
+
+### Checkout Drawer
+*`cart/components/CheckoutDrawer.tsx`. Checkout has no page of its own, and `/checkout` redirects to the cart.*
+
+- **Shape:** glass from the right edge, up to 520px wide and full width on phones, like the other drawers. Adding or editing an address opens the Address Details drawer on top.
+- **Sections:** Deliver to (the primary address is selected), Payment (Pay online, with Cash on delivery shown disabled while `COD_ENABLED` in `lib/payment-options.ts` is off), and Order Summary, with the note "Expected delivery within 7 days".
+- **Footer:** the total and one primary button, Pay now or Place order. Errors appear directly above it.
+- **Honesty:** the total is exactly what's charged. Prices and stock reload when it opens, and payment stops if the server's total differs from the one shown.
+- **While processing:** it can't be closed, and a second tap can't place a second order.
+
+### Order Confirmation
+*`order-confirmation/`, with `app/order-confirmation/page.tsx` as a pointer. Only the customer who placed the order, or an admin, can open it.*
+
+- **Motion:** the page's one authored moment plays once on arrival. A Royal Amethyst seal swells, throws droplets that stretch on goo threads and detach, and a check draws itself. Then the Order ID pill's receipt pours out on the Goo Shell thread. With reduced motion, everything starts finished.
+- **Content:** a summary, not a list: item count with up to 3 thumbnails, total, payment, the Order ID and Payment ID with copy buttons, date, address, and "Expected delivery within 7 days".
+- **Honesty:** the seal only celebrates a paid or pay-on-delivery order. An unpaid or cancelled order gets a calm status instead, and never says it's confirmed.
+
 ### Footer
-*The end of every storefront page (`components/Footer.tsx`). A normal full-width footer, not a floating shape: it borrows the glass material only, with no pill, thread or goo filter.*
+*The end of every storefront page except the profile page (`components/Footer.tsx`). A normal full-width footer, not a floating shape: it borrows the glass material only, with no pill, thread or goo filter.*
 
 - **Material:** the glass gradient from edge to edge, with the bright top rim, the soft plum shade along the bottom and an upward glass lift. It's the one full-width glass surface, and it stays at the very end of the page.
 - **Layout:** a 1280px container, matching the shop. The logo, a serif line naming what the shop sells and the social icons come first, then Shop (the 4 latest categories and All products), Your account and About. The copyright and region sit below a thin divider.
