@@ -2,6 +2,7 @@ import { beforeEach, describe, it, expect, vi } from 'vitest';
 import crypto from 'crypto';
 import { paymentService } from '@/server/services/payment.service';
 import { orderRepository } from '@/server/repositories/order.repository';
+import { checkoutSessionRepository } from '@/server/repositories/checkout-session.repository';
 import { cartRepository } from '@/server/repositories/cart.repository';
 import { productRepository } from '@/server/repositories/product.repository';
 import { userRepository } from '@/server/repositories/user.repository';
@@ -10,146 +11,72 @@ import { emailService } from '@/server/services/email.service';
 const createRazorpayOrder = vi.hoisted(() => vi.fn());
 vi.mock('@/lib/razorpay', () => ({ razorpay: { orders: { create: createRazorpayOrder } } }));
 
+const sign = (text: string, secret: string) => crypto.createHmac('sha256', secret).update(text).digest('hex');
+
+const paidOrder = {
+  id: 'o1',
+  userId: 'user-1',
+  orderNumber: 'MFS-1',
+  status: 'PAID',
+  paymentMethod: 'RAZORPAY',
+  paymentStatus: 'PAID',
+  total: 5000,
+  shippingAddress: {},
+  razorpayOrderId: 'order_1',
+  razorpayPaymentId: 'pay_1',
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  items: [],
+  user: { id: 'user-1', name: 'Test', email: 't@example.com', phone: null },
+} as any;
+
 describe('PaymentService', () => {
-  it('should verify correct Razorpay HMAC-SHA256 signatures', async () => {
-    const orderId = 'test-order-1';
-    const razorpayOrderId = 'order_test_12345';
-    const razorpayPaymentId = 'pay_test_67890';
-    const secret = 'test_secret_for_unit_tests';
-    process.env.RAZORPAY_KEY_SECRET = secret;
-
-    const text = `${razorpayOrderId}|${razorpayPaymentId}`;
-    const validSignature = crypto.createHmac('sha256', secret).update(text).digest('hex');
-
-    vi.spyOn(orderRepository, 'findById').mockResolvedValueOnce({
-      id: orderId,
-      userId: 'user-1',
-      orderNumber: 'MFS-123456',
-      status: 'PENDING',
-      paymentMethod: 'RAZORPAY',
-      paymentStatus: 'PENDING',
-      total: 1999,
-      shippingAddress: {},
-      razorpayOrderId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      items: [],
-      user: { id: 'user-1', name: 'Test User', email: 'test@example.com', phone: null },
-    } as any);
-
-    vi.spyOn(orderRepository, 'markOrderAsPaid').mockResolvedValueOnce(true);
-
-    vi.spyOn(orderRepository, 'findById').mockResolvedValueOnce({
-      id: orderId,
-      userId: 'user-1',
-      orderNumber: 'MFS-123456',
-      status: 'PAID',
-      paymentMethod: 'RAZORPAY',
-      paymentStatus: 'PAID',
-      total: 1999,
-      shippingAddress: {},
-      razorpayOrderId,
-      razorpayPaymentId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      items: [],
-      user: { id: 'user-1', name: 'Test User', email: 'test@example.com', phone: null },
-    } as any);
-
-    const verified = await paymentService.verifyPayment('user-1', {
-      orderId,
-      razorpay_order_id: razorpayOrderId,
-      razorpay_payment_id: razorpayPaymentId,
-      razorpay_signature: validSignature,
-    });
-
-    expect(verified).toBeDefined();
-    expect(verified.status).toBe('PAID');
-  });
-
-  it('should reject invalid Razorpay payment signatures', async () => {
-    const orderId = 'test-order-1';
-    const razorpayOrderId = 'order_test_12345';
-    const razorpayPaymentId = 'pay_test_67890';
-    const fakeSignature = 'invalid_tampered_signature_hex';
-
-    vi.spyOn(orderRepository, 'findById').mockResolvedValueOnce({
-      id: orderId,
-      userId: 'user-1',
-      orderNumber: 'MFS-123456',
-      status: 'PENDING',
-      paymentMethod: 'RAZORPAY',
-      paymentStatus: 'PENDING',
-      total: 1999,
-      shippingAddress: {},
-      razorpayOrderId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      items: [],
-      user: { id: 'user-1', name: 'Test User', email: 'test@example.com', phone: null },
-    } as any);
-
-    await expect(
-      paymentService.verifyPayment('user-1', {
-        orderId,
-        razorpay_order_id: razorpayOrderId,
-        razorpay_payment_id: razorpayPaymentId,
-        razorpay_signature: fakeSignature,
-      })
-    ).rejects.toThrow('Invalid Razorpay payment signature');
-  });
-
-  const sign = (text: string, secret: string) => crypto.createHmac('sha256', secret).update(text).digest('hex');
-  const pendingOrder = {
-    id: 'o1',
-    userId: 'user-1',
-    orderNumber: 'MFS-1',
-    status: 'PENDING',
-    paymentMethod: 'RAZORPAY',
-    paymentStatus: 'PENDING',
-    total: 5000,
-    shippingAddress: {},
-    razorpayOrderId: 'order_expensive',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    items: [],
-    user: { id: 'user-1', name: 'Test', email: 't@example.com', phone: null },
-  } as any;
-
   describe('verifying a payment', () => {
+    const verify = (userId = 'user-1', signature = sign('order_1|pay_1', 'secret')) =>
+      paymentService.verifyPayment(userId, {
+        razorpay_order_id: 'order_1',
+        razorpay_payment_id: 'pay_1',
+        razorpay_signature: signature,
+      });
+
     beforeEach(() => {
       vi.restoreAllMocks();
       process.env.RAZORPAY_KEY_SECRET = 'secret';
+      vi.spyOn(checkoutSessionRepository, 'findOwner').mockResolvedValue('user-1');
+      vi.spyOn(checkoutSessionRepository, 'completePayment').mockResolvedValue({ orderId: 'o1', created: true });
+      vi.spyOn(orderRepository, 'findById').mockResolvedValue(paidOrder);
+      vi.spyOn(emailService, 'sendOrderConfirmationEmail').mockResolvedValue({ success: true });
     });
 
-    it('rejects a real payment made for a different order', async () => {
-      vi.spyOn(orderRepository, 'findById').mockResolvedValue(pendingOrder);
-      const mark = vi.spyOn(orderRepository, 'markOrderAsPaid').mockResolvedValue(true);
+    it('writes the paid order and emails the customer', async () => {
+      const verified = await verify();
 
-      await expect(
-        paymentService.verifyPayment('user-1', {
-          orderId: 'o1',
-          razorpay_order_id: 'order_cheap',
-          razorpay_payment_id: 'pay_1',
-          razorpay_signature: sign('order_cheap|pay_1', 'secret'),
-        })
-      ).rejects.toThrow('does not belong');
-      expect(mark).not.toHaveBeenCalled();
+      expect(checkoutSessionRepository.completePayment).toHaveBeenCalledWith('order_1', 'pay_1');
+      expect(verified.status).toBe('PAID');
+      expect(verified.paymentStatus).toBe('PAID');
+      expect(emailService.sendOrderConfirmationEmail).toHaveBeenCalledTimes(1);
     });
 
-    it('does not email again when the order was already marked paid', async () => {
-      vi.spyOn(orderRepository, 'findById').mockResolvedValue(pendingOrder);
-      vi.spyOn(orderRepository, 'markOrderAsPaid').mockResolvedValue(false);
-      const email = vi.spyOn(emailService, 'sendOrderConfirmationEmail').mockResolvedValue({ success: true });
+    it('writes nothing when the signature is wrong', async () => {
+      await expect(verify('user-1', 'invalid_tampered_signature')).rejects.toThrow('Invalid Razorpay payment signature');
+      expect(checkoutSessionRepository.completePayment).not.toHaveBeenCalled();
+    });
 
-      await paymentService.verifyPayment('user-1', {
-        orderId: 'o1',
-        razorpay_order_id: 'order_expensive',
-        razorpay_payment_id: 'pay_1',
-        razorpay_signature: sign('order_expensive|pay_1', 'secret'),
-      });
+    it("writes nothing for another customer's payment", async () => {
+      await expect(verify('user-2')).rejects.toThrow('does not belong');
+      expect(checkoutSessionRepository.completePayment).not.toHaveBeenCalled();
+    });
 
-      expect(email).not.toHaveBeenCalled();
+    it('writes nothing for a payment the store has no record of', async () => {
+      vi.spyOn(checkoutSessionRepository, 'findOwner').mockResolvedValue(null);
+      await expect(verify()).rejects.toThrow('Order not found');
+      expect(checkoutSessionRepository.completePayment).not.toHaveBeenCalled();
+    });
+
+    it('does not email again when the webhook already wrote the order', async () => {
+      vi.spyOn(checkoutSessionRepository, 'completePayment').mockResolvedValue({ orderId: 'o1', created: false });
+      await verify();
+      expect(emailService.sendOrderConfirmationEmail).not.toHaveBeenCalled();
     });
   });
 
@@ -171,26 +98,31 @@ describe('PaymentService', () => {
         isActive: true,
         images: [],
       } as any);
+      vi.spyOn(checkoutSessionRepository, 'orderNumberTaken').mockResolvedValue(false);
+      vi.spyOn(checkoutSessionRepository, 'deleteExpired').mockResolvedValue({ count: 0 });
+      vi.spyOn(checkoutSessionRepository, 'create').mockResolvedValue({} as any);
     });
 
-    it('saves no order and invents no id when Razorpay refuses', async () => {
+    it('saves nothing and invents no id when Razorpay refuses', async () => {
       createRazorpayOrder.mockRejectedValue(new Error('auth failed'));
-      const create = vi.spyOn(orderRepository, 'create').mockResolvedValue({} as any);
 
       await expect(paymentService.createRazorpayOrder('user-1', input)).rejects.toThrow('could not start the payment');
-      expect(create).not.toHaveBeenCalled();
+      expect(checkoutSessionRepository.create).not.toHaveBeenCalled();
     });
 
-    it('charges the server total in paise and closes earlier unpaid orders', async () => {
+    it('charges the server total in paise, and writes no order before payment', async () => {
       createRazorpayOrder.mockResolvedValue({ id: 'order_real' });
-      const cancel = vi.spyOn(orderRepository, 'cancelUnpaidOnlineOrders').mockResolvedValue({ count: 1 });
-      vi.spyOn(orderRepository, 'create').mockResolvedValue({ id: 'o1', orderNumber: 'MFS-1' } as any);
+      const createOrder = vi.spyOn(orderRepository, 'create');
 
       const result = await paymentService.createRazorpayOrder('user-1', input);
 
       expect(createRazorpayOrder.mock.calls[0][0]).toMatchObject({ amount: 20000, currency: 'INR' });
       expect(result.razorpayOrderId).toBe('order_real');
-      expect(cancel).toHaveBeenCalledWith('user-1');
+      expect(result).not.toHaveProperty('orderId');
+      expect(createOrder).not.toHaveBeenCalled();
+      expect(checkoutSessionRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({ razorpayOrderId: 'order_real', userId: 'user-1', total: 200 })
+      );
     });
 
     it('refuses a product that has been hidden', async () => {
@@ -203,12 +135,14 @@ describe('PaymentService', () => {
 
   describe('the webhook', () => {
     const body = (event: string) =>
-      JSON.stringify({ event, payload: { payment: { entity: { id: 'pay_1', order_id: 'order_expensive' } } } });
+      JSON.stringify({ event, payload: { payment: { entity: { id: 'pay_1', order_id: 'order_1' } } } });
 
     beforeEach(() => {
       vi.restoreAllMocks();
       process.env.RAZORPAY_WEBHOOK_SECRET = 'hook';
       process.env.RAZORPAY_KEY_SECRET = 'api';
+      vi.spyOn(orderRepository, 'findById').mockResolvedValue(paidOrder);
+      vi.spyOn(emailService, 'sendOrderConfirmationEmail').mockResolvedValue({ success: true });
     });
 
     it('does not accept the API secret as the webhook secret', async () => {
@@ -216,28 +150,36 @@ describe('PaymentService', () => {
       await expect(paymentService.handleWebhook(raw, sign(raw, 'api'))).rejects.toThrow('Invalid webhook signature');
     });
 
-    it('confirms a captured payment and emails the customer once', async () => {
-      vi.spyOn(orderRepository, 'findByRazorpayOrderId').mockResolvedValue(pendingOrder);
-      vi.spyOn(orderRepository, 'findById').mockResolvedValue(pendingOrder);
-      const mark = vi.spyOn(orderRepository, 'markOrderAsPaid').mockResolvedValueOnce(true).mockResolvedValueOnce(false);
-      const email = vi.spyOn(emailService, 'sendOrderConfirmationEmail').mockResolvedValue({ success: true });
+    it('writes the order from a captured payment and emails the customer once', async () => {
+      const complete = vi
+        .spyOn(checkoutSessionRepository, 'completePayment')
+        .mockResolvedValueOnce({ orderId: 'o1', created: true })
+        .mockResolvedValueOnce({ orderId: 'o1', created: false });
       const raw = body('payment.captured');
 
       await paymentService.handleWebhook(raw, sign(raw, 'hook'));
       await paymentService.handleWebhook(raw, sign(raw, 'hook'));
 
-      expect(mark).toHaveBeenCalledTimes(2);
-      expect(email).toHaveBeenCalledTimes(1);
+      expect(complete).toHaveBeenCalledWith('order_1', 'pay_1');
+      expect(emailService.sendOrderConfirmationEmail).toHaveBeenCalledTimes(1);
     });
 
-    it('keeps the order open when a payment attempt fails', async () => {
-      vi.spyOn(orderRepository, 'findByRazorpayOrderId').mockResolvedValue(pendingOrder);
-      const update = vi.spyOn(orderRepository, 'updatePayment').mockResolvedValue({} as any);
+    it('logs a captured payment with no matching checkout, without failing', async () => {
+      vi.spyOn(checkoutSessionRepository, 'completePayment').mockResolvedValue(null);
+      const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const raw = body('payment.captured');
+
+      await expect(paymentService.handleWebhook(raw, sign(raw, 'hook'))).resolves.toEqual({ received: true });
+      expect(log).toHaveBeenCalled();
+    });
+
+    it('writes nothing when a payment attempt fails', async () => {
+      const complete = vi.spyOn(checkoutSessionRepository, 'completePayment');
       const raw = body('payment.failed');
 
       await paymentService.handleWebhook(raw, sign(raw, 'hook'));
 
-      expect(update).toHaveBeenCalledWith('o1', { paymentStatus: 'FAILED' });
+      expect(complete).not.toHaveBeenCalled();
     });
   });
 });

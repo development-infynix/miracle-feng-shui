@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import { razorpay } from '@/lib/razorpay';
 import { orderRepository } from '../repositories/order.repository';
+import { checkoutSessionRepository } from '../repositories/checkout-session.repository';
 import { cartRepository } from '../repositories/cart.repository';
 import { productRepository } from '../repositories/product.repository';
 import { userRepository } from '../repositories/user.repository';
@@ -34,6 +35,14 @@ async function sendPaidOrderEmail(orderId: string) {
     })
     .catch((err) => console.error('[PaymentService] Email dispatch failed:', err));
   return formatted;
+}
+
+async function newOrderNumber() {
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const orderNumber = `MFS-${Math.floor(100000 + Math.random() * 900000)}`;
+    if (!(await checkoutSessionRepository.orderNumberTaken(orderNumber))) return orderNumber;
+  }
+  throw ApiError.internal('We could not start the payment. Please try again shortly.');
 }
 
 export const paymentService = {
@@ -83,10 +92,10 @@ export const paymentService = {
       });
     }
 
-    const orderNumber = `MFS-${Math.floor(100000 + Math.random() * 900000)}`;
+    const orderNumber = await newOrderNumber();
     const amountInPaise = Math.round(total * 100);
 
-    // No order is saved unless Razorpay accepts it, because the customer would have no way to pay.
+    // Nothing is saved unless Razorpay accepts it, because the customer would have no way to pay.
     if (!razorpay) {
       console.error('[PaymentService] RAZORPAY_KEY_ID or RAZORPAY_KEY_SECRET is not set.');
       throw ApiError.internal('Online payment is unavailable right now. Please try again shortly.');
@@ -109,24 +118,19 @@ export const paymentService = {
       throw ApiError.internal('We could not start the payment. Please try again shortly.');
     }
 
-    await orderRepository.cancelUnpaidOnlineOrders(userId);
-
-    // Create DB order in PENDING status
-    const dbOrder = await orderRepository.create({
+    // No order exists until the payment is confirmed. This holds what's being paid for until then.
+    await checkoutSessionRepository.deleteExpired();
+    await checkoutSessionRepository.create({
+      razorpayOrderId,
       orderNumber,
       userId,
-      status: 'PENDING',
-      paymentMethod: 'RAZORPAY',
-      paymentStatus: 'PENDING',
       total,
       shippingAddress: input.shippingAddress,
-      razorpayOrderId,
       items: orderItemsData,
     });
 
     return {
-      orderId: dbOrder.id,
-      orderNumber: dbOrder.orderNumber,
+      orderNumber,
       razorpayOrderId,
       amount: amountInPaise,
       currency: 'INR',
@@ -140,18 +144,13 @@ export const paymentService = {
   },
 
   async verifyPayment(userId: string, input: VerifyPaymentInput) {
-    const order = await orderRepository.findById(input.orderId);
-    if (!order) {
+    // A valid signature only proves the payment is real, so it must also be this customer's.
+    const ownerId = await checkoutSessionRepository.findOwner(input.razorpay_order_id);
+    if (!ownerId) {
       throw ApiError.notFound('Order not found');
     }
-
-    if (order.userId !== userId) {
-      throw ApiError.forbidden('Unauthorized access to order');
-    }
-
-    // A valid signature only proves the payment is real, so it must also be for this order.
-    if (order.paymentMethod !== 'RAZORPAY' || order.razorpayOrderId !== input.razorpay_order_id) {
-      throw ApiError.badRequest('This payment does not belong to this order');
+    if (ownerId !== userId) {
+      throw ApiError.forbidden('This payment does not belong to this account');
     }
 
     const secret = process.env.RAZORPAY_KEY_SECRET;
@@ -163,11 +162,12 @@ export const paymentService = {
       throw ApiError.badRequest('Invalid Razorpay payment signature');
     }
 
-    const newlyPaid = await orderRepository.markOrderAsPaid(order.id, input.razorpay_payment_id);
-    if (newlyPaid) return sendPaidOrderEmail(order.id);
+    const result = await checkoutSessionRepository.completePayment(input.razorpay_order_id, input.razorpay_payment_id);
+    if (!result) throw ApiError.notFound('Order not found');
+    if (result.created) return sendPaidOrderEmail(result.orderId);
 
     // The webhook got here first, and has already sent the confirmation.
-    return orderService.formatOrder(await orderRepository.findById(order.id));
+    return orderService.formatOrder(await orderRepository.findById(result.orderId));
   },
 
   async handleWebhook(rawBody: string, signature: string) {
@@ -187,21 +187,12 @@ export const paymentService = {
 
     if (eventType === 'payment.captured') {
       const payment = event.payload.payment.entity;
-      const razorpayOrderId = payment.order_id;
-      const order = await orderRepository.findByRazorpayOrderId(razorpayOrderId);
-
       // Also covers a customer who paid and closed the page before it could confirm.
-      if (order && (await orderRepository.markOrderAsPaid(order.id, payment.id))) {
-        await sendPaidOrderEmail(order.id);
-      }
-    } else if (eventType === 'payment.failed') {
-      const payment = event.payload.payment.entity;
-      const razorpayOrderId = payment.order_id;
-      const order = await orderRepository.findByRazorpayOrderId(razorpayOrderId);
-
-      // The order stays open: the customer can retry a failed payment in the same payment window.
-      if (order && order.paymentStatus !== 'PAID' && order.paymentStatus !== 'REFUNDED') {
-        await orderRepository.updatePayment(order.id, { paymentStatus: 'FAILED' });
+      const result = await checkoutSessionRepository.completePayment(payment.order_id, payment.id);
+      if (!result) {
+        console.error(`[Payments] Payment ${payment.id} doesn't match any checkout. Razorpay order: ${payment.order_id}`);
+      } else if (result.created) {
+        await sendPaidOrderEmail(result.orderId);
       }
     } else if (typeof eventType === 'string' && eventType.startsWith('refund.')) {
       await refundService.handleWebhook(eventType, event.payload.refund.entity);

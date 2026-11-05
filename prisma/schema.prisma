@@ -51,6 +51,7 @@ model User {
 
   addresses        Address[]
   orders           Order[]
+  checkoutSessions CheckoutSession[]
   reviews          Review[]
   cart             Cart?
   favorites        Favorite[]
@@ -188,7 +189,7 @@ model Order {
   paymentStatus     PaymentStatus @default(PENDING)
   total             Float
   shippingAddress   Json
-  razorpayOrderId   String?
+  razorpayOrderId   String?       @unique
   razorpayPaymentId String?
   courier           String?
   trackingNumber    String?
@@ -204,6 +205,22 @@ model Order {
   @@index([userId])
   @@index([status])
   @@index([orderNumber])
+}
+
+/// What a customer is paying for. It becomes an Order only once the payment is confirmed.
+model CheckoutSession {
+  id              String   @id @default(cuid())
+  razorpayOrderId String   @unique
+  orderNumber     String   @unique
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  total           Float
+  shippingAddress Json
+  items           Json
+  createdAt       DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
 }
 
 enum RefundStatus {

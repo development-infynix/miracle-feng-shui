@@ -191,7 +191,7 @@ export default function CheckoutDrawer({ open, onClose }: CheckoutDrawerProps) {
       },
       theme: { color: '#431769' },
       handler: (response: RazorpaySuccess) => {
-        postJson('/api/payments/verify', { orderId: order.orderId, ...response })
+        postJson('/api/payments/verify', response)
           .then(finishOrder)
           .catch((err) => {
             console.error('Payment verification failed:', err);
