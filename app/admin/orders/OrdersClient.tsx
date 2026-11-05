@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import OrdersToolbar from './components/OrdersToolbar';
 import OrdersFooter from './components/OrdersFooter';
 import OrderCard from './components/OrderCard';
+import OrdersTable from './components/OrdersTable';
 import ViewOrderDrawer from './components/ViewOrderDrawer';
 import { OrderItemData, OrderStats } from './types';
 
@@ -153,11 +154,16 @@ export default function OrdersClient({ initialOrders, search = '', status: statu
               : 'No orders yet. New orders will appear here.'}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-            {orders.map((order) => (
-              <OrderCard key={order.id} order={order} onView={setViewOrder} />
-            ))}
-          </div>
+          <>
+            <div className="hidden lg:block">
+              <OrdersTable orders={orders} onView={setViewOrder} />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:hidden gap-3">
+              {orders.map((order) => (
+                <OrderCard key={order.id} order={order} onView={setViewOrder} />
+              ))}
+            </div>
+          </>
         )}
       </div>
 
