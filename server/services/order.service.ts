@@ -48,6 +48,22 @@ export const orderService = {
       (['PAID', 'COD_PENDING', 'PROCESSING'].includes(order.status) ||
         (order.status === 'PENDING' && order.paymentStatus === 'PAID'));
 
+    // The customer never sees a failed attempt as finished: it's back with the owner to retry.
+    const latestRefund = order.refunds?.[0];
+    const refund = latestRefund
+      ? {
+          status: latestRefund.status === 'FAILED' ? 'REQUESTED' : latestRefund.status,
+          amount: latestRefund.amountPaise / 100,
+        }
+      : null;
+    const canRequestRefund =
+      !order.refundRequestedAt &&
+      !latestRefund &&
+      ['CANCELLATION_APPROVED', 'CANCELLED'].includes(order.status) &&
+      order.paymentStatus === 'PAID' &&
+      order.paymentMethod === 'RAZORPAY' &&
+      Boolean(order.razorpayPaymentId);
+
     return {
       id: order.id,
       orderNumber: order.orderNumber || `MFS-${order.id?.slice(-6).toUpperCase() || '100000'}`,
@@ -80,6 +96,8 @@ export const orderService = {
       paymentId: order.razorpayPaymentId || null,
       tracking: order.trackingNumber ? { courier: order.courier || null, number: order.trackingNumber } : null,
       canCancel,
+      canRequestRefund,
+      refund,
       // The owner moved the order on instead of approving the request.
       cancellationDeclined:
         requestedCancellation && !['CANCELLATION_REQUESTED', 'CANCELLATION_APPROVED', 'CANCELLED'].includes(order.status),

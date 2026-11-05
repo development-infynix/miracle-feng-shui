@@ -16,6 +16,15 @@ export interface OrderItem {
   image: string;
 }
 
+export interface OrderRefund {
+  id: string;
+  status: 'REQUESTED' | 'PROCESSING' | 'PROCESSED' | 'FAILED';
+  amount: number;
+  razorpayRefundId: string | null;
+  failureReason: string | null;
+  stockReturned: boolean;
+}
+
 export interface OrderItemData {
   id: string;
   orderNumber: string;
@@ -33,6 +42,7 @@ export interface OrderItemData {
   rawStatus: string;
   paymentStatus: string;
   cancellationReason?: string | null;
+  refund?: OrderRefund | null;
   items: OrderItem[];
 }
 

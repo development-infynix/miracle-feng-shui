@@ -1,8 +1,14 @@
 # Refund plan
 
-**Status:** Proposed. Nothing here is built yet.
+**Status:** Built, with these differences from the proposal below:
 
-The admin stays untouched until Phase 2 is approved.
+- Refunds are for the full order amount only, because they follow a cancellation. There's no partial amount in the admin.
+- The customer starts the refund with a request, and the owner approves it in the admin.
+- Every item in the order returns to stock when an approved refund completes, with no per-item choice. A refund made in the Razorpay dashboard leaves stock alone, because it can be partial.
+- There's no `PARTIALLY_REFUNDED` status. A partial refund made in the Razorpay dashboard is recorded, and the order stays `PAID`.
+- Emails aren't sent yet.
+
+The sections below are the original proposal, kept for reference. Copy for the new policy is in `docs/return-policy-draft.md`.
 
 ## Why this is needed
 

@@ -71,6 +71,11 @@ export default function OrdersTable({ orders, onView }: OrdersTableProps) {
                 </td>
                 <td className="px-4 py-3">
                   <StatusBadge value={order.status} />
+                  {(order.refund?.status === 'REQUESTED' || order.refund?.status === 'FAILED') && (
+                    <span className="mt-1 block w-fit rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-bold whitespace-nowrap text-amber-800">
+                      {order.refund.status === 'FAILED' ? 'Refund failed' : 'Refund requested'}
+                    </span>
+                  )}
                 </td>
                 <td className="px-4 py-3">
                   <StatusBadge value={order.paymentStatus} />

@@ -191,6 +191,16 @@ export const adminService = {
         rawStatus: o.status,
         paymentStatus: o.paymentStatus,
         cancellationReason: o.cancellationReason,
+        refund: o.refunds[0]
+          ? {
+              id: o.refunds[0].id,
+              status: o.refunds[0].status,
+              amount: o.refunds[0].amountPaise / 100,
+              razorpayRefundId: o.refunds[0].razorpayRefundId,
+              failureReason: o.refunds[0].failureReason,
+              stockReturned: o.refunds[0].stockReturned,
+            }
+          : null,
         items: o.items.map((it) => ({
           id: it.id,
           productId: it.productId,
@@ -207,6 +217,12 @@ export const adminService = {
     const existing = await orderRepository.findById(id);
     if (!existing) {
       throw ApiError.notFound('Order not found');
+    }
+
+    // Money has gone back or is on its way, so the order can't go back to being fulfilled.
+    const moneyMoved = existing.refunds?.some((refund) => refund.status === 'PROCESSING' || refund.status === 'PROCESSED');
+    if (moneyMoved && input.status !== 'CANCELLATION_APPROVED' && input.status !== 'CANCELLED') {
+      throw ApiError.conflict('This order has a refund, so it has to stay cancelled.');
     }
 
     const updated = await adminRepository.updateOrderStatus(id, input.status as OrderStatus);

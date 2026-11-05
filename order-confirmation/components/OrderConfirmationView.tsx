@@ -23,7 +23,7 @@ const textLabel = 'font-outfit text-[14px] font-medium text-[#431769] underline 
 type OrderOutcome = 'confirmed' | 'pay-on-delivery' | 'unpaid' | 'cancelled';
 
 function outcomeOf(order: CustomerOrder): OrderOutcome {
-  if (order.status === 'CANCELLED' || order.status === 'CANCELLATION_APPROVED') return 'cancelled';
+  if (order.status === 'CANCELLED' || order.status === 'CANCELLATION_APPROVED' || order.paymentStatus === 'REFUNDED') return 'cancelled';
   if (order.paymentStatus === 'PAID') return 'confirmed';
   if (order.status === 'COD_PENDING') return 'pay-on-delivery';
   return 'unpaid';

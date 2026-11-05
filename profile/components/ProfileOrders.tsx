@@ -6,8 +6,10 @@ import { useLocale } from '@/context/CurrencyContext';
 import { downloadStandaloneTaxInvoice } from '@/lib/invoice';
 import { ProductLink } from '@/shop/components/ProductDrawerProvider';
 import CancelOrderModal from './CancelOrderModal';
+import RefundSubmittedModal from './RefundSubmittedModal';
 import {
   card,
+  FormError,
   primaryButton,
   primaryLabel,
   skeleton,
@@ -50,6 +52,8 @@ export interface CustomerOrder {
   tracking: { courier: string | null; number: string } | null;
   canCancel?: boolean;
   cancellationDeclined?: boolean;
+  canRequestRefund?: boolean;
+  refund?: { status: 'REQUESTED' | 'PROCESSING' | 'PROCESSED'; amount: number } | null;
   paymentId?: string | null;
   shopName: string;
   items: OrderItem[];
@@ -89,10 +93,35 @@ export function invoicePayload(order: CustomerOrder) {
   };
 }
 
-function OrderCard({ order, onCancel }: { order: CustomerOrder; onCancel: () => void }) {
+function OrderCard({
+  order,
+  onCancel,
+  onRefundRequested,
+}: {
+  order: CustomerOrder;
+  onCancel: () => void;
+  onRefundRequested: (order: CustomerOrder) => void;
+}) {
   const { formatPrice, t } = useLocale();
   const status = STATUS[order.status] ?? { key: '', label: order.status, icon: 'fa-regular fa-clock' };
   const red = RED_STATUSES.includes(order.status);
+  const [requesting, setRequesting] = useState(false);
+  const [refundError, setRefundError] = useState('');
+
+  const requestRefund = async () => {
+    setRequesting(true);
+    setRefundError('');
+    try {
+      const res = await fetch(`/api/orders/${order.id}/refund`, { method: 'POST' });
+      const json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json.error);
+      onRefundRequested(json.data);
+    } catch (err) {
+      setRefundError((err instanceof Error && err.message) || t('profile.refund_failed', "We couldn't send your request. Please try again."));
+    } finally {
+      setRequesting(false);
+    }
+  };
 
   return (
     <li className="rounded-lg bg-white shadow-[0_6px_10px_rgba(67,23,105,0.14)]">
@@ -124,14 +153,29 @@ function OrderCard({ order, onCancel }: { order: CustomerOrder; onCancel: () => 
               </span>
             </button>
           )}
-          {/* Only money that was really taken can be refunded. Display only until the refund workflow is built. */}
-          {order.status === 'CANCELLATION_APPROVED' && order.paymentStatus === 'PAID' && (
+          {order.canRequestRefund && (
+            <button
+              type="button"
+              disabled={requesting}
+              onClick={() => void requestRefund()}
+              aria-label={`${t('profile.refund', 'Refund')}: ${t('profile.order', 'Order')} #${order.orderNumber}`}
+              className={`group inline-flex h-10 min-w-[96px] shrink-0 cursor-pointer items-center justify-center rounded-md border border-[#D9A400] bg-[#FFF3C4] px-4 disabled:cursor-not-allowed disabled:opacity-60 ${focusRing}`}
+            >
+              <span className="font-outfit text-[14px] font-semibold text-[#5C4300] transition-colors group-hover:text-[#3D2C00]">
+                {requesting ? t('profile.refund_sending', 'Sending…') : t('profile.refund', 'Refund')}
+              </span>
+            </button>
+          )}
+          {(order.refund?.status === 'REQUESTED' || order.refund?.status === 'PROCESSING') && (
             <button
               type="button"
               disabled
-              className="inline-flex h-10 min-w-[96px] shrink-0 cursor-not-allowed items-center justify-center rounded-md border border-[#D9A400] bg-[#FFF3C4] px-4"
+              className="inline-flex h-10 min-w-[96px] shrink-0 cursor-not-allowed items-center justify-center gap-2 rounded-md border border-[#D9A400]/60 bg-[#FFF9E3] px-4"
             >
-              <span className="font-outfit text-[14px] font-semibold text-[#5C4300]">{t('profile.refund', 'Refund')}</span>
+              <i aria-hidden="true" className="fa-regular fa-clock text-[13px] text-[#5C4300]" />
+              <span className="font-outfit text-[14px] font-semibold text-[#5C4300]">
+                {order.refund.status === 'PROCESSING' ? t('profile.refund_processing_short', 'Processing') : t('profile.cancel_pending', 'Pending')}
+              </span>
             </button>
           )}
           {order.status === 'CANCELLATION_REQUESTED' && (
@@ -145,6 +189,17 @@ function OrderCard({ order, onCancel }: { order: CustomerOrder; onCancel: () => 
             </button>
           )}
         </div>
+        {order.refund && (
+          <p aria-live="polite" className="flex items-center gap-2 font-outfit text-[14px] font-medium text-[#5C4300]">
+            <i aria-hidden="true" className={`${order.refund.status === 'PROCESSED' ? 'fa-solid fa-circle-check' : 'fa-regular fa-clock'} text-[13px]`} />
+            {order.refund.status === 'PROCESSED'
+              ? t('profile.refunded', '{amount} refunded').replace('{amount}', formatPrice(order.refund.amount))
+              : order.refund.status === 'PROCESSING'
+              ? t('profile.refund_processing', 'Refund processing')
+              : t('profile.refund_requested', 'Refund requested')}
+          </p>
+        )}
+        {refundError && <FormError>{refundError}</FormError>}
         {order.cancellationDeclined && (
           <p className="w-full font-outfit text-[13px] text-[#5B4A70]">
             {t('profile.cancel_declined', "Your cancellation request wasn't approved.")}
@@ -211,6 +266,7 @@ export default function ProfileOrders() {
   const [orders, setOrders] = useState<CustomerOrder[] | null>(null);
   const [failed, setFailed] = useState(false);
   const [cancelling, setCancelling] = useState<CustomerOrder | null>(null);
+  const [refundSubmitted, setRefundSubmitted] = useState(false);
 
   const load = useCallback(async (signal?: AbortSignal) => {
     setFailed(false);
@@ -278,9 +334,18 @@ export default function ProfileOrders() {
     <>
       <ul className="list-none space-y-4">
         {orders.map((order) => (
-          <OrderCard key={order.id} order={order} onCancel={() => setCancelling(order)} />
+          <OrderCard
+            key={order.id}
+            order={order}
+            onCancel={() => setCancelling(order)}
+            onRefundRequested={(updated) => {
+              setOrders((current) => current && current.map((row) => (row.id === updated.id ? updated : row)));
+              setRefundSubmitted(true);
+            }}
+          />
         ))}
       </ul>
+      {refundSubmitted && <RefundSubmittedModal onClose={() => setRefundSubmitted(false)} />}
       {cancelling && (
         <CancelOrderModal
           orderId={cancelling.id}

@@ -99,6 +99,7 @@ export const orderRepository = {
     return client.order.findUnique({
       where: { id },
       include: {
+        refunds: { orderBy: { createdAt: 'desc' } },
         items: {
           include: { product: true },
         },
@@ -139,6 +140,7 @@ export const orderRepository = {
     return client.order.findMany({
       where: { userId },
       include: {
+        refunds: { orderBy: { createdAt: 'desc' } },
         items: {
           include: { product: true },
         },
@@ -182,6 +184,10 @@ export const orderRepository = {
     });
   },
 
+  async findByRazorpayPaymentId(razorpayPaymentId: string) {
+    return prisma.order.findFirst({ where: { razorpayPaymentId } });
+  },
+
   async updateStatus(id: string, status: OrderStatus, tx?: Prisma.TransactionClient) {
     const client = tx || prisma;
     return client.order.update({
@@ -219,7 +225,8 @@ export const orderRepository = {
   async markOrderAsPaid(orderId: string, razorpayPaymentId: string) {
     return prisma.$transaction(async (tx) => {
       const { count } = await tx.order.updateMany({
-        where: { id: orderId, paymentStatus: { not: 'PAID' } },
+        // A repeated payment event mustn't undo a refund or take the stock a second time.
+        where: { id: orderId, paymentStatus: { notIn: ['PAID', 'REFUNDED'] } },
         data: {
           status: 'PAID',
           paymentStatus: 'PAID',

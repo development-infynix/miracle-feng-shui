@@ -299,6 +299,7 @@ export const adminRepository = {
     return prisma.order.findMany({
       where,
       include: {
+        refunds: { orderBy: { createdAt: 'desc' } },
         user: { select: { id: true, name: true, email: true, phone: true } },
         items: {
           include: {

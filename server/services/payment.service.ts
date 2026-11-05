@@ -6,6 +6,7 @@ import { productRepository } from '../repositories/product.repository';
 import { userRepository } from '../repositories/user.repository';
 import { orderService } from './order.service';
 import { emailService } from './email.service';
+import { refundService } from './refund.service';
 import { CreatePaymentOrderInput, VerifyPaymentInput } from '../validators/payment.validator';
 import { ApiError } from '../utils/ApiError';
 
@@ -199,9 +200,11 @@ export const paymentService = {
       const order = await orderRepository.findByRazorpayOrderId(razorpayOrderId);
 
       // The order stays open: the customer can retry a failed payment in the same payment window.
-      if (order && order.paymentStatus !== 'PAID') {
+      if (order && order.paymentStatus !== 'PAID' && order.paymentStatus !== 'REFUNDED') {
         await orderRepository.updatePayment(order.id, { paymentStatus: 'FAILED' });
       }
+    } else if (typeof eventType === 'string' && eventType.startsWith('refund.')) {
+      await refundService.handleWebhook(eventType, event.payload.refund.entity);
     }
 
     return { received: true };

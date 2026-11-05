@@ -34,6 +34,8 @@ export default function OrderCard({ order, onView }: OrderCardProps) {
         />
         <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[9px] font-bold bg-white/90 text-gray-800 border border-gray-200">
           {order.status}
+          {order.refund?.status === 'REQUESTED' && ' · Refund requested'}
+          {order.refund?.status === 'FAILED' && ' · Refund failed'}
         </span>
         <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full text-[9px] font-bold bg-[#040404] text-white">
           {order.paymentStatus}
