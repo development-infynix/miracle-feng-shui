@@ -1,0 +1,22 @@
+{
+  "title": "Your direction: Stone & Gold",
+  "question": "Built from your reference: stone ground, black ink and pill buttons, a gold glow for luck, and the logo's purple in small touches. Lock it to start the homepage.",
+  "options": [
+    {
+      "id": "stone-gold",
+      "kind": "grounded",
+      "label": "Stone & Gold",
+      "lineage": "your reference, tuned for feng shui",
+      "thesis": "A quiet stone page where the products carry the colour and a soft gold glow marks what is lucky or new.",
+      "palette": ["#EEEBE3", "#141210", "#E7A93B", "#431769", "#FFFFFF"],
+      "materials": ["warm stone ground", "black pill controls", "gold glow", "white product cards"],
+      "viewport": "Big serif line on the left, a short description with Shop new arrivals and Browse categories pills on the right, a gold glow drifting behind, and the first New arrivals row with View all starting inside the first screen.",
+      "risk": "Stone plus black is a common look right now, so the gold glow and the serif must carry the personality.",
+      "html": ".impeccable/mocks/decision/stone-gold.html"
+    }
+  ],
+  "reroll": {"registers": ["safer", "bolder"]},
+  "buildPath": {"value": "code"},
+  "canon": false,
+  "steer": true
+}

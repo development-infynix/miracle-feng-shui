@@ -139,7 +139,7 @@ export default function GooNavShell({
             <feOffset in="goo" dy="-3" result="up" />
             <feComposite in="goo" in2="up" operator="out" />
             <feGaussianBlur stdDeviation="2" result="bottomEdge" />
-            <feFlood floodColor="#431769" floodOpacity="0.16" />
+            <feFlood floodColor="#141210" floodOpacity="0.12" />
             <feComposite in2="bottomEdge" operator="in" result="shade" />
             <feMerge result="lit">
               <feMergeNode in="goo" />
@@ -160,7 +160,7 @@ export default function GooNavShell({
         className="absolute inset-x-0 top-0 pointer-events-none"
         style={{
           height: mainHeight + GAP + dropHeight + 12,
-          filter: `url(#${filterId}) drop-shadow(0 6px 10px rgba(67, 23, 105, 0.14))`,
+          filter: `url(#${filterId}) drop-shadow(0 6px 10px rgba(20, 18, 16, 0.12))`,
         }}
       >
         <div
@@ -175,7 +175,7 @@ export default function GooNavShell({
         {hasDrop && (
           <>
             <div
-              className={`absolute origin-top rounded-full bg-[#E6DBF3] transition-[left,width,transform] motion-reduce:transition-none ${open ? 'duration-[760ms] ease-out' : 'duration-[200ms] ease-in'}`}
+              className={`absolute origin-top rounded-full bg-[#EEEBE3] transition-[left,width,transform] motion-reduce:transition-none ${open ? 'duration-[760ms] ease-out' : 'duration-[200ms] ease-in'}`}
               style={{
                 left: threadX,
                 top: mainHeight - 14,

@@ -2,9 +2,14 @@
 @import "tailwindcss";
 
 @theme {
-  --color-veil-top: #F3ECFB;
-  --color-veil-bottom: #DCCDF0;
-  --color-page-ground: #F7F4EC;
+  --color-veil-top: #FBFAF6;
+  --color-veil-bottom: #E2DDD1;
+  --color-page-ground: #EEEBE3;
+  --color-stone: #EEEBE3;
+  --color-ink: #141210;
+  --color-ink-muted: #5E5A52;
+  --color-gold: #E7A93B;
+  --color-logo-purple: #431769;
   --color-etsy-orange: #F1641E;
   --color-etsy-orange-dark: #D75200;
   --color-etsy-orange-light: #FDEEE9;
@@ -20,12 +25,18 @@
   --color-etsy-lavender: #F3E8EE;
   --color-etsy-green: #1B7837;
 
-  --font-serif: 'ABCOtto', 'Charter', 'Charter Bitstream', 'Cambria', 'Noto Serif Light', 'Droid Serif', Georgia, serif;
+  --font-serif: var(--font-charis), 'Charter', 'Charter Bitstream', 'Cambria', 'Noto Serif Light', 'Droid Serif', Georgia, serif;
   --font-sans: 'ABCDiatype', -apple-system, 'Helvetica Neue', 'Droid Sans', Arial, sans-serif;
   --font-montserrat: 'Montserrat', sans-serif;
   --font-bebas: 'Bebas Neue', cursive, sans-serif;
   --font-jakarta: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-outfit: 'Outfit', sans-serif;
+}
+
+/* Stone & Gold. Display is the brand serif (Charis SIL, Charter's open edition); both faces load through next/font in app/layout.tsx. */
+@theme inline {
+  --font-display: var(--font-charis), 'Charter', 'Cambria', Georgia, serif;
+  --font-geist: var(--font-geist-sans), 'Helvetica Neue', Arial, sans-serif;
 }
 
 /* ADMIN PANEL ONLY: Montserrat (Body) & Bebas Neue (Headings) */
@@ -155,12 +166,17 @@ a {
 }
 
 ::selection {
-  background-color: var(--color-etsy-orange);
-  color: #FFFFFF;
+  background-color: #F3DDA8;
+  color: var(--color-ink);
+}
+
+html {
+  caret-color: var(--color-ink);
+  scrollbar-color: #C9C3B5 var(--color-stone);
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-etsy-dark);
+  outline: 2px solid var(--color-ink);
   outline-offset: 2px;
 }
 
@@ -267,15 +283,6 @@ a {
   .search-caret {
     animation: none;
   }
-}
-
-/* Category pill the visitor has closed: hidden from the first paint, before React loads. */
-html[data-nav-categories-closed] [data-goo-shell='nav-categories-pill'] {
-  padding-bottom: 0 !important;
-}
-
-html[data-nav-categories-closed] #nav-categories-pill {
-  visibility: hidden !important;
 }
 
 /* Room for a fixed bottom bar on phones (cart checkout, profile menu), so it never covers the footer. */

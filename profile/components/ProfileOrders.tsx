@@ -182,7 +182,7 @@ function OrderCard({
             <button
               type="button"
               disabled
-              className="inline-flex h-10 min-w-[96px] shrink-0 cursor-not-allowed items-center justify-center gap-2 rounded-md border border-[#431769]/25 bg-[#F7F4EC] px-4"
+              className="inline-flex h-10 min-w-[96px] shrink-0 cursor-not-allowed items-center justify-center gap-2 rounded-md border border-[#431769]/25 bg-[#EEEBE3] px-4"
             >
               <i aria-hidden="true" className="fa-regular fa-clock text-[13px] text-[#5B4A70]" />
               <span className="font-outfit text-[14px] font-semibold text-[#5B4A70]">{t('profile.cancel_pending', 'Pending')}</span>

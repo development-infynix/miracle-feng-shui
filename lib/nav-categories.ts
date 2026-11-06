@@ -4,21 +4,30 @@ import prisma from '@/lib/prisma';
 export interface NavCategory {
   id: string;
   name: string;
+  /** The category's own image, or else its newest product's photo. Empty if neither exists. */
+  image: string;
 }
 
 const NAV_CATEGORIES_TAG = 'nav-categories';
 const NAV_CATEGORY_LIMIT = 4;
 
 const findLatestCategories = unstable_cache(
-  (): Promise<NavCategory[]> =>
-    prisma.category.findMany({
+  async (): Promise<NavCategory[]> => {
+    const categories = await prisma.category.findMany({
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: NAV_CATEGORY_LIMIT,
-      select: { id: true, name: true },
-    }),
-  [NAV_CATEGORIES_TAG],
+      select: {
+        id: true,
+        name: true,
+        image: true,
+        products: { where: { isActive: true }, orderBy: { createdAt: 'desc' }, take: 1, select: { images: true } },
+      },
+    });
+    return categories.map((c) => ({ id: c.id, name: c.name, image: c.image || c.products[0]?.images[0] || '' }));
+  },
+  [NAV_CATEGORIES_TAG, 'with-image'],
   // The time limit only catches changes made outside the app, such as a seed script.
-  { tags: [NAV_CATEGORIES_TAG], revalidate: 300 }
+  { tags: [NAV_CATEGORIES_TAG, 'with-image'], revalidate: 300 }
 );
 
 /** The newest categories, newest first. Empty if the database can't be reached, so the site still renders. */

@@ -58,7 +58,7 @@ export const Field = React.forwardRef<HTMLInputElement, FieldProps>(function Fie
             aria-describedby={hint ? `${id}-hint` : undefined}
             // Replaces the site-wide outline with the field's own focus ring.
             style={{ outline: 'none' }}
-            className={`h-12 w-full rounded-md border border-[#431769]/25 bg-white pl-4 ${inside ? 'pr-12' : 'pr-4'} font-outfit text-[16px] text-[#111111] caret-[#7A2FC0] transition-[border-color,box-shadow] placeholder:text-[#5B4A70] focus:border-[#7A2FC0] focus:shadow-[0_0_0_3px_rgba(122,47,192,0.18)] disabled:cursor-not-allowed disabled:bg-[#F7F4EC] disabled:text-[#5B4A70]`}
+            className={`h-12 w-full rounded-md border border-[#431769]/25 bg-white pl-4 ${inside ? 'pr-12' : 'pr-4'} font-outfit text-[16px] text-[#111111] caret-[#7A2FC0] transition-[border-color,box-shadow] placeholder:text-[#5B4A70] focus:border-[#7A2FC0] focus:shadow-[0_0_0_3px_rgba(122,47,192,0.18)] disabled:cursor-not-allowed disabled:bg-[#EEEBE3] disabled:text-[#5B4A70]`}
           />
           {inside && <div className="absolute inset-y-0 end-1 flex items-center">{inside}</div>}
         </div>

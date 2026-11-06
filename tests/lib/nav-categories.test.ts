@@ -19,17 +19,25 @@ describe('navbar categories', () => {
     revalidateTag.mockReset();
   });
 
-  it('asks for the 4 newest categories, newest first', async () => {
-    const rows = [{ id: 'c2', name: 'New' }, { id: 'c1', name: 'Old' }];
-    findMany.mockResolvedValue(rows);
+  it('asks for the 4 newest categories, newest first, with an image for each', async () => {
+    findMany.mockResolvedValue([
+      { id: 'c2', name: 'New', image: '/own.jpg', products: [{ images: ['/product.jpg'] }] },
+      { id: 'c1', name: 'Old', image: null, products: [{ images: ['/newest-product.jpg'] }] },
+      { id: 'c0', name: 'Empty', image: null, products: [] },
+    ]);
 
-    await expect(getNavCategories()).resolves.toEqual(rows);
+    await expect(getNavCategories()).resolves.toEqual([
+      { id: 'c2', name: 'New', image: '/own.jpg' },
+      { id: 'c1', name: 'Old', image: '/newest-product.jpg' },
+      { id: 'c0', name: 'Empty', image: '' },
+    ]);
 
-    expect(findMany).toHaveBeenCalledWith({
-      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
-      take: 4,
-      select: { id: true, name: true },
-    });
+    expect(findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        take: 4,
+      })
+    );
   });
 
   it('returns an empty list instead of failing when the database is down', async () => {

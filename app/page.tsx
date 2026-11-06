@@ -1,2 +1,5 @@
 // The URL / has to be served from this file; the page itself lives in home/pages.
-export { default } from '@/home/pages/page';
+export { default, metadata } from '@/home/pages/page';
+
+// New arrivals and best sellers come from the database, so refresh the page every minute.
+export const revalidate = 60;

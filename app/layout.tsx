@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Charis_SIL, Geist } from 'next/font/google';
 import './globals.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import { Providers } from '@/components/Providers';
@@ -7,6 +8,10 @@ import { getNavCategories } from '@/lib/nav-categories';
 import { Footer } from '@/components/Footer';
 import { GuestNotificationToast } from '@/components/GuestNotificationToast';
 import { ScrollToTop } from '@/components/ScrollToTop';
+
+// Charis SIL is Charter's open-licence edition: the brand serif, bundled so every device shows it.
+const charis = Charis_SIL({ weight: ['400', '700'], subsets: ['latin'], variable: '--font-charis', display: 'swap' });
+const geist = Geist({ subsets: ['latin'], variable: '--font-geist-sans', display: 'swap' });
 
 export const metadata: Metadata = {
   title: 'Miracle feng shui - Shop for handmade, vintage, custom, and unique gifts for everyone',
@@ -25,14 +30,8 @@ export default async function RootLayout({
   const navCategories = await getNavCategories();
 
   return (
-    <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
+    <html lang="en" data-scroll-behavior="smooth" className={`${charis.variable} ${geist.variable}`} suppressHydrationWarning>
       <head>
-        {/* Runs before the first paint, so a closed category pill doesn't flash open on load. */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: "try{if(localStorage.getItem('mfs_nav_categories_closed'))document.documentElement.setAttribute('data-nav-categories-closed','')}catch(e){}",
-          }}
-        />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link

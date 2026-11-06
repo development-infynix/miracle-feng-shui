@@ -113,6 +113,33 @@ export const productService = {
     }));
   },
 
+  /** The newest categories for the homepage. A category without its own image uses its newest product's photo. */
+  async listLatestCategories(limit = 4) {
+    try {
+      const categories = await productRepository.findLatestCategories(limit);
+      return categories.map((c) => ({
+        id: c.id,
+        name: c.name,
+        image: c.image || c.products[0]?.images[0] || '',
+        productCount: c._count.products,
+      }));
+    } catch {
+      console.warn('[productService] DB unreachable, no homepage categories.');
+      return [];
+    }
+  },
+
+  /** Admin-marked bestsellers for the homepage. Empty if there are none or the database can't be reached. */
+  async listBestsellers(limit = 4) {
+    try {
+      const items = await productRepository.findBestsellers(limit);
+      return items.map(this.formatProductCard);
+    } catch {
+      console.warn('[productService] DB unreachable, no homepage bestsellers.');
+      return [];
+    }
+  },
+
   async getAdminCategories(query: { q?: string; page: number; pageSize: number }) {
     const [result, all, productCounts] = await Promise.all([
       productRepository.findCategoriesPage(query),

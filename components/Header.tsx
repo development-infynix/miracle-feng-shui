@@ -1,548 +1,326 @@
-'use client';
+"use client";
 
-import React, { useState, useRef, useEffect } from 'react';
-import Link from 'next/link';
-import { useRouter, usePathname } from 'next/navigation';
-import { useCart } from '@/context/CartContext';
-import type { NavCategory } from '@/lib/nav-categories';
-import { signOut, useSession } from 'next-auth/react';
-import { useLocale } from '@/context/CurrencyContext';
-import { Country, Currency, Language, translateCategory } from '@/lib/translations';
-import GooNavShell from '@/components/GooNavShell';
-import AuthModal from '@/home/components/authmodal';
-import GeneralSearchModal from '@/home/components/generalsearchmodal';
-import { TbChartBubbleFilled } from 'react-icons/tb';
-import { FACEBOOK_URL, INSTAGRAM_URL } from '@/lib/social-links';
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { signOut, useSession } from "next-auth/react";
+import { useCart } from "@/context/CartContext";
+import { useLocale } from "@/context/CurrencyContext";
+import type { NavCategory } from "@/lib/nav-categories";
+import AuthModal from "@/home/components/authmodal";
+import GeneralSearchModal from "@/home/components/generalsearchmodal";
+import NavCategoriesMenu from "@/components/nav/NavCategoriesMenu";
+import NavAccountMenu from "@/components/nav/NavAccountMenu";
+import NavMobileMenu from "@/components/nav/NavMobileMenu";
+import {
+  navBadge,
+  navFocus,
+  navItem,
+  navLabel,
+  navLabelActive,
+  useDismiss,
+} from "@/components/nav/navUi";
 
-const NAV_CATEGORIES_CLOSED_KEY = 'mfs_nav_categories_closed';
-const navSocialIconClass = 'w-6 h-6 transition-opacity group-hover:opacity-75';
+const mobileIcon = `relative flex h-10 w-10 items-center justify-center rounded-full cursor-pointer ${navFocus}`;
 
-const navItemBase =
-  'group relative items-center justify-center rounded-full cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#3A1F62]';
-const navIconButton = `flex w-9 h-9 shrink-0 ${navItemBase}`;
-const navTextButton = `h-10 px-3 ${navItemBase}`;
-const navItemClass = `inline-flex h-10 px-3 gap-1.5 ${navItemBase}`;
-const navLabelClass = 'font-outfit text-[#111111] transition-colors group-hover:text-[#7A2FC0]';
-const navBadgeClass =
-  'min-w-4 h-4 px-1 inline-flex items-center justify-center rounded-full bg-[#431769] text-white text-[10px] font-bold leading-none';
-const mobileRowClass =
-  'group flex w-full h-11 items-center gap-3 px-3 rounded-2xl text-left cursor-pointer focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#3A1F62]';
-const mobileLabelClass = 'font-outfit transition-colors group-hover:text-[#7A2FC0]';
-const mobileIconClass = 'w-5 text-center text-[15px] text-[#431769]';
-
+/**
+ * The site navbar: an open bar on the stone page. It takes a stone backing once the page scrolls
+ * or a menu opens, so content never shows through behind it.
+ */
 export function Header({ navCategories }: { navCategories: NavCategory[] }) {
-  const router = useRouter();
   const pathname = usePathname();
+  if (pathname?.startsWith("/admin")) return null;
+  return <SiteHeader navCategories={navCategories} pathname={pathname ?? ""} />;
+}
 
-  // Completely hide public store header on all admin routes
-  if (pathname?.startsWith('/admin')) {
-    return null;
-  }
+function SiteHeader({
+  navCategories,
+  pathname,
+}: {
+  navCategories: NavCategory[];
+  pathname: string;
+}) {
   const { count, userLoggedIn, setUserLoggedIn, favorites } = useCart();
   const { data: session, status } = useSession();
-  const {
-    country,
-    currency,
-    language,
-    isRtl,
-    setCountry,
-    setCurrency,
-    setLanguage,
-    formatPrice,
-    t,
-  } = useLocale();
+  const { t } = useLocale();
 
+  const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [categoriesOpen, setCategoriesOpen] = useState(true);
-  const categoriesTriggerRef = useRef<HTMLButtonElement>(null);
-
-  // The category pill starts open until the visitor closes it, then stays closed on later
-  // page loads. The script in app/layout.tsx hides it before this runs, so it doesn't flash.
-  React.useLayoutEffect(() => {
-    if (document.documentElement.hasAttribute('data-nav-categories-closed')) setCategoriesOpen(false);
-  }, []);
-
-  const toggleCategories = () => {
-    const next = !categoriesOpen;
-    setCategoriesOpen(next);
-    document.documentElement.toggleAttribute('data-nav-categories-closed', !next);
-    try {
-      if (next) localStorage.removeItem(NAV_CATEGORIES_CLOSED_KEY);
-      else localStorage.setItem(NAV_CATEGORIES_CLOSED_KEY, 'true');
-    } catch {
-      // Storage can be blocked. The choice then lasts until the next full page load.
-    }
-  };
-  const mobileMenuTriggerRef = useRef<HTMLButtonElement>(null);
-  const [showRegionModal, setShowRegionModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isRegisterMode, setIsRegisterMode] = useState(false);
-
-  // Temp values for Region & Language modal
-  const [tempCountry, setTempCountry] = useState<Country>(country);
-  const [tempCurrency, setTempCurrency] = useState<Currency>(currency);
-  const [tempLanguage, setTempLanguage] = useState<Language>(language);
+  const [userName, setUserName] = useState("");
+  const [userEmail, setUserEmail] = useState("");
+  const mobileTriggerRef = useRef<HTMLButtonElement>(null);
+  const mobilePanelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (showRegionModal) {
-      setTempCountry(country);
-      setTempCurrency(currency);
-      setTempLanguage(language);
-    }
-  }, [showRegionModal, country, currency, language]);
+    const onScroll = () => setScrolled(window.scrollY > 4);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
-  // Profile Dropdown & Modal States
-  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
-  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
-
-  // User Profile Data
-  const [userName, setUserName] = useState('');
-  const [userEmail, setUserEmail] = useState('');
-
-  // Synchronize session with header profile and login status
+  // Keep the cart's login state and the account menu's name in step with the session.
   useEffect(() => {
-    if (status === 'authenticated' && session?.user) {
+    if (status === "authenticated" && session?.user) {
       setUserLoggedIn(true);
-      if (session.user.name) {
-        setUserName(session.user.name);
-      } else if (session.user.email) {
-        setUserName(session.user.email.split('@')[0]);
-      }
-      if (session.user.email) {
-        setUserEmail(session.user.email);
-      }
-
-      // Fetch persisted user profile and addresses from PostgreSQL
-      fetch('/api/auth/profile')
+      setUserName(session.user.name || session.user.email?.split("@")[0] || "");
+      setUserEmail(session.user.email || "");
+      // The session can hold an old name; the profile has the current one.
+      fetch("/api/auth/profile")
         .then((res) => (res.ok ? res.json() : null))
         .then((data) => {
-          if (data && data.success && data.data) {
-            if (data.data.name) setUserName(data.data.name);
-          }
+          if (data?.success && data.data?.name) setUserName(data.data.name);
         })
         .catch(() => {});
-    } else if (status === 'unauthenticated') {
+    } else if (status === "unauthenticated") {
       setUserLoggedIn(false);
     }
   }, [status, session, setUserLoggedIn]);
 
-  const profileRef = useRef<HTMLDivElement>(null);
-
-  // Tooltip hover states
-
-  // Form states
-
-  // Close dropdown on outside click
+  // Other parts of the site open the sign in modal with this event.
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (
-        profileRef.current &&
-        !profileRef.current.contains(e.target as Node)
-      ) {
-        setProfileDropdownOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  React.useEffect(() => {
     const handleOpenAuth = (e: Event) => {
-      const customEvent = e as CustomEvent<{ mode?: 'signin' | 'register' }>;
-      if (customEvent.detail?.mode === 'register') {
-        setIsRegisterMode(true);
-      } else {
-        setIsRegisterMode(false);
-      }
+      setIsRegisterMode(
+        (e as CustomEvent<{ mode?: "signin" | "register" }>).detail?.mode ===
+          "register",
+      );
       setShowAuthModal(true);
     };
-
-    window.addEventListener('open-auth-modal', handleOpenAuth);
-    return () => {
-      window.removeEventListener('open-auth-modal', handleOpenAuth);
-    };
+    window.addEventListener("open-auth-modal", handleOpenAuth);
+    return () => window.removeEventListener("open-auth-modal", handleOpenAuth);
   }, []);
 
-  // Phone menu: lock the blurred page behind it, close on Escape or a tap outside it.
-  React.useEffect(() => {
+  // Phone menu: the page behind it stops scrolling, and Escape or a tap outside closes it.
+  const closeMobileMenu = useCallback(() => setMobileMenuOpen(false), []);
+  useDismiss(mobileMenuOpen, closeMobileMenu, mobilePanelRef, mobileTriggerRef);
+  useEffect(() => {
     if (!mobileMenuOpen) return;
-    document.body.style.overflow = 'hidden';
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return;
-      setMobileMenuOpen(false);
-      mobileMenuTriggerRef.current?.focus();
-    };
-    const handlePointerDown = (e: PointerEvent) => {
-      const target = e.target as Element;
-      if (mobileMenuTriggerRef.current?.contains(target) || target.closest('#nav-mobile-menu')) return;
-      setMobileMenuOpen(false);
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    document.addEventListener('pointerdown', handlePointerDown);
+    document.body.style.overflow = "hidden";
     return () => {
-      document.body.style.overflow = '';
-      document.removeEventListener('keydown', handleKeyDown);
-      document.removeEventListener('pointerdown', handlePointerDown);
+      document.body.style.overflow = "";
     };
   }, [mobileMenuOpen]);
 
-  const closeMobileMenu = () => setMobileMenuOpen(false);
-  const onShopPage = pathname === '/shop';
+  // A new page closes the phone menu.
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
 
   const openSignIn = () => {
     setIsRegisterMode(false);
     setShowAuthModal(true);
   };
+  const handleSignOut = async () => {
+    await signOut({ redirect: false });
+    setUserLoggedIn(false);
+  };
 
-  const brandLink = (
-    <Link
-      href="/"
-      className="flex min-w-0 items-center gap-2 select-none rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3A1F62]"
-    >
-      <span className="w-7 h-7 md:w-9 md:h-9 rounded-full overflow-hidden shrink-0">
-        {/* The SVG has a transparent margin around its circle; the scale crops it off. */}
-        <img src="/images/logofull.svg" alt="" className="w-full h-full object-cover scale-[1.23]" />
-      </span>
-      <span className="font-serif text-[18px] md:text-[21px] font-bold text-[#111111] tracking-tight leading-none whitespace-nowrap">
-        Miracle feng shui
-      </span>
-    </Link>
-  );
-
-  // Newest categories from the server (app/layout.tsx), then the link to all of them.
-  const secondaryNavItems = [
-    ...navCategories.map((category) => ({
-      key: category.id,
-      label: translateCategory(category.name, language),
-      href: `/shop?category=${encodeURIComponent(category.name)}`,
-      isViewAll: false,
-    })),
-    { key: 'view-all', label: t('nav.view_all', 'View all'), href: '/shop', isViewAll: true },
-  ];
+  const onShopPage = pathname === "/shop";
+  const backed = scrolled || mobileMenuOpen;
+  const cartLabel =
+    userLoggedIn && count > 0
+      ? `${t("nav.cart", "Cart")} (${count})`
+      : t("nav.cart", "Cart");
 
   return (
     <>
-      {/* Phones: blurs the page behind the open menu. A tap on it closes the menu. */}
-      <div
-        aria-hidden="true"
-        className={`fixed inset-0 z-30 md:hidden bg-[#2B154C]/15 backdrop-blur-[6px] transition-[opacity,visibility] duration-300 motion-reduce:transition-none ${mobileMenuOpen ? 'opacity-100' : 'invisible opacity-0'}`}
-      />
-
-      <header id="site-header" className="sticky top-0 z-40 pointer-events-none pt-2.5 pb-1">
-        <div className="mx-auto w-full max-w-[1040px] px-3 sm:px-6">
-          {/* Tablet and up: main pill with the category pill below it */}
-          <div className="hidden md:block">
-            <GooNavShell
-              open={categoriesOpen}
-              triggerRef={categoriesTriggerRef}
-              dropId="nav-categories-pill"
-              openSpaceClassName="pb-[68px]"
-              drop={
-                <ul className="flex items-center p-1 list-none overflow-x-auto no-scrollbar font-outfit text-[14px] font-medium tracking-[0.01em] whitespace-nowrap">
-                  {secondaryNavItems.map((item, idx) => (
-                    <li key={item.key} className="flex items-center shrink-0">
-                      {idx > 0 && <span aria-hidden="true" className="h-4 w-px mx-0.5 bg-[#431769]/30" />}
-                      <Link
-                        href={item.href}
-                        className="group flex items-center h-9 px-4 rounded-full focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#3A1F62]"
-                      >
-                        {/* Text colour sits on this span: the global `a { color: inherit }` rule overrides colour utilities on the link. */}
-                        <span
-                          className={`flex items-center gap-1.5 transition-colors group-hover:text-[#7A2FC0] ${item.isViewAll ? 'text-[#431769]' : 'text-[#111111]'}`}
-                        >
-                          {item.label}
-                          {item.isViewAll && <i aria-hidden="true" className="fa-solid fa-arrow-right text-[11px]" />}
-                        </span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              }
+      <header
+        id="site-header"
+        className={`sticky top-0 z-50 transition-[background-color,box-shadow] duration-200 motion-reduce:transition-none ${backed ? "bg-stone/95 shadow-[0_1px_0_rgba(20,18,16,0.1)] backdrop-blur-md" : "bg-transparent"}`}
+      >
+        <div className="mx-auto flex h-16 w-full max-w-[1280px] items-center gap-2 px-4 sm:px-6 md:h-[72px]">
+          {/* Tablet and up: brand, links and actions in three zones, so the links sit in the centre. */}
+          <div className="flex min-w-0 md:flex-1">
+            <Link
+              href="/"
+              className={`mr-2 flex min-w-0 shrink-0 items-center gap-2.5 rounded-full ${navFocus}`}
             >
-              <div className="flex h-14 items-center gap-1 px-4">
-                {/* Left: brand */}
-                <div className="flex flex-1 min-w-0 items-center">{brandLink}</div>
-
-                {/* Centre: main links */}
-                <nav aria-label="Main" className="flex shrink-0 items-center gap-1 font-outfit text-[14px] font-medium tracking-[0.01em]">
-                  <button
-                    ref={categoriesTriggerRef}
-                    type="button"
-                    aria-expanded={categoriesOpen}
-                    aria-controls="nav-categories-pill"
-                    onClick={toggleCategories}
-                    className={`inline-flex ${navTextButton}`}
-                  >
-                    <span className={`flex items-center gap-1.5 font-outfit transition-colors group-hover:text-[#7A2FC0] ${categoriesOpen ? 'text-[#7A2FC0]' : 'text-[#111111]'}`}>
-                      {t('nav.categories', 'Categories')}
-                      <i
-                        aria-hidden="true"
-                        className={`fa-solid fa-chevron-down text-[10px] transition-transform duration-300 motion-reduce:transition-none ${categoriesOpen ? 'rotate-180' : ''}`}
-                      />
-                    </span>
-                  </button>
-
-                  <Link href="/shop" aria-current={onShopPage ? 'page' : undefined} className={navItemClass}>
-                    <span className={`font-outfit transition-colors group-hover:text-[#7A2FC0] ${onShopPage ? 'text-[#7A2FC0]' : 'text-[#111111]'}`}>
-                      {t('nav.products', 'Products')}
-                    </span>
-                  </Link>
-
-                  <button type="button" onClick={() => setSearchOpen(true)} className={navItemClass}>
-                    <span className={navLabelClass}>{t('nav.search', 'Search')}</span>
-                  </button>
-
-                  {userLoggedIn ? (
-                    <>
-                      <Link href="/profile?tab=favorites" className={navItemClass}>
-                        <span className={navLabelClass}>{t('nav.favorites', 'Favourites')}</span>
-                        {favorites.length > 0 && <span className={navBadgeClass}>{favorites.length}</span>}
-                      </Link>
-                      <Link href="/cart" className={navItemClass}>
-                        <span className={navLabelClass}>{t('nav.cart', 'Cart')}</span>
-                        {count > 0 && <span className={navBadgeClass}>{count}</span>}
-                      </Link>
-                    </>
-                  ) : (
-                    <button type="button" onClick={openSignIn} className={navItemClass}>
-                      <span className={navLabelClass}>{t('nav.signin', 'Sign in')}</span>
-                    </button>
-                  )}
-                </nav>
-
-                {/* Right: social links and the account menu */}
-                <div className="flex flex-1 items-center justify-end gap-1">
-                  <a
-                    href={INSTAGRAM_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Instagram"
-                    className={navIconButton}
-                  >
-                    <img src="/images/instagram-badge.svg" alt="" className={navSocialIconClass} />
-                  </a>
-                  {FACEBOOK_URL ? (
-                    <a
-                      href={FACEBOOK_URL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label="Facebook"
-                      className={navIconButton}
-                    >
-                      <img src="/images/facebook.svg" alt="" className={navSocialIconClass} />
-                    </a>
-                  ) : (
-                    <span aria-hidden="true" className="flex w-9 h-9 shrink-0 items-center justify-center">
-                      <img src="/images/facebook.svg" alt="" className="w-6 h-6" />
-                    </span>
-                  )}
-
-                  {userLoggedIn && (
-                    <div className="relative" ref={profileRef}>
-                      <button
-                        type="button"
-                        onClick={() => setProfileDropdownOpen((prev) => !prev)}
-                        aria-label="User account menu"
-                        aria-expanded={profileDropdownOpen}
-                        className={navIconButton}
-                      >
-                        <span className="w-7 h-7 rounded-full bg-[#431769] text-white flex items-center justify-center font-bold text-[12px] shrink-0">
-                          {userName.charAt(0).toUpperCase() || 'A'}
-                        </span>
-                      </button>
-
-                    {/* Sleek Dropdown Menu */}
-                    {profileDropdownOpen && (
-                      <div className="absolute right-0 top-full mt-2 w-72 glass-veil glass-content rounded-[28px] shadow-[0_6px_10px_rgba(67,23,105,0.14),inset_0_2px_0_rgba(255,255,255,0.7),inset_0_-3px_5px_rgba(67,23,105,0.16)] p-3 z-50 animate-in fade-in slide-in-from-top-1 duration-150 text-left">
-                        {/* User Header */}
-                        <div className="px-3 pt-2 pb-3 border-b border-[#431769]/15">
-                          <p className="font-bold text-[14.5px] text-[#111111] leading-snug">
-                            {userName}
-                          </p>
-                          <p className="text-[12px] text-[#5B4A70] mt-0.5 truncate">
-                            {userEmail}
-                          </p>
-                        </div>
-  
-                        {/* Store Navigation Items */}
-                        <div className="py-2 text-[13px] space-y-0.5 text-[#111111]">
-                          <Link
-                            href="/profile?tab=orders"
-                            onClick={() => setProfileDropdownOpen(false)}
-                            className="group w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl hover:text-[#7A2FC0] transition-colors"
-                          >
-                            <i className="fa-regular fa-calendar-check text-[14px] text-[#431769] w-4 text-center shrink-0" />
-                            <span className="font-medium text-[#111111] transition-colors group-hover:text-[#7A2FC0]">{t('nav.my_orders', 'My orders')}</span>
-                          </Link>
-  
-                          <Link
-                            href="/profile"
-                            onClick={() => setProfileDropdownOpen(false)}
-                            className="group w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-colors"
-                          >
-                            <i className="fa-regular fa-user text-[14px] text-[#431769] w-4 text-center shrink-0" />
-                            <span className="font-medium text-[#111111] transition-colors group-hover:text-[#7A2FC0]">{t('profile.title', 'Your profile')}</span>
-                          </Link>
-                        </div>
-  
-                        {/* Sign Out */}
-                        <div className="pt-2 mt-1 border-t border-gray-100">
-                          <button
-                            type="button"
-                            onClick={async () => {
-                              await signOut({ redirect: false });
-                              setUserLoggedIn(false);
-                              setProfileDropdownOpen(false);
-                            }}
-                            className="w-full flex items-center gap-3.5 px-3 py-2 rounded-xl text-[#8F1610] font-medium text-[13px] transition-colors text-left cursor-pointer"
-                          >
-                            <i className="fa-solid fa-arrow-right-from-bracket text-[13px] text-[#8F1610] w-4 text-center shrink-0" />
-                            <span>{t('nav.sign_out', 'Sign out')}</span>
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </GooNavShell>
+              <span className="h-8 w-8 shrink-0 overflow-hidden rounded-full md:h-9 md:w-9">
+                {/* The SVG has a transparent margin around its circle; the scale crops it off. */}
+                <img
+                  src="/images/logofull.svg"
+                  alt=""
+                  className="h-full w-full scale-[1.23] object-cover"
+                />
+              </span>
+              <span className="font-serif whitespace-nowrap text-[19px] font-bold leading-none tracking-tight text-ink md:text-[21px]">
+                Miracle feng shui
+              </span>
+            </Link>
           </div>
 
-          {/* Phones: brand and menu button, with the menu dropping down from the pill */}
-          <div className="md:hidden">
-            <GooNavShell
-              open={mobileMenuOpen}
-              triggerRef={mobileMenuTriggerRef}
-              dropId="nav-mobile-menu"
-              mainHeight={52}
-              dropRadius={28}
-              dropClassName="w-full"
-              dropWrapperClassName="px-2"
-              drop={
-                <nav aria-label="Menu" className="max-h-[calc(100dvh-104px)] overflow-y-auto no-scrollbar p-2 font-outfit text-[15px] font-medium">
-                  {secondaryNavItems.map((item) => (
-                    <Link key={item.key} href={item.href} onClick={closeMobileMenu} className={mobileRowClass}>
-                      <span className={`${mobileLabelClass} ${item.isViewAll ? 'text-[#431769]' : 'text-[#111111]'}`}>
-                        {item.label}
-                      </span>
-                      {item.isViewAll && <i aria-hidden="true" className="fa-solid fa-arrow-right text-[12px] text-[#431769]" />}
-                    </Link>
-                  ))}
-
-                  <div aria-hidden="true" className="mx-3 my-1.5 h-px bg-[#431769]/20" />
-
-                  <Link href="/shop" onClick={closeMobileMenu} aria-current={onShopPage ? 'page' : undefined} className={mobileRowClass}>
-                    <i aria-hidden="true" className={`fa-solid fa-boxes-stacked ${mobileIconClass}`} />
-                    <span className={`${mobileLabelClass} ${onShopPage ? 'text-[#7A2FC0]' : 'text-[#111111]'}`}>{t('nav.products', 'Products')}</span>
-                  </Link>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      closeMobileMenu();
-                      setSearchOpen(true);
-                    }}
-                    className={mobileRowClass}
-                  >
-                    <i aria-hidden="true" className={`fa-solid fa-magnifying-glass ${mobileIconClass}`} />
-                    <span className={`${mobileLabelClass} text-[#111111]`}>{t('nav.search', 'Search')}</span>
-                  </button>
-
-                  {userLoggedIn ? (
-                    <>
-                      <Link href="/profile?tab=favorites" onClick={closeMobileMenu} className={mobileRowClass}>
-                        <i aria-hidden="true" className={`fa-solid fa-heart ${mobileIconClass}`} />
-                        <span className={`${mobileLabelClass} flex-1 text-[#111111]`}>{t('nav.favorites', 'Favourites')}</span>
-                        {favorites.length > 0 && <span className={navBadgeClass}>{favorites.length}</span>}
-                      </Link>
-                      <Link href="/cart" onClick={closeMobileMenu} className={mobileRowClass}>
-                        <i aria-hidden="true" className={`fa-solid fa-bag-shopping ${mobileIconClass}`} />
-                        <span className={`${mobileLabelClass} flex-1 text-[#111111]`}>{t('nav.cart', 'Cart')}</span>
-                        {count > 0 && <span className={navBadgeClass}>{count}</span>}
-                      </Link>
-                      <Link href="/profile?tab=orders" onClick={closeMobileMenu} className={mobileRowClass}>
-                        <i aria-hidden="true" className={`fa-regular fa-calendar-check ${mobileIconClass}`} />
-                        <span className={`${mobileLabelClass} text-[#111111]`}>{t('nav.my_orders', 'My orders')}</span>
-                      </Link>
-                      <Link href="/profile" onClick={closeMobileMenu} className={mobileRowClass}>
-                        <i aria-hidden="true" className={`fa-regular fa-user ${mobileIconClass}`} />
-                        <span className={`${mobileLabelClass} text-[#111111]`}>{t('profile.title', 'Your profile')}</span>
-                      </Link>
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          closeMobileMenu();
-                          await signOut({ redirect: false });
-                          setUserLoggedIn(false);
-                        }}
-                        className={mobileRowClass}
-                      >
-                        <i aria-hidden="true" className={`fa-solid fa-arrow-right-from-bracket ${mobileIconClass}`} />
-                        <span className={`${mobileLabelClass} text-[#111111]`}>{t('nav.sign_out', 'Sign out')}</span>
-                      </button>
-                    </>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        closeMobileMenu();
-                        openSignIn();
-                      }}
-                      className={mobileRowClass}
-                    >
-                      <i aria-hidden="true" className={`fa-solid fa-user ${mobileIconClass}`} />
-                      <span className={`${mobileLabelClass} text-[#111111]`}>{t('nav.signin', 'Sign in')}</span>
-                    </button>
-                  )}
-
-                  <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" onClick={closeMobileMenu} className={mobileRowClass}>
-                    <img src="/images/instagram-badge.svg" alt="" className="w-5 h-5 shrink-0" />
-                    <span className={`${mobileLabelClass} text-[#111111]`}>Instagram</span>
-                  </a>
-                  {FACEBOOK_URL ? (
-                    <a href={FACEBOOK_URL} target="_blank" rel="noopener noreferrer" onClick={closeMobileMenu} className={mobileRowClass}>
-                      <img src="/images/facebook.svg" alt="" className="w-5 h-5 shrink-0" />
-                      <span className={`${mobileLabelClass} text-[#111111]`}>Facebook</span>
-                    </a>
-                  ) : (
-                    <div className="flex h-11 items-center gap-3 px-3">
-                      <img src="/images/facebook.svg" alt="" className="w-5 h-5 shrink-0" />
-                      <span className="text-[#111111]">Facebook</span>
-                    </div>
-                  )}
-                </nav>
-              }
+          <nav
+            aria-label={t("nav.main", "Main")}
+            className="hidden shrink-0 items-center gap-1 md:flex"
+          >
+            <NavCategoriesMenu categories={navCategories} />
+            <Link
+              href="/shop"
+              aria-current={onShopPage ? "page" : undefined}
+              className={`inline-flex ${navItem}`}
             >
-              <div className="flex h-[52px] items-center justify-between gap-2 pl-3 pr-2">
-                {brandLink}
-                <button
-                  ref={mobileMenuTriggerRef}
-                  type="button"
-                  aria-label="Menu"
-                  aria-expanded={mobileMenuOpen}
-                  aria-controls="nav-mobile-menu"
-                  onClick={() => setMobileMenuOpen((prev) => !prev)}
-                  className={navIconButton}
-                >
-                  <TbChartBubbleFilled
-                    aria-hidden="true"
-                    className={`text-[24px] transition-[color,rotate] duration-500 ease-out motion-reduce:transition-none group-hover:text-[#7A2FC0] ${mobileMenuOpen ? 'rotate-180 text-[#7A2FC0]' : 'rotate-0 text-[#431769]'}`}
-                  />
-                </button>
-              </div>
-            </GooNavShell>
+              <span className={onShopPage ? navLabelActive : navLabel}>
+                {t("nav.products", "Products")}
+              </span>
+            </Link>
+          </nav>
+
+          <div className="ml-auto flex items-center justify-end gap-0.5 md:ml-0 md:flex-1 md:gap-1.5">
+            <button
+              type="button"
+              onClick={() => setSearchOpen(true)}
+              aria-label={t("nav.search", "Search")}
+              className={`${navItem} hidden md:inline-flex`}
+            >
+              <i
+                aria-hidden="true"
+                className="fa-solid fa-magnifying-glass text-[15px] text-ink transition-colors group-hover:text-logo-purple"
+              />
+              <span className={`${navLabel} hidden lg:inline`}>
+                {t("nav.search", "Search")}
+              </span>
+            </button>
+
+            {userLoggedIn ? (
+              <Link
+                href="/profile?tab=favorites"
+                aria-label={t("nav.favorites", "Favorites")}
+                className={`${navItem} hidden md:inline-flex`}
+              >
+                <i
+                  aria-hidden="true"
+                  className="fa-regular fa-heart text-[16px] text-ink transition-colors group-hover:text-logo-purple"
+                />
+                {favorites.length > 0 && (
+                  <span className={navBadge}>{favorites.length}</span>
+                )}
+              </Link>
+            ) : (
+              <button
+                type="button"
+                onClick={openSignIn}
+                className={`${navItem} hidden md:inline-flex`}
+              >
+                <span className={navLabel}>{t("nav.signin", "Sign in")}</span>
+              </button>
+            )}
+
+            {/* Phones: only search and favorites sit in the bar; everything else is in the menu. */}
+            <button
+              type="button"
+              onClick={() => setSearchOpen(true)}
+              aria-label={t("nav.search", "Search")}
+              className={`${mobileIcon} md:hidden`}
+            >
+              <i
+                aria-hidden="true"
+                className="fa-solid fa-magnifying-glass text-[17px] text-ink"
+              />
+            </button>
+            {userLoggedIn ? (
+              <Link
+                href="/profile?tab=favorites"
+                aria-label={t("nav.favorites", "Favorites")}
+                className={`${mobileIcon} md:hidden`}
+              >
+                <i
+                  aria-hidden="true"
+                  className="fa-regular fa-heart text-[18px] text-ink"
+                />
+                {favorites.length > 0 && (
+                  <span className={`${navBadge} absolute -right-0.5 -top-0.5`}>
+                    {favorites.length}
+                  </span>
+                )}
+              </Link>
+            ) : (
+              <button
+                type="button"
+                onClick={openSignIn}
+                aria-label={t("nav.favorites", "Favorites")}
+                className={`${mobileIcon} md:hidden`}
+              >
+                <i
+                  aria-hidden="true"
+                  className="fa-regular fa-heart text-[18px] text-ink"
+                />
+              </button>
+            )}
+            <Link
+              href="/cart"
+              aria-label={cartLabel}
+              className={`group ${mobileIcon} hidden md:flex`}
+            >
+              <i
+                aria-hidden="true"
+                className="fa-solid fa-cart-shopping text-[17px] text-ink transition-colors group-hover:text-logo-purple"
+              />
+              {userLoggedIn && count > 0 && (
+                <span className={`${navBadge} absolute -right-0.5 -top-0.5`}>
+                  {count}
+                </span>
+              )}
+            </Link>
+
+            {userLoggedIn && (
+              <span className="ml-1 hidden md:block">
+                <NavAccountMenu
+                  name={userName}
+                  email={userEmail}
+                  onSignOut={handleSignOut}
+                />
+              </span>
+            )}
+
+            {/* Phones */}
+            <button
+              ref={mobileTriggerRef}
+              type="button"
+              aria-label={t("nav.menu", "Menu")}
+              aria-expanded={mobileMenuOpen}
+              aria-controls="nav-mobile-menu"
+              onClick={() => setMobileMenuOpen((prev) => !prev)}
+              className={`-mr-1.5 flex h-10 w-10 items-center justify-center rounded-full cursor-pointer md:hidden ${navFocus}`}
+            >
+              <span aria-hidden="true" className="relative block h-3 w-5">
+                <span
+                  className={`absolute left-0 h-[2px] w-5 rounded-full bg-ink transition-transform duration-200 motion-reduce:transition-none ${mobileMenuOpen ? "top-[5px] rotate-45" : "top-0"}`}
+                />
+                <span
+                  className={`absolute left-0 h-[2px] w-5 rounded-full bg-ink transition-transform duration-200 motion-reduce:transition-none ${mobileMenuOpen ? "top-[5px] -rotate-45" : "top-[10px]"}`}
+                />
+              </span>
+            </button>
           </div>
         </div>
       </header>
 
-      <GeneralSearchModal open={searchOpen} onClose={() => setSearchOpen(false)} categories={navCategories} />
+      <div ref={mobilePanelRef}>
+        <NavMobileMenu
+          open={mobileMenuOpen}
+          categories={navCategories}
+          signedIn={userLoggedIn}
+          favoritesCount={favorites.length}
+          cartCount={userLoggedIn ? count : 0}
+          onClose={closeMobileMenu}
+          onSearch={() => setSearchOpen(true)}
+          onSignIn={openSignIn}
+          onSignOut={handleSignOut}
+        />
+      </div>
+
+      <GeneralSearchModal
+        open={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        categories={navCategories}
+      />
 
       <AuthModal
         open={showAuthModal}
-        mode={isRegisterMode ? 'register' : 'signin'}
-        onModeChange={(mode) => setIsRegisterMode(mode === 'register')}
+        mode={isRegisterMode ? "register" : "signin"}
+        onModeChange={(mode) => setIsRegisterMode(mode === "register")}
         onClose={() => setShowAuthModal(false)}
         onSignedIn={({ name, email }) => {
           setUserLoggedIn(true);
@@ -551,211 +329,6 @@ export function Header({ navCategories }: { navCategories: NavCategory[] }) {
           setShowAuthModal(false);
         }}
       />
-
-      {/* REGION SETTINGS MODAL */}
-      {showRegionModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs animate-in fade-in"
-          onClick={() => setShowRegionModal(false)}
-        >
-          <div
-            className="bg-white rounded-[24px] max-w-md w-full p-6 shadow-2xl relative my-auto border border-gray-100"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              type="button"
-              onClick={() => setShowRegionModal(false)}
-              className="absolute top-4 right-4 p-2 rounded-full hover:bg-etsy-bg-soft text-gray-500 hover:text-black"
-            >
-              <i className="fa-solid fa-xmark text-[16px]" />
-            </button>
-
-            <div className="flex items-center gap-3 mb-5">
-              <i className="fa-solid fa-globe text-[20px] text-etsy-dark" />
-              <div>
-                <h2 className="text-[20px] font-bold text-etsy-dark">
-                  {t('modal.region_title', 'Update your settings')}
-                </h2>
-                <p className="text-[12px] text-gray-500 mt-0.5">
-                  {t('modal.region_subtitle', 'Select your country of delivery and preferred language.')}
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-4 text-left">
-              <div>
-                <label className="text-[13px] font-bold text-etsy-dark block mb-1">
-                  {t('modal.country', 'Country / Region:')}
-                </label>
-                <select
-                  value={tempCountry}
-                  onChange={(e) => {
-                    const c = e.target.value as Country;
-                    setTempCountry(c);
-                    if (c === 'India') {
-                      setTempCurrency('INR');
-                    } else if (c === 'UAE') {
-                      setTempCurrency('AED');
-                    }
-                  }}
-                  className="w-full px-4 py-2.5 rounded-xl border border-etsy-border text-[14px] text-etsy-dark focus:outline-none focus:ring-2 focus:ring-etsy-orange cursor-pointer font-medium"
-                >
-                  <option value="India">🇮🇳 India (भारत)</option>
-                  <option value="UAE">🇦🇪 United Arab Emirates (الإمارات العربية المتحدة)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="text-[13px] font-bold text-etsy-dark block mb-1">
-                  {t('modal.language', 'Language:')}
-                </label>
-                <select
-                  value={tempLanguage}
-                  onChange={(e) => setTempLanguage(e.target.value as Language)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-etsy-border text-[14px] text-etsy-dark focus:outline-none focus:ring-2 focus:ring-etsy-orange cursor-pointer font-medium"
-                >
-                  <option value="en">English (US/UK)</option>
-                  <option value="ar">العربية (Arabic)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="text-[13px] font-bold text-etsy-dark block mb-1">
-                  {t('modal.currency', 'Currency:')}
-                </label>
-                <select
-                  value={tempCurrency}
-                  onChange={(e) => setTempCurrency(e.target.value as Currency)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-etsy-border text-[14px] text-etsy-dark focus:outline-none focus:ring-2 focus:ring-etsy-orange cursor-pointer font-medium"
-                >
-                  <option value="INR">₹ INR (Indian Rupee)</option>
-                  <option value="AED">AED د.إ (UAE Dirham)</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-[#E1E3DF]">
-              <button
-                type="button"
-                onClick={() => setShowRegionModal(false)}
-                style={{ border: '1.5px solid #222222', color: '#222222', backgroundColor: '#FFFFFF' }}
-                className="px-5 py-2 rounded-full hover:bg-[#F5F5F1] text-[14px] font-bold transition-colors cursor-pointer"
-              >
-                {t('modal.cancel', 'Cancel')}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setCountry(tempCountry);
-                  setCurrency(tempCurrency);
-                  setLanguage(tempLanguage);
-                  setShowRegionModal(false);
-                }}
-                style={{ backgroundColor: '#222222', color: '#FFFFFF' }}
-                className="px-6 py-2 rounded-full hover:bg-black text-[14px] font-bold transition-all shadow-sm hover:shadow-md cursor-pointer"
-              >
-                {t('modal.save', 'Save Preferences')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 3. DOWNLOAD INVOICES MODAL */}
-      {showInvoiceModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto animate-in fade-in"
-          onClick={() => setShowInvoiceModal(false)}
-        >
-          <div
-            className="bg-white rounded-[24px] max-w-lg w-full p-6 sm:p-7 shadow-2xl relative my-auto border border-gray-100 animate-in zoom-in-95 duration-200"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              type="button"
-              onClick={() => setShowInvoiceModal(false)}
-              className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 text-gray-500 hover:text-black cursor-pointer"
-            >
-              <i className="fa-solid fa-xmark text-[16px]" />
-            </button>
-
-            <div className="flex items-center gap-3 mb-5 text-left">
-              <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-700 flex items-center justify-center shrink-0">
-                <i className="fa-solid fa-file-invoice text-[18px]" />
-              </div>
-              <div>
-                <h2 className="text-[20px] font-bold text-[#222222]">
-                  Tax Invoices &amp; Receipts
-                </h2>
-                <p className="text-[12.5px] text-[#595959]">
-                  Download GST invoices and authentic consecration certificates
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-3 text-left">
-              {/* Sample Invoice Item 1 */}
-              <div className="bg-[#FAF9F5] p-3.5 rounded-2xl border border-[#E1E3DF] flex items-center justify-between gap-3">
-                <div>
-                  <p className="font-bold text-[13.5px] text-[#222222]">
-                    Order #FS-235358
-                  </p>
-                  <p className="text-[12px] text-[#595959]">
-                    15 Sept 2026 • {formatPrice(4349)} (Paid in full)
-                  </p>
-                  <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full inline-block mt-1">
-                    ✓ {currency === 'AED' ? 'VAT' : 'GST'} Invoice Ready
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => window.print()}
-                  className="px-3.5 py-1.5 rounded-full border border-[#222222] hover:bg-white text-[12.5px] font-bold text-[#222222] flex items-center gap-1.5 transition-colors cursor-pointer shrink-0 shadow-2xs"
-                >
-                  <i className="fa-solid fa-print text-[12px]" />
-                  <span>Download / Print</span>
-                </button>
-              </div>
-
-              {/* Sample Invoice Item 2 */}
-              <div className="bg-[#FAF9F5] p-3.5 rounded-2xl border border-[#E1E3DF] flex items-center justify-between gap-3">
-                <div>
-                  <p className="font-bold text-[13.5px] text-[#222222]">
-                    Order #FS-190482
-                  </p>
-                  <p className="text-[12px] text-[#595959]">
-                    02 Aug 2026 • {formatPrice(2430)} (Delivered)
-                  </p>
-                  <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full inline-block mt-1">
-                    ✓ Consecration Certificate Ready
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => window.print()}
-                  className="px-3.5 py-1.5 rounded-full border border-[#222222] hover:bg-white text-[12.5px] font-bold text-[#222222] flex items-center gap-1.5 transition-colors cursor-pointer shrink-0 shadow-2xs"
-                >
-                  <i className="fa-solid fa-print text-[12px]" />
-                  <span>Download / Print</span>
-                </button>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between pt-4 mt-5 border-t border-[#E1E3DF] text-[12px] text-[#595959]">
-              <span className="flex items-center gap-1.5">
-                <i className="fa-solid fa-shield-halved text-emerald-600 text-[14px]" /> Digitally signed &amp; verified
-              </span>
-              <button
-                type="button"
-                onClick={() => setShowInvoiceModal(false)}
-                className="font-bold text-[#222222] hover:underline cursor-pointer"
-              >
-                Done
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 }

@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react';
 
-/** The site header changes height as its category pill opens and closes. */
+/** The site header's height, kept current if it ever changes (for example at a breakpoint). */
 export function useSiteHeaderHeight() {
-  const [height, setHeight] = useState(138);
+  const [height, setHeight] = useState(72);
 
   useEffect(() => {
     const siteHeader = document.getElementById('site-header');
