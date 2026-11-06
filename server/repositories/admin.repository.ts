@@ -174,6 +174,15 @@ export const adminRepository = {
     return prisma.orderItem.count({ where: { productId } });
   },
 
+  /** Orders that contain the product and are still open (see `openOrder`), plus every order line that names it. */
+  async countProductOrders(productId: string, openOrder: Prisma.OrderWhereInput) {
+    const [openOrders, orderItems] = await Promise.all([
+      prisma.order.count({ where: { AND: [openOrder, { items: { some: { productId } } }] } }),
+      prisma.orderItem.count({ where: { productId } }),
+    ]);
+    return { openOrders, orderItems };
+  },
+
   async createProduct(data: CreateProductInput) {
     const resolvedCategoryId = await resolveCategoryId(data.categoryId);
 

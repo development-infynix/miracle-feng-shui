@@ -104,13 +104,32 @@ export default function ViewProductDrawer({ open, product, categories, loading, 
     }
   };
 
+  // The product's orders decide what removing it does (see adminService.deleteProduct).
+  const removal: { mode: 'blocked' | 'archive' | 'delete'; openOrders: number } | undefined = product?.removal;
+  const archived = product?.isActive === false;
+  const blockedReason =
+    removal?.mode === 'blocked'
+      ? `In ${removal.openOrders === 1 ? '1 open order' : `${removal.openOrders} open orders`}. It can be removed once they're delivered, or cancelled with any refund processed.`
+      : '';
+
   const handleDelete = async () => {
     if (!product?.id) return;
     setDeleting(true);
     try {
-      const res = await fetch(`/api/admin/products/${product.id}?hard=true`, { method: 'DELETE' });
-      if (!res.ok) { const data = await res.json().catch(() => ({})); setError(data?.error || 'Failed to delete product.'); setConfirmDelete(false); return; }
-      refreshProducts(); setConfirmDelete(false); onClose(); onDeleted?.();
+      const res = await fetch(`/api/admin/products/${product.id}`, { method: 'DELETE' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) { setError(data?.error || 'Failed to remove product.'); setConfirmDelete(false); return; }
+      refreshProducts();
+      setConfirmDelete(false);
+      if (data?.data?.result === 'archived') {
+        // Archived products stay in the admin list, hidden from the store, so show the updated record.
+        try {
+          const detail = await fetch(`/api/admin/products/${product.id}/detail`).then((r) => r.json());
+          onSaved?.(detail?.success ? detail.data : undefined);
+        } catch { onSaved?.(); }
+        return;
+      }
+      onClose(); onDeleted?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete product.');
       setConfirmDelete(false);
@@ -328,10 +347,27 @@ export default function ViewProductDrawer({ open, product, categories, loading, 
               <button type="button" aria-label={`Edit ${name}`} title="Edit product" onClick={startEditing} className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-stone-900 text-white transition-colors hover:bg-stone-700">
                 <LuPencil className="h-4 w-4" />
               </button>
-              <button type="button" aria-label={`Delete ${name}`} title="Delete product" onClick={() => setConfirmDelete(true)} className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-red-600 px-4 text-sm font-medium text-white transition-colors hover:bg-red-700">
-                <LuTrash2 className="h-4 w-4" />
-                Delete
-              </button>
+              {removal?.mode === 'blocked' ? (
+                <span className="flex items-center gap-3">
+                  <span className="max-w-[16rem] text-right text-xs text-stone-500">{blockedReason}</span>
+                  <button type="button" disabled aria-label={`Delete ${name}: ${blockedReason}`} title={blockedReason} className="inline-flex h-10 cursor-not-allowed items-center justify-center gap-2 rounded-md bg-stone-200 px-4 text-sm font-medium text-stone-500">
+                    <LuTrash2 className="h-4 w-4" />
+                    Delete
+                  </button>
+                </span>
+              ) : removal?.mode === 'archive' && archived ? (
+                <span className="text-xs text-stone-500">Archived: hidden from the store, kept in past orders.</span>
+              ) : removal?.mode === 'archive' ? (
+                <button type="button" aria-label={`Archive ${name}`} title="It's in past orders, so it can be archived but not deleted" onClick={() => setConfirmDelete(true)} className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-red-600 px-4 text-sm font-medium text-red-700 transition-colors hover:bg-red-50">
+                  <LuTrash2 className="h-4 w-4" />
+                  Archive
+                </button>
+              ) : (
+                <button type="button" aria-label={`Delete ${name}`} title="Delete product" onClick={() => setConfirmDelete(true)} className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-red-600 px-4 text-sm font-medium text-white transition-colors hover:bg-red-700">
+                  <LuTrash2 className="h-4 w-4" />
+                  Delete
+                </button>
+              )}
             </>
           )}
         </footer>
@@ -339,10 +375,22 @@ export default function ViewProductDrawer({ open, product, categories, loading, 
         {confirmDelete && (
           <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40">
             <div className="bg-white p-4 rounded-md shadow">
-              <p className="text-sm text-stone-800 mb-3">Delete {name}?</p>
+              {removal?.mode === 'archive' ? (
+                <>
+                  <p className="text-sm font-medium text-stone-900">Archive {name}?</p>
+                  <p className="mt-1 mb-3 max-w-sm text-sm text-stone-600">It&apos;s in past orders, so it can&apos;t be deleted. Archiving hides it from the store and keeps it in those orders and their invoices. You can make it active again later.</p>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm font-medium text-stone-900">Delete {name}?</p>
+                  <p className="mt-1 mb-3 max-w-sm text-sm text-stone-600">It isn&apos;t in any order, so it will be removed for good, along with it in any carts and favorites.</p>
+                </>
+              )}
               <div className="flex gap-2 justify-end">
                 <button type="button" onClick={() => setConfirmDelete(false)} className="px-3 py-1.5 text-sm border rounded">Cancel</button>
-                <button type="button" onClick={handleDelete} disabled={deleting} className="px-3 py-1.5 text-sm bg-red-600 text-white rounded">{deleting ? 'Deleting...' : 'Delete'}</button>
+                <button type="button" onClick={handleDelete} disabled={deleting} className="px-3 py-1.5 text-sm bg-red-600 text-white rounded">
+                  {removal?.mode === 'archive' ? (deleting ? 'Archiving...' : 'Archive') : deleting ? 'Deleting...' : 'Delete'}
+                </button>
               </div>
             </div>
           </div>

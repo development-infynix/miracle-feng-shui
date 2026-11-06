@@ -21,7 +21,7 @@ import { useLocale } from '@/context/CurrencyContext';
 import { translateCategory, translateProductTitle } from '@/lib/translations';
 
 export default function MiracleFengShuiHomePage() {
-  const { addFavorite, removeFavorite, showGuestToast, userLoggedIn } = useCart();
+  const { addFavorite, removeFavorite, isFavorite, showGuestToast, userLoggedIn } = useCart();
   const { formatPrice, language, t } = useLocale();
   const {
     sections,
@@ -34,23 +34,8 @@ export default function MiracleFengShuiHomePage() {
   } = useStore();
 
   const [activeSlide, setActiveSlide] = useState(0);
-  const [favoritePicks, setFavoritePicks] = useState<Record<string, boolean>>({});
 
   const dealsSliderRef = useRef<HTMLDivElement>(null);
-  const [timeLeft, setTimeLeft] = useState({ hours: 7, minutes: 5, seconds: 28 });
-
-  // Ticking countdown timer for deals
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev.seconds > 0) return { ...prev, seconds: prev.seconds - 1 };
-        if (prev.minutes > 0) return { ...prev, minutes: prev.minutes - 1, seconds: 59 };
-        if (prev.hours > 0) return { hours: prev.hours - 1, minutes: 59, seconds: 59 };
-        return { hours: 23, minutes: 59, seconds: 59 };
-      });
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
 
   const slideDeals = (direction: 'left' | 'right') => {
     if (dealsSliderRef.current) {
@@ -59,34 +44,26 @@ export default function MiracleFengShuiHomePage() {
     }
   };
 
+  // Hearts read and write the customer's real favorites, so a saved product stays filled after a reload.
+  // Only real products can be saved; cards that link to a category don't get a heart.
+  const isProduct = (id: string) => dynamicProducts.some((p) => p.id === id);
+
   const togglePickFavorite = (id: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
-    const isCurrentlyFav = Boolean(favoritePicks[id]);
-    if (!isCurrentlyFav && !userLoggedIn) {
-      showGuestToast(
-        "Don't lose this favourite!",
-        'to add to your wishlist.',
-        'favorite'
-      );
+    const product = dynamicProducts.find((p) => p.id === id);
+    if (!product) return;
+
+    if (isFavorite(id)) {
+      removeFavorite(id);
       return;
     }
-
-    const matchedProduct = dynamicProducts.find((p) => p.id === id);
-    if (matchedProduct) {
-      if (!isCurrentlyFav) {
-        const added = addFavorite(matchedProduct);
-        if (added) {
-          setFavoritePicks((prev) => ({ ...prev, [id]: true }));
-        }
-      } else {
-        removeFavorite(matchedProduct.id);
-        setFavoritePicks((prev) => ({ ...prev, [id]: false }));
-      }
-    } else {
-      setFavoritePicks((prev) => ({ ...prev, [id]: !isCurrentlyFav }));
+    if (!userLoggedIn) {
+      showGuestToast("Don't lose this favourite!", 'to add to your wishlist.', 'favorite');
+      return;
     }
+    addFavorite(product);
   };
 
   // Auto rotate banner image every 5 seconds with smooth crossfade
@@ -301,7 +278,7 @@ export default function MiracleFengShuiHomePage() {
             {/* Bottom Row: 6 Product Thumbnail Picks */}
             <div className="grid grid-cols-3 sm:grid-cols-6 gap-2.5 sm:gap-3">
               {picks.map((pick) => {
-                const isFav = !!favoritePicks[pick.id];
+                const isFav = isFavorite(pick.id);
                 return (
                   <ProductLink
                     key={pick.id} product={pick}
@@ -391,17 +368,6 @@ export default function MiracleFengShuiHomePage() {
         <h2 className="text-[21px] sm:text-[24px] font-bold text-etsy-dark tracking-tight">
           {language === 'ar' ? t('home.todays_deals_title') : section.title}
         </h2>
-        <div className="flex items-center gap-1.5 text-[14px] text-etsy-gray font-normal">
-          <i className="fa-regular fa-clock text-etsy-gray text-[13px]" />
-          <span>
-            Fresh deals in{' '}
-            <span className="font-semibold text-etsy-dark">
-              {String(timeLeft.hours).padStart(2, '0')}:
-              {String(timeLeft.minutes).padStart(2, '0')}:
-              {String(timeLeft.seconds).padStart(2, '0')}
-            </span>
-          </span>
-        </div>
       </div>
 
       <div className="relative group/slider">
@@ -410,7 +376,7 @@ export default function MiracleFengShuiHomePage() {
           className="flex items-stretch gap-3.5 overflow-x-auto scroll-smooth scrollbar-none pb-2 -mx-1 px-1"
         >
           {todaysDeals.map((deal) => {
-            const isFav = !!favoritePicks[deal.id];
+            const isFav = isFavorite(deal.id);
             return (
               <ProductLink
                 key={deal.id} product={deal.id}
@@ -515,7 +481,8 @@ export default function MiracleFengShuiHomePage() {
         {/* Dynamic Guide Cards Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 sm:gap-4">
           {guideCards.map((item) => {
-            const isFav = !!favoritePicks[item.id];
+            const isFav = isFavorite(item.id);
+            const canSave = isProduct(item.id);
             if (item.videoUrl) {
               return (
                 <div key={item.id} className="h-[210px] sm:h-[240px] md:h-[270px]">
@@ -526,7 +493,8 @@ export default function MiracleFengShuiHomePage() {
                     videoUrl={item.videoUrl}
                     slug={item.slug}
                     isFavorited={isFav}
-                    onToggleWishlist={togglePickFavorite}
+                    onToggleWishlist={canSave ? togglePickFavorite : undefined}
+                    showWishlist={canSave}
                     className="w-full h-full"
                   />
                 </div>
@@ -550,6 +518,7 @@ export default function MiracleFengShuiHomePage() {
                     {item.title}
                   </span>
                 </div>
+                {canSave && (
                 <button
                   type="button"
                   aria-label={isFav ? 'Remove from wishlist' : 'Save to wishlist'}
@@ -569,6 +538,7 @@ export default function MiracleFengShuiHomePage() {
                     }`}
                   />
                 </button>
+                )}
               </Link>
             );
           })}

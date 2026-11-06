@@ -13,6 +13,8 @@ interface HoverVideoCardProps {
   className?: string;
   isFavorited?: boolean;
   onToggleWishlist?: (id: string, e: React.MouseEvent) => void;
+  /** False leaves the heart out, for cards that aren't a single product. */
+  showWishlist?: boolean;
 }
 
 export function HoverVideoCard({
@@ -24,6 +26,7 @@ export function HoverVideoCard({
   className = '',
   isFavorited = false,
   onToggleWishlist,
+  showWishlist = true,
 }: HoverVideoCardProps) {
   const { showGuestToast, userLoggedIn } = useCart();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -110,6 +113,7 @@ export function HoverVideoCard({
       )}
 
       {/* Wishlist Heart Button on Hover */}
+      {showWishlist && (
       <button
         type="button"
         aria-label={isFav ? 'Remove from wishlist' : 'Save to wishlist'}
@@ -129,6 +133,7 @@ export function HoverVideoCard({
           }`}
         />
       </button>
+      )}
 
       {/* Play Icon Badge */}
       {videoUrl && (

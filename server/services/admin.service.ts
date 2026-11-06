@@ -9,9 +9,43 @@ import {
   UpdateHomepageSectionInput,
 } from '../validators/admin.validator';
 import { ApiError } from '../utils/ApiError';
-import { OrderStatus } from '@/app/generated/prisma/client';
+import { OrderStatus, Prisma } from '@/app/generated/prisma/client';
 
 const CUSTOMER_LIST_PAGE_SIZE = 20;
+
+/** Orders still on their way to the customer, or waiting on a cancellation decision. */
+export const IN_PROGRESS_ORDER_STATUSES: OrderStatus[] = [
+  'PENDING',
+  'PAID',
+  'COD_PENDING',
+  'PROCESSING',
+  'SHIPPED',
+  'CANCELLATION_REQUESTED',
+];
+
+/**
+ * An open order keeps its products from being removed. That's one in progress, or a cancelled one
+ * (approved or final) the customer paid for and hasn't had a refund processed for yet.
+ * Delivered orders, unpaid cancellations and refunded cancellations are finished.
+ */
+export const OPEN_ORDER_WHERE: Prisma.OrderWhereInput = {
+  OR: [
+    { status: { in: IN_PROGRESS_ORDER_STATUSES } },
+    {
+      status: { in: ['CANCELLATION_APPROVED', 'CANCELLED'] },
+      paymentStatus: 'PAID',
+      refunds: { none: { status: 'PROCESSED' } },
+    },
+  ],
+};
+
+/**
+ * What removing a product does:
+ * - blocked: it's in an open order, so it stays until that order is delivered or cancelled;
+ * - archive: it's only in finished orders, so it's hidden from the store but kept for their history and invoices;
+ * - delete: it's in no order, so it's removed for good (with it, any cart lines and favorites).
+ */
+export type ProductRemoval = { mode: 'blocked' | 'archive' | 'delete'; openOrders: number };
 
 const customerListRange = (page: number) => ({
   skip: (page - 1) * CUSTOMER_LIST_PAGE_SIZE,
@@ -122,7 +156,13 @@ export const adminService = {
     if (!product) {
       throw ApiError.notFound('Product not found');
     }
-    return this.formatAdminProduct(product);
+    return { ...this.formatAdminProduct(product), removal: await this.getProductRemoval(id) };
+  },
+
+  async getProductRemoval(id: string): Promise<ProductRemoval> {
+    const { openOrders, orderItems } = await adminRepository.countProductOrders(id, OPEN_ORDER_WHERE);
+    if (openOrders > 0) return { mode: 'blocked', openOrders };
+    return { mode: orderItems > 0 ? 'archive' : 'delete', openOrders: 0 };
   },
 
   async createProduct(input: CreateProductInput) {
@@ -140,23 +180,31 @@ export const adminService = {
     return this.formatAdminProduct(product);
   },
 
-  async deleteProduct(id: string, hardDelete = false) {
+  /** Removes a product the only way its orders allow. See ProductRemoval. */
+  async deleteProduct(id: string) {
     const existing = await productRepository.findById(id);
     if (!existing) {
       throw ApiError.notFound('Product not found');
     }
 
-    if (hardDelete) {
-      const orderItemCount = await adminRepository.countOrderItemsForProduct(id);
-      if (orderItemCount > 0) {
-        throw ApiError.conflict(
-          "This product is part of past orders, so it can't be deleted. Mark it inactive in edit mode to hide it from the store."
-        );
-      }
+    const removal = await this.getProductRemoval(id);
+    if (removal.mode === 'blocked') {
+      const orders = removal.openOrders === 1 ? '1 open order' : `${removal.openOrders} open orders`;
+      throw ApiError.conflict(
+        `This product is in ${orders}. It can be removed once they're delivered, or cancelled with any refund processed.`
+      );
     }
 
-    await adminRepository.deleteProduct(id, hardDelete);
-    return { message: 'Product successfully deleted' };
+    if (removal.mode === 'archive') {
+      await adminRepository.deleteProduct(id, false);
+      return {
+        result: 'archived' as const,
+        message: "Archived: it's in past orders, so it's hidden from the store and kept in their history.",
+      };
+    }
+
+    await adminRepository.deleteProduct(id, true);
+    return { result: 'deleted' as const, message: 'Product deleted.' };
   },
 
   async getOrders(filters?: { status?: string; search?: string }) {

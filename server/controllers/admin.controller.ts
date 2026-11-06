@@ -55,10 +55,9 @@ export const adminController = {
     return apiResponse.ok(product);
   },
 
-  async deleteProduct(req: NextRequest, params: { id: string }) {
-    const { searchParams } = new URL(req.url);
-    const hardDelete = searchParams.get('hard') === 'true';
-    const result = await adminService.deleteProduct(params.id, hardDelete);
+  async deleteProduct(_req: NextRequest, params: { id: string }) {
+    // The product's orders decide between deleting, archiving and refusing; see adminService.deleteProduct.
+    const result = await adminService.deleteProduct(params.id);
     return apiResponse.ok(result);
   },
 

@@ -167,8 +167,7 @@ export const defaultSections: HomeSectionConfig[] = [
     name: "Today's Auspicious Deals",
     enabled: true,
     title: "Today's auspicious deals",
-    subtitle: 'Special blessing discounts ending tonight.',
-    badge: 'Limited-time Chi Boost',
+    subtitle: 'Special prices on selected pieces.',
   },
   {
     id: 'fashion_guide',
