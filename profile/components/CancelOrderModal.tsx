@@ -40,15 +40,15 @@ function Stepper({ step }: { step: 1 | 2 }) {
         return (
           <React.Fragment key={label}>
             {index > 0 && (
-              <li aria-hidden="true" className="relative h-[3px] w-10 overflow-hidden rounded-full bg-[#431769]/20">
-                <span className={`absolute inset-0 origin-left rounded-full bg-[#431769] transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${step > 1 ? 'scale-x-100' : 'scale-x-0'}`} />
+              <li aria-hidden="true" className="relative h-[3px] w-10 overflow-hidden rounded-full bg-[#222222]/20">
+                <span className={`absolute inset-0 origin-left rounded-full bg-[#222222] transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${step > 1 ? 'scale-x-100' : 'scale-x-0'}`} />
               </li>
             )}
             <li aria-current={current ? 'step' : undefined} className="flex items-center gap-2">
-              <span className={`flex h-6 w-6 items-center justify-center rounded-full border border-[#431769] font-outfit text-[12px] font-semibold tabular-nums transition-colors ${done || current ? 'bg-[#431769] text-white' : 'text-[#431769]'}`}>
+              <span className={`flex h-6 w-6 items-center justify-center rounded-full border border-[#222222] text-[12px] font-semibold tabular-nums transition-colors ${done || current ? 'bg-[#222222] text-white' : 'text-[#222222]'}`}>
                 {done ? <i aria-hidden="true" className="fa-solid fa-check text-[10px]" /> : number}
               </span>
-              <span className={`font-outfit text-[13px] font-semibold ${current ? 'text-[#111111]' : 'text-[#5B4A70]'}`}>{label}</span>
+              <span className={`text-[13px] font-semibold ${current ? 'text-[#222222]' : 'text-[#595959]'}`}>{label}</span>
             </li>
           </React.Fragment>
         );
@@ -123,7 +123,7 @@ export default function CancelOrderModal({ orderId, orderNumber, onClose, onRequ
       <div
         aria-hidden="true"
         onClick={close}
-        className={`absolute inset-0 bg-[#2B154C]/25 backdrop-blur-md transition-opacity duration-300 motion-reduce:transition-none ${poured ? 'opacity-100' : 'opacity-0'}`}
+        className={`absolute inset-0 bg-black/40 transition-opacity duration-300 motion-reduce:transition-none ${poured ? 'opacity-100' : 'opacity-0'}`}
       />
 
       <div
@@ -131,7 +131,7 @@ export default function CancelOrderModal({ orderId, orderNumber, onClose, onRequ
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`glass-veil relative max-h-full w-full max-w-[480px] overflow-y-auto no-scrollbar rounded-[28px] p-5 shadow-[0_6px_10px_rgba(67,23,105,0.14),inset_0_2px_0_rgba(255,255,255,0.7),inset_0_-3px_5px_rgba(67,23,105,0.16)] transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none sm:p-6 ${poured ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0'}`}
+        className={`bg-white border border-[#E1E3DF] relative max-h-full w-full max-w-[480px] overflow-y-auto no-scrollbar rounded-[28px] p-5 transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none sm:p-6 ${poured ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0'}`}
       >
         <div className="flex items-center justify-between gap-3">
           <Stepper step={step} />
@@ -142,21 +142,21 @@ export default function CancelOrderModal({ orderId, orderNumber, onClose, onRequ
             onClick={close}
             className={`group -mr-2 flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full disabled:cursor-not-allowed disabled:opacity-50 ${focusRing}`}
           >
-            <i aria-hidden="true" className="fa-solid fa-xmark text-[18px] text-[#111111] transition-colors group-hover:text-[#7A2FC0]" />
+            <i aria-hidden="true" className="fa-solid fa-xmark text-[18px] text-[#222222] transition-colors group-hover:underline" />
           </button>
         </div>
 
-        <p className="mt-4 font-outfit text-[13px] tabular-nums text-[#5B4A70]">
+        <p className="mt-4 text-[13px] tabular-nums text-[#595959]">
           {t('profile.order', 'Order')} #{orderNumber}
         </p>
 
         {step === 1 ? (
           <form onSubmit={goToConfirm} noValidate>
             <h2>
-              <span className="mt-1 block font-serif text-[24px] font-bold leading-tight tracking-tight text-[#111111]">{title}</span>
+              <span className="mt-1 block font-serif text-[24px] font-bold leading-tight tracking-tight text-[#222222]">{title}</span>
             </h2>
 
-            <label htmlFor="cancel-reason" className="mt-4 block font-outfit text-[13px] font-semibold text-[#431769]">
+            <label htmlFor="cancel-reason" className="mt-4 block text-[13px] font-semibold text-[#222222]">
               {t('profile.cancel_reason_label', 'Your reason')}
             </label>
             <textarea
@@ -170,9 +170,9 @@ export default function CancelOrderModal({ orderId, orderNumber, onClose, onRequ
               aria-invalid={Boolean(error)}
               // Replaces the site-wide outline with the field's own focus ring.
               style={{ outline: 'none' }}
-              className="mt-1.5 block w-full resize-none rounded-md border border-white/70 bg-white/55 px-4 py-3 font-outfit text-[16px] leading-snug text-[#111111] caret-[#7A2FC0] transition-[border-color,box-shadow] placeholder:text-[#5B4A70] focus:border-[#7A2FC0] focus:shadow-[0_0_0_3px_rgba(122,47,192,0.18)]"
+              className="mt-1.5 block w-full resize-none rounded-lg border border-white/70 bg-white/55 px-4 py-3 text-[16px] leading-snug text-[#222222] caret-[#222222] transition-[border-color,box-shadow] placeholder:text-[#595959] focus:border-[#222222] focus:shadow-[0_0_0_3px_rgba(34,34,34,0.12)]"
             />
-            <p className="mt-1 text-right font-outfit text-[12px] tabular-nums text-[#5B4A70]">
+            <p className="mt-1 text-right text-[12px] tabular-nums text-[#595959]">
               {reason.length}/{MAX_REASON}
             </p>
 
@@ -185,20 +185,20 @@ export default function CancelOrderModal({ orderId, orderNumber, onClose, onRequ
         ) : (
           <div>
             <h2 ref={confirmHeadingRef} tabIndex={-1} style={{ outline: 'none' }}>
-              <span className="mt-1 block font-serif text-[24px] font-bold leading-tight tracking-tight text-[#111111]">{title}</span>
+              <span className="mt-1 block font-serif text-[24px] font-bold leading-tight tracking-tight text-[#222222]">{title}</span>
             </h2>
-            <p className="mt-2 font-outfit text-[15px] leading-relaxed text-[#2B1A3F]">
+            <p className="mt-2 text-[15px] leading-relaxed text-[#222222]">
               {t('profile.cancel_validated', "Your request will be validated by our team. Your order isn't cancelled until it's approved.")}
             </p>
 
-            <div className="mt-4 border-t border-[#431769]/15 pt-3">
+            <div className="mt-4 border-t border-[#E1E3DF] pt-3">
               <div className="flex items-center justify-between gap-3">
-                <p className="font-outfit text-[13px] font-semibold text-[#431769]">{t('profile.cancel_reason_label', 'Your reason')}</p>
+                <p className="text-[13px] font-semibold text-[#222222]">{t('profile.cancel_reason_label', 'Your reason')}</p>
                 <button type="button" disabled={sending} onClick={backToReason} className={textButton}>
                   <span className={textLabel}>{t('profile.cancel_edit_reason', 'Edit reason')}</span>
                 </button>
               </div>
-              <p className="mt-1 max-h-28 overflow-y-auto no-scrollbar whitespace-pre-wrap break-words font-outfit text-[15px] leading-snug text-[#111111]">
+              <p className="mt-1 max-h-28 overflow-y-auto no-scrollbar whitespace-pre-wrap break-words text-[15px] leading-snug text-[#222222]">
                 {reason.trim()}
               </p>
             </div>

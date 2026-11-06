@@ -15,8 +15,8 @@ import { isCartItemBlocked } from './cartStock';
 const NOTICE_MS = 6000;
 // Keep the delete spinner up this long so quick removes don't just flash.
 const MIN_REMOVE_MS = 400;
-const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#3A1F62]';
-const primaryLink = `inline-flex h-12 cursor-pointer items-center justify-center rounded-md bg-[#431769] px-6 transition-colors hover:bg-[#3A1F62] ${focusRing}`;
+const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#222222]';
+const primaryLink = `inline-flex h-12 cursor-pointer items-center justify-center rounded-lg bg-[#222222] px-6 transition-colors hover:bg-black ${focusRing}`;
 
 type Notice = { title: string; item: CartItem; error?: string };
 
@@ -25,10 +25,10 @@ function CartSkeleton() {
     <div aria-busy="true" className="space-y-5">
       {[0, 1].map((row) => (
         <div key={row} className="flex gap-4">
-          <div className="h-20 w-20 shrink-0 animate-pulse rounded-md bg-[#431769]/10 motion-reduce:animate-none sm:h-28 sm:w-28" />
+          <div className="h-20 w-20 shrink-0 animate-pulse rounded-lg bg-[#222222]/10 motion-reduce:animate-none sm:h-28 sm:w-28" />
           <div className="flex-1 space-y-2.5 pt-1">
-            <div className="h-4 w-3/4 animate-pulse rounded-sm bg-[#431769]/10 motion-reduce:animate-none" />
-            <div className="h-4 w-1/3 animate-pulse rounded-sm bg-[#431769]/10 motion-reduce:animate-none" />
+            <div className="h-4 w-3/4 animate-pulse rounded-sm bg-[#222222]/10 motion-reduce:animate-none" />
+            <div className="h-4 w-1/3 animate-pulse rounded-sm bg-[#222222]/10 motion-reduce:animate-none" />
           </div>
         </div>
       ))}
@@ -94,11 +94,11 @@ export default function CartView() {
   return (
     <div className="mx-auto w-full max-w-[1120px] px-4 pb-8 pt-6 sm:px-6 sm:pt-8">
       <h1 className="flex flex-wrap items-baseline gap-x-2">
-        <span className="font-serif text-[26px] font-bold leading-tight tracking-tight text-[#111111] sm:text-[30px]">
+        <span className="font-serif text-[26px] font-bold leading-tight tracking-tight text-[#222222] sm:text-[30px]">
           {t('cart.your_cart', 'Your cart')}
         </span>
         {hasItems && (
-          <span className="font-outfit text-[14px] font-normal tabular-nums text-[#5B4A70]">
+          <span className="text-[14px] font-normal tabular-nums text-[#595959]">
             ({count})<span className="sr-only"> {itemsLabel}</span>
           </span>
         )}
@@ -133,13 +133,13 @@ export default function CartView() {
       ) : (
         <div className="mx-auto max-w-[44ch] py-14 text-center">
           <h2>
-            <span className="block font-serif text-[24px] font-bold tracking-tight text-[#111111]">
+            <span className="block font-serif text-[24px] font-bold tracking-tight text-[#222222]">
               {guest
                 ? t('cart.guest_title', 'Log in to see your cart')
                 : t('cart.empty_heading', 'Your cart is empty')}
             </span>
           </h2>
-          <p className="mt-2 font-outfit text-[15px] leading-relaxed text-[#5B4A70]">
+          <p className="mt-2 text-[15px] leading-relaxed text-[#595959]">
             {guest
               ? t('cart.guest_hint', 'Your cart is saved to your account, so it stays with you on any device.')
               : t('cart.empty_hint', 'When you add a product, it will appear here.')}
@@ -151,11 +151,11 @@ export default function CartView() {
                 onClick={() => window.dispatchEvent(new CustomEvent('open-auth-modal', { detail: { mode: 'signin' } }))}
                 className={primaryLink}
               >
-                <span className="font-outfit text-[15px] font-semibold text-white">{t('cart.login', 'Log in')}</span>
+                <span className="text-[15px] font-semibold text-white">{t('cart.login', 'Log in')}</span>
               </button>
             ) : (
               <Link href="/shop" className={primaryLink}>
-                <span className="font-outfit text-[15px] font-semibold text-white">{t('product.browse', 'Browse products')}</span>
+                <span className="text-[15px] font-semibold text-white">{t('product.browse', 'Browse products')}</span>
               </Link>
             )}
           </div>
@@ -168,12 +168,12 @@ export default function CartView() {
       {/* Stays mounted so screen readers announce what changes inside it. */}
       <div role="status" className="pointer-events-none fixed inset-x-0 bottom-24 z-50 flex justify-center px-3 lg:bottom-6">
         {notice && (
-          <div className="pointer-events-auto flex max-w-[560px] items-center gap-3 rounded-full glass-veil py-2.5 pl-5 pr-4 shadow-[0_6px_10px_rgba(67,23,105,0.14),inset_0_2px_0_rgba(255,255,255,0.7),inset_0_-3px_5px_rgba(67,23,105,0.16)]">
-            <p className="min-w-0 truncate font-outfit text-[14px] text-[#111111]">
+          <div className="pointer-events-auto flex max-w-[560px] items-center gap-3 rounded-full bg-white border border-[#E1E3DF] py-2.5 pl-5 pr-4">
+            <p className="min-w-0 truncate text-[14px] text-[#222222]">
               {notice.error || t('cart.removed_notice', 'Removed: {title}').replace('{title}', notice.title)}
             </p>
             <button type="button" onClick={() => void undoRemove()} className={`group shrink-0 cursor-pointer rounded-sm ${focusRing}`}>
-              <span className="font-outfit text-[14px] font-semibold text-[#431769] underline underline-offset-2 transition-colors group-hover:text-[#7A2FC0]">
+              <span className="text-[14px] font-semibold text-[#222222] underline underline-offset-2 transition-colors group-hover:underline">
                 {t('cart.undo', 'Undo')}
               </span>
             </button>

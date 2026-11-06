@@ -84,6 +84,22 @@ export const productService = {
     return this.formatProduct(product);
   },
 
+  /** The newest categories for the homepage. A category without its own image uses its newest product's photo. */
+  async listLatestCategories(limit = 4) {
+    try {
+      const categories = await productRepository.findLatestCategories(limit);
+      return categories.map((c) => ({
+        id: c.id,
+        name: c.name,
+        image: c.image || c.products[0]?.images[0] || '',
+        productCount: c._count.products,
+      }));
+    } catch {
+      console.warn('[productService] DB unreachable, no homepage categories.');
+      return [];
+    }
+  },
+
   async listCategories() {
     try {
       const categories = await productRepository.findAllCategories();

@@ -19,7 +19,7 @@ describe('navbar categories', () => {
     revalidateTag.mockReset();
   });
 
-  it('asks for the 4 newest categories, newest first', async () => {
+  it('asks for the 5 newest categories, newest first', async () => {
     const rows = [{ id: 'c2', name: 'New' }, { id: 'c1', name: 'Old' }];
     findMany.mockResolvedValue(rows);
 
@@ -27,7 +27,7 @@ describe('navbar categories', () => {
 
     expect(findMany).toHaveBeenCalledWith({
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
-      take: 4,
+      take: 5,
       select: { id: true, name: true },
     });
   });

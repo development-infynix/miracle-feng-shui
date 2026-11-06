@@ -74,8 +74,8 @@ export default function ProfileFavorites() {
     return (
       <div aria-busy="true" className="grid grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-3">
         {[0, 1, 2].map((n) => (
-          <div key={n} className="rounded-lg bg-white p-2.5 shadow-[0_6px_10px_rgba(67,23,105,0.14)]">
-            <div className={`${skeleton} aspect-[4/3] w-full rounded-md`} />
+          <div key={n} className="rounded-lg bg-white p-2.5">
+            <div className={`${skeleton} aspect-[4/3] w-full rounded-lg`} />
             <div className={`${skeleton} mt-3 h-4 w-3/4`} />
             <div className={`${skeleton} mt-2 h-4 w-1/3`} />
           </div>
@@ -87,7 +87,7 @@ export default function ProfileFavorites() {
   if (failed && items.length === 0) {
     return (
       <div className={`${card} text-center`}>
-        <p role="alert" className="font-outfit text-[15px] text-[#2B1A3F]">
+        <p role="alert" className="text-[15px] text-[#222222]">
           {t('profile.favorites_failed', "Couldn't load your favorites.")}{' '}
           <button type="button" onClick={() => void load(0)} className={textButton}>
             <span className={textLabel}>{t('profile.try_again', 'Try again')}</span>
@@ -101,11 +101,11 @@ export default function ProfileFavorites() {
     return (
       <div className={`${card} py-12 text-center`}>
         <h2>
-          <span className="block font-serif text-[24px] font-bold tracking-tight text-[#111111]">
+          <span className="block font-serif text-[24px] font-bold tracking-tight text-[#222222]">
             {t('profile.no_favorites', 'No favorites yet')}
           </span>
         </h2>
-        <p className="mx-auto mt-2 max-w-[42ch] font-outfit text-[15px] leading-relaxed text-[#5B4A70]">
+        <p className="mx-auto mt-2 max-w-[42ch] text-[15px] leading-relaxed text-[#595959]">
           {t('profile.no_favorites_hint', 'Tap the heart on any product to save it here.')}
         </p>
         <Link href="/shop" className={`${primaryButton} mt-5`}>
@@ -125,11 +125,11 @@ export default function ProfileFavorites() {
 
       {visible.length < remaining && (
         <div className="mt-8 flex flex-col items-center gap-3">
-          <p className="font-outfit text-[13px] tabular-nums text-[#5B4A70]">
+          <p className="text-[13px] tabular-nums text-[#595959]">
             {t('shop.showing', 'Showing {shown} of {total}').replace('{shown}', String(visible.length)).replace('{total}', String(remaining))}
           </p>
           {failed && (
-            <p role="alert" className="font-outfit text-[14px] text-[#8F1610]">
+            <p role="alert" className="text-[14px] text-[#8F1610]">
               {t('profile.more_failed', "Couldn't load more. Please try again.")}
             </p>
           )}

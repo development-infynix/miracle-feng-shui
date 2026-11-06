@@ -103,7 +103,7 @@ export default function AddressBookCard({ profile }: { profile: CustomerProfile 
         action={
           addresses && addresses.length > 0 && (
             <button type="button" onClick={() => openDrawer(null)} className={smallButton}>
-              <i aria-hidden="true" className="fa-solid fa-plus text-[12px] text-[#431769] transition-colors group-hover:text-[#7A2FC0]" />
+              <i aria-hidden="true" className="fa-solid fa-plus text-[12px] text-[#222222] transition-colors group-hover:underline" />
               <span className={smallLabel}>{t('profile.add_address', 'Add address')}</span>
             </button>
           )
@@ -133,7 +133,7 @@ export default function AddressBookCard({ profile }: { profile: CustomerProfile 
 
         {addresses && addresses.length === 0 && (
           <div className="py-4 text-center">
-            <p className="font-outfit text-[15px] text-[#5B4A70]">
+            <p className="text-[15px] text-[#595959]">
               {t('profile.no_addresses', 'Add a delivery address and it will be ready at checkout.')}
             </p>
             <button type="button" onClick={() => openDrawer(null)} className={`${primaryButton} mt-4`}>
@@ -143,24 +143,24 @@ export default function AddressBookCard({ profile }: { profile: CustomerProfile 
         )}
 
         {addresses && addresses.length > 0 && (
-          <ul className="list-none divide-y divide-[#431769]/15">
+          <ul className="list-none divide-y divide-[#E1E3DF]">
             {addresses.map((address) => (
               <li key={address.id} className="py-4 first:pt-0 last:pb-0">
-                <p className="flex flex-wrap items-center gap-x-2 gap-y-1 font-outfit text-[13px] font-semibold text-[#431769]">
+                <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] font-semibold text-[#222222]">
                   <span>{t(`profile.type_${address.type.toLowerCase()}`, address.type)}</span>
                   {address.isPrimary && (
-                    <span className="rounded-md bg-[#F3ECFB] px-2 py-0.5 text-[12px]">{t('profile.primary', 'Primary')}</span>
+                    <span className="rounded-lg bg-[#F5F5F1] px-2 py-0.5 text-[12px]">{t('profile.primary', 'Primary')}</span>
                   )}
                 </p>
-                <p className="mt-1 font-outfit text-[15px] font-medium text-[#111111]">{address.name}</p>
-                <p className="mt-0.5 font-outfit text-[14px] leading-relaxed text-[#2B1A3F]">
+                <p className="mt-1 text-[15px] font-medium text-[#222222]">{address.name}</p>
+                <p className="mt-0.5 text-[14px] leading-relaxed text-[#222222]">
                   {[address.line1, address.line2, address.city, `${address.state} ${address.pincode}`, address.country].filter(Boolean).join(', ')}
                 </p>
-                <p className="mt-0.5 font-outfit text-[14px] tabular-nums text-[#5B4A70]">{address.phone}</p>
+                <p className="mt-0.5 text-[14px] tabular-nums text-[#595959]">{address.phone}</p>
                 <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
                   {confirmDelete === address.id ? (
                     <>
-                      <span className="font-outfit text-[14px] text-[#111111]">{t('profile.delete_confirm', 'Delete this address?')}</span>
+                      <span className="text-[14px] text-[#222222]">{t('profile.delete_confirm', 'Delete this address?')}</span>
                       <button
                         type="button"
                         onClick={() => {
@@ -169,7 +169,7 @@ export default function AddressBookCard({ profile }: { profile: CustomerProfile 
                         }}
                         className={`cursor-pointer rounded-sm ${focusRing}`}
                       >
-                        <span className="font-outfit text-[14px] font-semibold text-[#8F1610] underline underline-offset-2">{t('profile.delete_yes', 'Yes, delete')}</span>
+                        <span className="text-[14px] font-semibold text-[#8F1610] underline underline-offset-2">{t('profile.delete_yes', 'Yes, delete')}</span>
                       </button>
                       <button type="button" onClick={() => setConfirmDelete(null)} className={textButton}>
                         <span className={textLabel}>{t('profile.keep', 'Keep it')}</span>

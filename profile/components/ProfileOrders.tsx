@@ -124,20 +124,20 @@ function OrderCard({
   };
 
   return (
-    <li className="rounded-lg bg-white shadow-[0_6px_10px_rgba(67,23,105,0.14)]">
-      <div className="space-y-2 border-b border-[#431769]/15 p-4 sm:px-6">
+    <li className="rounded-lg bg-white">
+      <div className="space-y-2 border-b border-[#E1E3DF] p-4 sm:px-6">
         <div className="flex items-start justify-between gap-x-6">
           <div className="min-w-0">
-            <p className="font-outfit text-[15px] font-semibold text-[#111111]">
+            <p className="text-[15px] font-semibold text-[#222222]">
               {t('profile.order', 'Order')} #{order.orderNumber}
             </p>
-            <p className="font-outfit text-[13px] text-[#5B4A70]">{order.date}</p>
+            <p className="text-[13px] text-[#595959]">{order.date}</p>
           </div>
-          <p className="font-outfit text-[18px] font-bold tabular-nums text-[#111111]">{formatPrice(order.total || order.totalAmount)}</p>
+          <p className="text-[18px] font-bold tabular-nums text-[#222222]">{formatPrice(order.total || order.totalAmount)}</p>
         </div>
         {/* The status and what the customer can do about it share one line. */}
         <div className="flex items-center justify-between gap-3">
-          <p aria-live="polite" className={`flex min-w-0 items-center gap-2 font-outfit text-[14px] font-medium ${red ? 'text-[#8F1610]' : 'text-[#431769]'}`}>
+          <p aria-live="polite" className={`flex min-w-0 items-center gap-2 text-[14px] font-medium ${red ? 'text-[#8F1610]' : 'text-[#222222]'}`}>
             <i aria-hidden="true" className={`${status.icon} text-[13px]`} />
             {status.key ? t(status.key, status.label) : status.label}
           </p>
@@ -146,9 +146,9 @@ function OrderCard({
               type="button"
               onClick={onCancel}
               aria-label={`${t('profile.cancel_order', 'Cancel')}: ${t('profile.order', 'Order')} #${order.orderNumber}`}
-              className={`group inline-flex h-10 min-w-[96px] shrink-0 cursor-pointer items-center justify-center rounded-md border border-[#8F1610]/40 px-4 ${focusRing}`}
+              className={`group inline-flex h-10 min-w-[96px] shrink-0 cursor-pointer items-center justify-center rounded-lg border border-[#8F1610]/40 px-4 ${focusRing}`}
             >
-              <span className="font-outfit text-[14px] font-semibold text-[#8F1610] transition-colors group-hover:text-[#5E0E0A]">
+              <span className="text-[14px] font-semibold text-[#8F1610] transition-colors group-hover:text-[#5E0E0A]">
                 {t('profile.cancel_order', 'Cancel')}
               </span>
             </button>
@@ -159,9 +159,9 @@ function OrderCard({
               disabled={requesting}
               onClick={() => void requestRefund()}
               aria-label={`${t('profile.refund', 'Refund')}: ${t('profile.order', 'Order')} #${order.orderNumber}`}
-              className={`group inline-flex h-10 min-w-[96px] shrink-0 cursor-pointer items-center justify-center rounded-md border border-[#D9A400] bg-[#FFF3C4] px-4 disabled:cursor-not-allowed disabled:opacity-60 ${focusRing}`}
+              className={`group inline-flex h-10 min-w-[96px] shrink-0 cursor-pointer items-center justify-center rounded-lg border border-[#D9A400] bg-[#FFF3C4] px-4 disabled:cursor-not-allowed disabled:opacity-60 ${focusRing}`}
             >
-              <span className="font-outfit text-[14px] font-semibold text-[#5C4300] transition-colors group-hover:text-[#3D2C00]">
+              <span className="text-[14px] font-semibold text-[#5C4300] transition-colors group-hover:text-[#3D2C00]">
                 {requesting ? t('profile.refund_sending', 'Sending…') : t('profile.refund', 'Refund')}
               </span>
             </button>
@@ -170,10 +170,10 @@ function OrderCard({
             <button
               type="button"
               disabled
-              className="inline-flex h-10 min-w-[96px] shrink-0 cursor-not-allowed items-center justify-center gap-2 rounded-md border border-[#D9A400]/60 bg-[#FFF9E3] px-4"
+              className="inline-flex h-10 min-w-[96px] shrink-0 cursor-not-allowed items-center justify-center gap-2 rounded-lg border border-[#D9A400]/60 bg-[#FFF9E3] px-4"
             >
               <i aria-hidden="true" className="fa-regular fa-clock text-[13px] text-[#5C4300]" />
-              <span className="font-outfit text-[14px] font-semibold text-[#5C4300]">
+              <span className="text-[14px] font-semibold text-[#5C4300]">
                 {order.refund.status === 'PROCESSING' ? t('profile.refund_processing_short', 'Processing') : t('profile.cancel_pending', 'Pending')}
               </span>
             </button>
@@ -182,15 +182,15 @@ function OrderCard({
             <button
               type="button"
               disabled
-              className="inline-flex h-10 min-w-[96px] shrink-0 cursor-not-allowed items-center justify-center gap-2 rounded-md border border-[#431769]/25 bg-[#F7F4EC] px-4"
+              className="inline-flex h-10 min-w-[96px] shrink-0 cursor-not-allowed items-center justify-center gap-2 rounded-lg border border-[#222222]/25 bg-[#F7F4EC] px-4"
             >
-              <i aria-hidden="true" className="fa-regular fa-clock text-[13px] text-[#5B4A70]" />
-              <span className="font-outfit text-[14px] font-semibold text-[#5B4A70]">{t('profile.cancel_pending', 'Pending')}</span>
+              <i aria-hidden="true" className="fa-regular fa-clock text-[13px] text-[#595959]" />
+              <span className="text-[14px] font-semibold text-[#595959]">{t('profile.cancel_pending', 'Pending')}</span>
             </button>
           )}
         </div>
         {order.refund && (
-          <p aria-live="polite" className="flex items-center gap-2 font-outfit text-[14px] font-medium text-[#5C4300]">
+          <p aria-live="polite" className="flex items-center gap-2 text-[14px] font-medium text-[#5C4300]">
             <i aria-hidden="true" className={`${order.refund.status === 'PROCESSED' ? 'fa-solid fa-circle-check' : 'fa-regular fa-clock'} text-[13px]`} />
             {order.refund.status === 'PROCESSED'
               ? t('profile.refunded', '{amount} refunded').replace('{amount}', formatPrice(order.refund.amount))
@@ -201,25 +201,25 @@ function OrderCard({
         )}
         {refundError && <FormError>{refundError}</FormError>}
         {order.cancellationDeclined && (
-          <p className="w-full font-outfit text-[13px] text-[#5B4A70]">
+          <p className="w-full text-[13px] text-[#595959]">
             {t('profile.cancel_declined', "Your cancellation request wasn't approved.")}
           </p>
         )}
         {order.tracking && (
-          <p className="w-full font-outfit text-[13px] text-[#2B1A3F]">
+          <p className="w-full text-[13px] text-[#222222]">
             {order.tracking.courier ? `${order.tracking.courier}: ` : `${t('profile.tracking', 'Tracking')}: `}
             <span className="font-medium tabular-nums">{order.tracking.number}</span>
           </p>
         )}
       </div>
 
-      <ul className="list-none divide-y divide-[#431769]/15 px-4 sm:px-6">
+      <ul className="list-none divide-y divide-[#E1E3DF] px-4 sm:px-6">
         {order.items.map((item, index) => {
           const title = item.title || item.name || item.productName || '';
           const productRef = item.productId || item.slug;
           return (
             <li key={item.id || index} className="grid grid-cols-[64px_minmax(0,1fr)] items-center gap-3 py-4 sm:grid-cols-[72px_minmax(0,1fr)_auto] sm:gap-4">
-              <ProductLink product={productRef} aria-hidden="true" tabIndex={-1} className="block overflow-hidden rounded-md bg-[#F3ECFB]">
+              <ProductLink product={productRef} aria-hidden="true" tabIndex={-1} className="block overflow-hidden rounded-lg bg-[#F5F5F1]">
                 <img
                   src={item.image || FALLBACK_IMAGE}
                   alt=""
@@ -232,24 +232,24 @@ function OrderCard({
               </ProductLink>
               <div className="min-w-0">
                 <ProductLink product={productRef} className={`group block w-fit rounded-sm ${focusRing}`}>
-                  <span className="line-clamp-2 font-outfit text-[15px] font-semibold leading-snug text-[#111111] transition-colors group-hover:text-[#7A2FC0]">
+                  <span className="line-clamp-2 text-[15px] font-semibold leading-snug text-[#222222] transition-colors group-hover:underline">
                     {title}
                   </span>
                 </ProductLink>
-                <p className="mt-0.5 font-outfit text-[13px] tabular-nums text-[#5B4A70]">
+                <p className="mt-0.5 text-[13px] tabular-nums text-[#595959]">
                   {formatPrice(item.price * (item.quantity || 1))} · {t('profile.qty', 'Qty')} {item.quantity || 1}
                 </p>
               </div>
               <ProductLink product={productRef} className={`${smallButton} col-span-2 sm:col-span-1`}>
                 <span className={smallLabel}>{t('cart.view_item', 'View item')}</span>
-                <i aria-hidden="true" className="fa-solid fa-angles-right text-[13px] text-[#431769] transition-colors group-hover:text-[#7A2FC0]" />
+                <i aria-hidden="true" className="fa-solid fa-angles-right text-[13px] text-[#222222] transition-colors group-hover:underline" />
               </ProductLink>
             </li>
           );
         })}
       </ul>
 
-      <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-[#431769]/15 p-4 sm:px-6">
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-[#E1E3DF] p-4 sm:px-6">
         <button type="button" onClick={() => downloadStandaloneTaxInvoice(invoicePayload(order))} className={textButton}>
           <span className={textLabel}>{t('profile.download_invoice', 'Download invoice')}</span>
         </button>
@@ -289,7 +289,7 @@ export default function ProfileOrders() {
   if (failed && !orders) {
     return (
       <div className={`${card} text-center`}>
-        <p role="alert" className="font-outfit text-[15px] text-[#2B1A3F]">
+        <p role="alert" className="text-[15px] text-[#222222]">
           {t('profile.orders_failed', "Couldn't load your orders.")}{' '}
           <button type="button" onClick={() => void load()} className={textButton}>
             <span className={textLabel}>{t('profile.try_again', 'Try again')}</span>
@@ -316,11 +316,11 @@ export default function ProfileOrders() {
     return (
       <div className={`${card} py-12 text-center`}>
         <h2>
-          <span className="block font-serif text-[24px] font-bold tracking-tight text-[#111111]">
+          <span className="block font-serif text-[24px] font-bold tracking-tight text-[#222222]">
             {t('profile.no_orders', 'No orders yet')}
           </span>
         </h2>
-        <p className="mx-auto mt-2 max-w-[42ch] font-outfit text-[15px] leading-relaxed text-[#5B4A70]">
+        <p className="mx-auto mt-2 max-w-[42ch] text-[15px] leading-relaxed text-[#595959]">
           {t('profile.no_orders_hint', 'When you place an order, you can follow it here and get your invoice.')}
         </p>
         <Link href="/shop" className={`${primaryButton} mt-5`}>

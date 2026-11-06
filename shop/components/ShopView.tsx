@@ -11,7 +11,8 @@ import ShopFilterDrawer from './ShopFilterDrawer';
 import ShopProductGrid from './ShopProductGrid';
 import { countActiveFilters, shopUrl, type ShopCategory, type ShopFilters } from './shopFilters';
 
-const CONTAINER = 'mx-auto w-full max-w-[1280px] px-3 sm:px-6';
+// Same width as the site header, so the bar and the grid line up with it.
+const CONTAINER = 'mx-auto w-full max-w-[1380px] px-4 sm:px-6';
 
 interface ShopViewProps {
   filters: ShopFilters;
@@ -39,38 +40,40 @@ export default function ShopView({ filters, categories, products, total }: ShopV
   const activeCount = countActiveFilters(filters);
 
   return (
-    <div className="pb-20 font-outfit">
+    <div className="pb-20 ">
       {/* There's no visible page heading, so this names the page for screen readers and search engines. */}
       <h1 aria-live="polite" className="sr-only">
         {heading} ({total})
       </h1>
 
       {/* Sticks under the site header. Products start below it and only ever scroll beneath it. */}
-      <div className="sticky z-30 bg-[#F7F4EC]" style={{ top: headerHeight }}>
+      <div className="sticky z-30 bg-page-ground" style={{ top: headerHeight }}>
         {/* The site header is see-through, so this covers products passing behind its pills. */}
-        <div aria-hidden="true" className="absolute inset-x-0 bottom-full bg-[#F7F4EC]" style={{ height: headerHeight }} />
+        <div aria-hidden="true" className="absolute inset-x-0 bottom-full bg-page-ground" style={{ height: headerHeight }} />
 
-        <div className={`${CONTAINER} flex items-center justify-between gap-3 py-3`}>
-          <div className="min-w-0 flex-1">
-            <ShopAppliedFilters filters={filters} onChange={applyFilters} />
-          </div>
+        {/* All filters first, then the applied filters, with the result count on the right. */}
+        <div className={`${CONTAINER} flex items-center gap-3 py-3`}>
           <button
             type="button"
             aria-haspopup="dialog"
             aria-expanded={drawerOpen}
             onClick={() => setDrawerOpen(true)}
-            className="group inline-flex h-11 shrink-0 cursor-pointer items-center gap-2 rounded-md glass-veil px-4 shadow-[0_6px_10px_rgba(67,23,105,0.14),inset_0_2px_2px_rgba(255,255,255,0.7),inset_0_-3px_5px_rgba(67,23,105,0.16)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3A1F62]"
+            className="inline-flex h-11 shrink-0 cursor-pointer items-center gap-2 rounded-full border border-[#222222] bg-white px-4 transition-colors hover:bg-[#F5F5F1] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#222222]"
           >
-            <i aria-hidden="true" className="fa-solid fa-sliders text-[14px] text-[#431769]" />
-            <span className="font-outfit text-[15px] font-medium text-[#111111] transition-colors group-hover:text-[#7A2FC0]">
-              {t('shop.filters', 'Filters')}
-            </span>
+            <i aria-hidden="true" className="fa-solid fa-sliders text-[14px] text-[#222222]" />
+            <span className="text-[15px] font-semibold text-[#222222]">{t('shop.all_filters', 'All filters')}</span>
             {activeCount > 0 && (
-              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#431769] px-1 font-outfit text-[11px] font-bold leading-none text-white">
+              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#222222] px-1 text-[11px] font-bold leading-none text-white tabular-nums">
                 {activeCount}
               </span>
             )}
           </button>
+          <div className="min-w-0 flex-1">
+            <ShopAppliedFilters filters={filters} onChange={applyFilters} />
+          </div>
+          <p className="hidden shrink-0 text-[14px] text-[#595959] tabular-nums sm:block">
+            {(total === 1 ? t('shop.result_one', '{count} result') : t('shop.results', '{count} results')).replace('{count}', total.toLocaleString('en-IN'))}
+          </p>
         </div>
       </div>
 

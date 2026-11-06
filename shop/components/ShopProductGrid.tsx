@@ -7,7 +7,7 @@ import ShopProductCard from './ShopProductCard';
 import { hasNarrowingFilters, NO_FILTERS, toProductQuery, type ShopFilters } from './shopFilters';
 
 const buttonClass =
-  'group inline-flex h-11 cursor-pointer items-center justify-center rounded-md bg-[#431769] px-6 transition-colors hover:bg-[#3A1F62] disabled:cursor-wait disabled:opacity-70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3A1F62]';
+  'group inline-flex h-11 cursor-pointer items-center justify-center rounded-lg bg-[#222222] px-6 transition-colors hover:bg-black disabled:cursor-wait disabled:opacity-70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#222222]';
 
 interface ShopProductGridProps {
   filters: ShopFilters;
@@ -62,17 +62,17 @@ export default function ShopProductGrid({ filters, initialProducts, total, pendi
     return (
       <div className={`mx-auto max-w-[46ch] py-16 text-center transition-opacity ${pending ? 'opacity-60' : ''}`}>
         <h2>
-          <span className="block font-serif text-[24px] font-bold text-[#111111]">
+          <span className="block font-serif text-[24px] font-bold text-[#222222]">
             {hasFilters ? t('shop.no_matches_title', "We couldn't find any matches") : t('shop.no_products_title', 'No products yet')}
           </span>
         </h2>
         {hasFilters && (
           <>
-            <p className="mt-2 text-[15px] text-[#5B4A70]">
+            <p className="mt-2 text-[15px] text-[#595959]">
               {t('shop.no_matches_hint', 'Try removing a filter or checking the spelling.')}
             </p>
             <button type="button" onClick={() => onClearFilters(NO_FILTERS)} className={`${buttonClass} mt-5`}>
-              <span className="font-outfit text-[14px] font-semibold text-white">
+              <span className="text-[14px] font-semibold text-white">
                 {t('shop.clear_filters', 'Clear all filters')}
               </span>
             </button>
@@ -95,7 +95,7 @@ export default function ShopProductGrid({ filters, initialProducts, total, pendi
 
       {products.length < total && (
         <div className="mt-10 flex flex-col items-center gap-3">
-          <p className="text-[13px] tabular-nums text-[#5B4A70]">
+          <p className="text-[13px] tabular-nums text-[#595959]">
             {t('shop.showing', 'Showing {shown} of {total}')
               .replace('{shown}', String(products.length))
               .replace('{total}', String(total))}
@@ -106,7 +106,7 @@ export default function ShopProductGrid({ filters, initialProducts, total, pendi
             </p>
           )}
           <button type="button" onClick={loadMore} disabled={loading} className={buttonClass}>
-            <span className="font-outfit text-[14px] font-semibold text-white">
+            <span className="text-[14px] font-semibold text-white">
               {loading ? t('shop.loading_more', 'Loading…') : t('shop.load_more', 'Load more')}
             </span>
           </button>

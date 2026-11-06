@@ -170,6 +170,21 @@ export const productRepository = {
     }));
   },
 
+  /** The newest categories with their shop product count and the newest product's photo, for the homepage. */
+  async findLatestCategories(limit: number) {
+    return prisma.category.findMany({
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      take: limit,
+      select: {
+        id: true,
+        name: true,
+        image: true,
+        _count: { select: { products: { where: { isActive: true } } } },
+        products: { where: { isActive: true }, orderBy: { createdAt: 'desc' }, take: 1, select: { images: true } },
+      },
+    });
+  },
+
   async findAllCategories(tx?: Prisma.TransactionClient) {
     const client = tx || prisma;
     return client.category.findMany({

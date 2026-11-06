@@ -74,7 +74,7 @@ export default function AccountDetailsCard({ profile, onSaved }: {
         action={
           !editing && (
             <button type="button" onClick={startEditing} className={smallButton}>
-              <i aria-hidden="true" className="fa-solid fa-pen text-[12px] text-[#431769] transition-colors group-hover:text-[#7A2FC0]" />
+              <i aria-hidden="true" className="fa-solid fa-pen text-[12px] text-[#222222] transition-colors group-hover:underline" />
               <span className={smallLabel}>{t('profile.edit', 'Edit')}</span>
             </button>
           )
@@ -117,7 +117,7 @@ export default function AccountDetailsCard({ profile, onSaved }: {
               value={
                 <span className="flex items-center gap-2">
                   <span className="min-w-0 break-all">{profile.email}</span>
-                  <i aria-hidden="true" title={t('profile.email_locked', "Your email can't be changed.")} className="fa-solid fa-lock text-[12px] text-[#5B4A70]" />
+                  <i aria-hidden="true" title={t('profile.email_locked', "Your email can't be changed.")} className="fa-solid fa-lock text-[12px] text-[#595959]" />
                 </span>
               }
             />

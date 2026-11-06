@@ -7,7 +7,7 @@ export interface NavCategory {
 }
 
 const NAV_CATEGORIES_TAG = 'nav-categories';
-const NAV_CATEGORY_LIMIT = 4;
+const NAV_CATEGORY_LIMIT = 5;
 
 const findLatestCategories = unstable_cache(
   (): Promise<NavCategory[]> =>

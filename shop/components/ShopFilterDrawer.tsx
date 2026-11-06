@@ -14,7 +14,7 @@ import {
 } from './shopFilters';
 
 const focusRing =
-  'focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#3A1F62]';
+  'focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#222222]';
 
 function OptionRow({
   label,
@@ -34,13 +34,13 @@ function OptionRow({
       onClick={onClick}
       className={`group flex h-11 w-full cursor-pointer items-center justify-between gap-3 rounded-2xl px-3 text-left ${focusRing}`}
     >
-      <span className={`min-w-0 truncate font-outfit text-[15px] font-medium transition-colors group-hover:text-[#7A2FC0] ${selected ? 'text-[#7A2FC0]' : 'text-[#111111]'}`}>
+      <span className={`min-w-0 truncate text-[15px] font-medium transition-colors group-hover:underline ${selected ? 'text-[#222222]' : 'text-[#222222]'}`}>
         {label}
       </span>
       <span className="flex shrink-0 items-center gap-2">
-        {detail && <span className="font-outfit text-[13px] tabular-nums text-[#5B4A70]">{detail}</span>}
+        {detail && <span className="text-[13px] tabular-nums text-[#595959]">{detail}</span>}
         <span className="flex w-3 justify-center">
-          {selected && <i aria-hidden="true" className="fa-solid fa-check text-[12px] text-[#7A2FC0]" />}
+          {selected && <i aria-hidden="true" className="fa-solid fa-check text-[12px] text-[#222222]" />}
         </span>
       </span>
     </button>
@@ -49,9 +49,9 @@ function OptionRow({
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="border-t border-[#431769]/15 pt-4 first:border-t-0 first:pt-0">
+    <section className="border-t border-[#E1E3DF] pt-4 first:border-t-0 first:pt-0">
       <h3>
-        <span className="block px-3 pb-1.5 font-outfit text-[13px] font-semibold text-[#431769]">{title}</span>
+        <span className="block px-3 pb-1.5 text-[13px] font-semibold text-[#222222]">{title}</span>
       </h3>
       {children}
     </section>
@@ -111,7 +111,7 @@ export default function ShopFilterDrawer({
       <div
         aria-hidden="true"
         onClick={onClose}
-        className={`absolute inset-0 bg-[#2B154C]/25 backdrop-blur-md transition-opacity duration-300 motion-reduce:transition-none ${slidIn ? 'opacity-100' : 'opacity-0'}`}
+        className={`absolute inset-0 bg-black/40 transition-opacity duration-300 motion-reduce:transition-none ${slidIn ? 'opacity-100' : 'opacity-0'}`}
       />
 
       <aside
@@ -122,11 +122,11 @@ export default function ShopFilterDrawer({
         role="dialog"
         aria-modal="true"
         aria-label={t('shop.filters', 'Filters')}
-        className={`absolute inset-y-0 right-0 flex w-full max-w-[400px] flex-col overflow-hidden glass-veil shadow-[-6px_0_24px_rgba(67,23,105,0.18),inset_2px_0_2px_rgba(255,255,255,0.7)] transition-transform duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${slidIn ? 'translate-x-0' : 'translate-x-full'}`}
+        className={`absolute inset-y-0 right-0 flex w-full max-w-[400px] flex-col overflow-hidden bg-white border border-[#E1E3DF] transition-transform duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${slidIn ? 'translate-x-0' : 'translate-x-full'}`}
       >
         <header className="flex h-16 shrink-0 items-center justify-between gap-3 pl-6 pr-3">
           <h2>
-            <span className="block font-serif text-[24px] font-bold tracking-tight text-[#111111]">
+            <span className="block font-serif text-[24px] font-bold tracking-tight text-[#222222]">
               {t('shop.filters', 'Filters')}
             </span>
           </h2>
@@ -136,7 +136,7 @@ export default function ShopFilterDrawer({
             onClick={onClose}
             className={`group flex h-10 w-10 cursor-pointer items-center justify-center rounded-full ${focusRing}`}
           >
-            <i aria-hidden="true" className="fa-solid fa-xmark text-[18px] text-[#111111] transition-colors group-hover:text-[#7A2FC0]" />
+            <i aria-hidden="true" className="fa-solid fa-xmark text-[18px] text-[#222222] transition-colors group-hover:underline" />
           </button>
         </header>
 
@@ -194,14 +194,14 @@ export default function ShopFilterDrawer({
           </Section>
         </div>
 
-        <footer className="flex shrink-0 items-center gap-3 border-t border-[#431769]/15 p-4">
+        <footer className="flex shrink-0 items-center gap-3 border-t border-[#E1E3DF] p-4">
           {hasActiveFilters(filters) && (
             <button
               type="button"
               onClick={() => onChange(NO_FILTERS)}
               className={`group shrink-0 cursor-pointer rounded-full px-2 py-1 ${focusRing}`}
             >
-              <span className="font-outfit text-[14px] font-semibold text-[#431769] underline underline-offset-2 transition-colors group-hover:text-[#7A2FC0]">
+              <span className="text-[14px] font-semibold text-[#222222] underline underline-offset-2 transition-colors group-hover:underline">
                 {t('shop.clear_all', 'Clear all')}
               </span>
             </button>
@@ -210,9 +210,9 @@ export default function ShopFilterDrawer({
             type="button"
             onClick={onClose}
             aria-busy={pending}
-            className={`h-12 min-w-0 flex-1 cursor-pointer rounded-md bg-[#431769] px-4 transition-colors hover:bg-[#3A1F62] ${focusRing}`}
+            className={`h-12 min-w-0 flex-1 cursor-pointer rounded-lg bg-[#222222] px-4 transition-colors hover:bg-black ${focusRing}`}
           >
-            <span aria-live="polite" className="block truncate font-outfit text-[15px] font-semibold text-white">
+            <span aria-live="polite" className="block truncate text-[15px] font-semibold text-white">
               {pending ? t('shop.updating', 'Updating…') : showLabel}
             </span>
           </button>

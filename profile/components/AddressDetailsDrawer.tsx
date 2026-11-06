@@ -46,7 +46,7 @@ function AddressForm({ initial, formId, onSubmit, onSavingChange }: AddressFormP
     <form id={formId} onSubmit={submit} noValidate className="grid gap-4 sm:grid-cols-2">
       {error && <div className="sm:col-span-2"><FormError>{error}</FormError></div>}
       <fieldset className="sm:col-span-2">
-        <legend className="font-outfit text-[13px] font-semibold text-[#431769]">{t('profile.address_type', 'Address type')}</legend>
+        <legend className="text-[13px] font-semibold text-[#222222]">{t('profile.address_type', 'Address type')}</legend>
         <div className="mt-1.5 grid grid-cols-3 gap-2">
           {TYPES.map(({ value, icon }) => {
             const selected = address.type === value;
@@ -56,10 +56,10 @@ function AddressForm({ initial, formId, onSubmit, onSavingChange }: AddressFormP
                 type="button"
                 aria-pressed={selected}
                 onClick={() => setAddress((current) => ({ ...current, type: value }))}
-                className={`group flex h-11 min-w-0 cursor-pointer items-center justify-center gap-2 rounded-md border bg-white/55 px-2 ${selected ? 'border-[#7A2FC0]' : 'border-white/70'} ${focusRing}`}
+                className={`group flex h-11 min-w-0 cursor-pointer items-center justify-center gap-2 rounded-lg border bg-white/55 px-2 ${selected ? 'border-[#222222]' : 'border-white/70'} ${focusRing}`}
               >
-                <i aria-hidden="true" className={`fa-solid ${icon} text-[12px] transition-colors group-hover:text-[#7A2FC0] ${selected ? 'text-[#7A2FC0]' : 'text-[#111111]'}`} />
-                <span className={`truncate font-outfit text-[14px] font-medium transition-colors group-hover:text-[#7A2FC0] ${selected ? 'text-[#7A2FC0]' : 'text-[#111111]'}`}>
+                <i aria-hidden="true" className={`fa-solid ${icon} text-[12px] transition-colors group-hover:underline ${selected ? 'text-[#222222]' : 'text-[#222222]'}`} />
+                <span className={`truncate text-[14px] font-medium transition-colors group-hover:underline ${selected ? 'text-[#222222]' : 'text-[#222222]'}`}>
                   {t(`profile.type_${value.toLowerCase()}`, value)}
                 </span>
               </button>
@@ -104,7 +104,7 @@ export default function AddressDetailsDrawer({ open, editing, formKey, initial, 
       <div
         aria-hidden="true"
         onClick={onClose}
-        className={`absolute inset-0 bg-[#2B154C]/25 backdrop-blur-md transition-opacity duration-300 motion-reduce:transition-none ${slidIn ? 'opacity-100' : 'opacity-0'}`}
+        className={`absolute inset-0 bg-black/40 transition-opacity duration-300 motion-reduce:transition-none ${slidIn ? 'opacity-100' : 'opacity-0'}`}
       />
 
       <aside
@@ -115,11 +115,11 @@ export default function AddressDetailsDrawer({ open, editing, formKey, initial, 
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`glass-veil absolute inset-y-0 right-0 flex w-full max-w-[520px] flex-col overflow-hidden shadow-[-6px_0_24px_rgba(67,23,105,0.18),inset_2px_0_2px_rgba(255,255,255,0.7)] transition-transform duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${slidIn ? 'translate-x-0' : 'translate-x-full'}`}
+        className={`bg-white border border-[#E1E3DF] absolute inset-y-0 right-0 flex w-full max-w-[520px] flex-col overflow-hidden transition-transform duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${slidIn ? 'translate-x-0' : 'translate-x-full'}`}
       >
         <header className="flex h-16 shrink-0 items-center justify-between gap-3 pl-6 pr-3">
           <h2>
-            <span className="block font-serif text-[24px] font-bold tracking-tight text-[#111111]">{title}</span>
+            <span className="block font-serif text-[24px] font-bold tracking-tight text-[#222222]">{title}</span>
           </h2>
           <button
             type="button"
@@ -127,7 +127,7 @@ export default function AddressDetailsDrawer({ open, editing, formKey, initial, 
             onClick={onClose}
             className={`group flex h-10 w-10 cursor-pointer items-center justify-center rounded-full ${focusRing}`}
           >
-            <i aria-hidden="true" className="fa-solid fa-xmark text-[18px] text-[#111111] transition-colors group-hover:text-[#7A2FC0]" />
+            <i aria-hidden="true" className="fa-solid fa-xmark text-[18px] text-[#222222] transition-colors group-hover:underline" />
           </button>
         </header>
 
@@ -135,7 +135,7 @@ export default function AddressDetailsDrawer({ open, editing, formKey, initial, 
           <AddressForm key={formKey} initial={initial} formId={formId} onSubmit={onSubmit} onSavingChange={setSaving} />
         </div>
 
-        <footer className="grid shrink-0 grid-cols-[auto_minmax(0,1fr)] gap-3 border-t border-[#431769]/15 p-4">
+        <footer className="grid shrink-0 grid-cols-[auto_minmax(0,1fr)] gap-3 border-t border-[#E1E3DF] p-4">
           <button type="button" disabled={saving} onClick={onClose} className={secondaryButton}>
             <span className={secondaryLabel}>{t('profile.cancel', 'Cancel')}</span>
           </button>

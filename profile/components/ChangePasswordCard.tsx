@@ -19,7 +19,7 @@ import {
 } from './profileUi';
 
 const MIN_LENGTH = 6;
-const iconBox = 'flex h-12 w-12 shrink-0 items-center justify-center rounded-md';
+const iconBox = 'flex h-12 w-12 shrink-0 items-center justify-center rounded-lg';
 
 async function post(url: string, body: unknown) {
   const res = await fetch(url, {
@@ -123,8 +123,8 @@ export default function ChangePasswordCard() {
             onChange={(e) => setCurrent(e.target.value)}
             action={
               verified ? (
-                <span aria-hidden="true" className={`${iconBox} border border-[#431769]/25`}>
-                  <i className="fa-solid fa-check text-[15px] text-[#7A2FC0]" />
+                <span aria-hidden="true" className={`${iconBox} border border-[#222222]/25`}>
+                  <i className="fa-solid fa-check text-[15px] text-[#222222]" />
                 </span>
               ) : (
                 <button
@@ -132,7 +132,7 @@ export default function ChangePasswordCard() {
                   disabled={busy}
                   aria-label={verifyLabel}
                   title={verifyLabel}
-                  className={`${iconBox} cursor-pointer bg-[#431769] transition-colors hover:bg-[#3A1F62] disabled:cursor-not-allowed disabled:opacity-50 ${focusRing}`}
+                  className={`${iconBox} cursor-pointer bg-[#222222] transition-colors hover:bg-black disabled:cursor-not-allowed disabled:opacity-50 ${focusRing}`}
                 >
                   <i aria-hidden="true" className={`fa-solid ${busy ? 'fa-spinner animate-spin' : 'fa-check'} text-[15px] text-white`} />
                 </button>
@@ -173,9 +173,9 @@ export default function ChangePasswordCard() {
                 aria-label={showLabel}
                 title={showLabel}
                 onClick={() => setShowNext((value) => !value)}
-                className={`group flex h-10 w-10 cursor-pointer items-center justify-center rounded-md ${focusRing}`}
+                className={`group flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg ${focusRing}`}
               >
-                <i aria-hidden="true" className={`fa-regular ${showNext ? 'fa-eye-slash' : 'fa-eye'} text-[15px] text-[#431769] transition-colors group-hover:text-[#7A2FC0]`} />
+                <i aria-hidden="true" className={`fa-regular ${showNext ? 'fa-eye-slash' : 'fa-eye'} text-[15px] text-[#222222] transition-colors group-hover:underline`} />
               </button>
             )
           }
@@ -194,9 +194,9 @@ export default function ChangePasswordCard() {
             type="button"
             disabled={signingOut}
             onClick={() => void handleSignOut()}
-            className={`group inline-flex h-12 cursor-pointer items-center justify-center rounded-md border border-[#8F1610]/40 px-3 disabled:cursor-not-allowed disabled:opacity-50 ${focusRing}`}
+            className={`group inline-flex h-12 cursor-pointer items-center justify-center rounded-lg border border-[#8F1610]/40 px-3 disabled:cursor-not-allowed disabled:opacity-50 ${focusRing}`}
           >
-            <span className="font-outfit text-[15px] font-semibold text-[#8F1610] transition-colors group-hover:text-[#5E0E0A]">
+            <span className="text-[15px] font-semibold text-[#8F1610] transition-colors group-hover:text-[#5E0E0A]">
               {t('nav.sign_out', 'Sign out')}
             </span>
           </button>
