@@ -281,22 +281,3 @@ model Review {
   @@index([productId])
   @@index([userId])
 }
-
-model HomepageSection {
-  id         String   @id @default(cuid())
-  sectionKey String   @unique
-  name       String
-  title      String
-  subtitle   String?
-  ctaText    String?
-  ctaLink    String?
-  badge      String?
-  order      Int      @default(0)
-  enabled    Boolean  @default(true)
-  config     Json?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  @@index([sectionKey])
-  @@index([order])
-}

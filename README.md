@@ -61,7 +61,7 @@ RAZORPAY_WEBHOOK_SECRET="rzp_test_webhook_secret"
 # Apply Prisma migrations to Docker PostgreSQL
 npx prisma migrate deploy
 
-# Seed Admin, Customer, Categories, Products, and Homepage sections
+# Seed Admin, Customer, Categories, and Products
 npm run seed
 ```
 
@@ -155,7 +155,7 @@ npm run build
 
 | Role | Email | Password | Access |
 |---|---|---|---|
-| **Admin** | `admin@miraclefengshui.com` | `admin` | Full Admin Panel (`/admin`), Products, Orders, Homepage Manager, Uploads |
+| **Admin** | `admin@miraclefengshui.com` | `admin` | Full Admin Panel (`/admin`), Products, Orders, Uploads |
 | **Customer** | `amina.ashraf@example.com` | `customer123` | Storefront (`/`), Cart, Checkout, My Orders (`/orders`), Reviews, Favorites |
 
 ---
@@ -207,8 +207,6 @@ npm run build
 - `DELETE /api/admin/products/[id]` — Soft delete / remove product.
 - `GET /api/admin/orders` — Filter customer orders by status or search term.
 - `PATCH /api/admin/orders/[id]/status` — Update order status (`PENDING`, `PROCESSING`, `SHIPPED`, `DELIVERED`, `CANCELLED`).
-- `GET /api/admin/homepage` — Get layout sections configuration.
-- `PUT /api/admin/homepage` — Reorder homepage sections, toggle visibility, and update promotional copy.
 - `POST /api/upload` — Upload product images (PNG, JPEG, WEBP up to 5MB).
 
 ---

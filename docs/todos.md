@@ -18,7 +18,7 @@ Consolidated work queue for **Miracle Feng Shui**. Detail and evidence for the u
 
 ## P1 — Access Control & Data Integrity
 
-- [ ] **T-U6: Wrap every admin API route in `withRole('ADMIN')`.** Only `admin/products/[id]/detail` has it today. Apply to dashboard, orders, categories, homepage, products list/[id]/import/export/sample-csv. *(Overlaps T-01 in product-catelog.md.)*
+- [ ] **T-U6: Wrap every admin API route in `withRole('ADMIN')`.** Only `admin/products/[id]/detail` has it today. Apply to dashboard, orders, categories, products list/[id]/import/export/sample-csv. *(Overlaps T-01 in product-catelog.md.)*
 - [ ] **T-U10: Invalidate sessions on password change/reset.** Add a token version or `updatedAt`-based check in the JWT callback so an old 30-day token stops working after a credential change. *(user-gap §6)*
 - [x] **T-R3: Delete the fake seeded reviews** (`prisma/seed.ts`). Done — admin-authored 5-star reviews no longer seeded.
 

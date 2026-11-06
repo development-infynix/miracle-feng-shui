@@ -30,4 +30,4 @@ When the owner opens the dashboard, it answers these questions:
 
 ## Terminology
 
-Use the terms already in the product: Products Catalog, Customer Orders, Categories and Sections Layout.
+Use the terms already in the product: Products Catalog, Customer Orders, Categories and Customer Users.

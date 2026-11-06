@@ -11,7 +11,6 @@ export default function AdminDashboardPage() {
     products,
     orders,
     refreshOrders,
-    sections,
     updateOrderStatus,
     confirmOrder,
     ordersLeftToConfirm,
@@ -74,7 +73,6 @@ export default function AdminDashboardPage() {
   // Metrics
   const totalRevenue = orders.reduce((sum, ord) => sum + ord.totalAmount, 0);
   const pendingOrdersCount = orders.filter((o) => o.status === 'Pending').length;
-  const activeSectionsCount = sections.filter((s) => s.enabled).length;
 
   // Search Results filtering
   const matchingProducts = bannerSearchQuery.trim()
@@ -118,7 +116,6 @@ export default function AdminDashboardPage() {
   // Banner Navigation Pages
   const bannerPages = [
     { name: 'Dashboard', href: '/admin', icon: 'fa-gauge-high', active: true },
-    { name: 'Sections Layout', href: '/admin/homepage', icon: 'fa-layer-group', count: `${activeSectionsCount}/${sections.length}` },
     { name: 'Products Catalog', href: '/admin/products', icon: 'fa-boxes-stacked', count: `${products.length}` },
     { name: 'Customer Orders', href: '/admin/orders', icon: 'fa-receipt', count: `${orders.length}` },
     { name: 'Live Storefront', href: '/', icon: 'fa-store', isExternal: true },
@@ -178,7 +175,7 @@ export default function AdminDashboardPage() {
               style={{ fontFamily: "'Montserrat', sans-serif" }}
               className="text-xs sm:text-sm text-white/70 mt-1 max-w-lg font-normal leading-relaxed"
             >
-              Monitor store catalog, fulfill customer orders, and orchestrate homepage sections.
+              Monitor the store catalog and fulfill customer orders.
             </p>
           </div>
 
@@ -384,7 +381,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Compact KPI Cards Grid with Minimalist Pastel Circles */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         {/* Total Sales with Real-Time Cash Flow Breakdown */}
         <div className="bg-white p-4 sm:p-4.5 rounded-2xl border border-gray-200/70 shadow-2xs hover:shadow-sm transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between">
@@ -459,28 +456,6 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* Layout Sections (Very Light Pastel Mint / Sage) */}
-        <div className="bg-white p-4 sm:p-4.5 rounded-2xl border border-gray-200/70 shadow-2xs hover:shadow-sm transition-all flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-gray-100 text-gray-500 flex items-center justify-center text-sm shrink-0 shadow-2xs border border-gray-200/50">
-                <i className="fa-solid fa-sliders" />
-              </div>
-              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
-                Sections
-              </span>
-            </div>
-          </div>
-          <div className="mt-3 flex items-baseline justify-between">
-            <div className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">
-              {activeSectionsCount} / {sections.length}
-            </div>
-            <span className="text-[10.5px] font-semibold text-[#115E59] bg-[#F0F7F5] px-1.5 py-0.5 rounded-md border border-teal-200/50 flex items-center gap-1">
-              <i className="fa-solid fa-check text-[9px]" />
-              <span>Optimal</span>
-            </span>
-          </div>
-        </div>
       </div>
 
       {/* Action Required: Orders Left to Confirm Queue */}
@@ -510,79 +485,10 @@ export default function AdminDashboardPage() {
         </div>
       )}
 
-      {/* Main Grid: Active Sections / Orders (Left 8) and System Alerts (Right 4) */}
+      {/* Main Grid: Orders (Left 8) and System Alerts (Right 4) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5">
-        {/* Left 8 Cols: Active Sections Cards & Orders Table */}
+        {/* Left 8 Cols: Orders Table */}
         <div className="lg:col-span-8 flex flex-col gap-4 sm:gap-5">
-          {/* Active Sections Grid */}
-          <div className="bg-white rounded-2xl p-4 sm:p-5 border border-gray-200/70 shadow-2xs">
-            <div className="flex items-center justify-between mb-3.5">
-              <h2 className="text-sm sm:text-base font-bold text-gray-900 tracking-tight">
-                Active Homepage Sections
-              </h2>
-              <Link
-                href="/admin/homepage"
-                className="text-[11px] font-bold text-gray-600 hover:text-black bg-gray-100 hover:bg-gray-200 px-2.5 py-1 rounded-lg uppercase tracking-wider transition-colors no-underline"
-              >
-                VIEW ALL
-              </Link>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {/* Card 1: Very Light Pastel Amber */}
-              <div className="bg-[#FAF9F6] hover:bg-[#F5F2EB] transition-colors p-3 rounded-xl border border-gray-200/60 flex flex-col items-center text-center">
-                <div className="w-9 h-9 rounded-xl bg-gray-100 text-gray-500 flex items-center justify-center text-base mb-1.5 shadow-2xs border border-gray-200/50">
-                  <i className="fa-solid fa-star" />
-                </div>
-                <span className="text-xs font-bold text-gray-800 truncate w-full">
-                  Hero Showcase
-                </span>
-                <span className="text-[9.5px] text-gray-400 font-semibold uppercase mt-0.5">
-                  ENABLED
-                </span>
-              </div>
-
-              {/* Card 2: Very Light Pastel Peach / Blush */}
-              <div className="bg-[#FAF9F6] hover:bg-[#F5F2EB] transition-colors p-3 rounded-xl border border-gray-200/60 flex flex-col items-center text-center">
-                <div className="w-9 h-9 rounded-xl bg-gray-100 text-gray-500 flex items-center justify-center text-base mb-1.5 shadow-2xs border border-gray-200/50">
-                  <i className="fa-solid fa-gem" />
-                </div>
-                <span className="text-xs font-bold text-gray-800 truncate w-full">
-                  Auspicious Finds
-                </span>
-                <span className="text-[9.5px] text-gray-400 font-semibold uppercase mt-0.5">
-                  ENABLED
-                </span>
-              </div>
-
-              {/* Card 3: Very Light Pastel Lavender */}
-              <div className="bg-[#FAF9F6] hover:bg-[#F5F2EB] transition-colors p-3 rounded-xl border border-gray-200/60 flex flex-col items-center text-center">
-                <div className="w-9 h-9 rounded-xl bg-gray-100 text-gray-500 flex items-center justify-center text-base mb-1.5 shadow-2xs border border-gray-200/50">
-                  <i className="fa-solid fa-circle-nodes" />
-                </div>
-                <span className="text-xs font-bold text-gray-800 truncate w-full">
-                  Curated Interests
-                </span>
-                <span className="text-[9.5px] text-gray-400 font-semibold uppercase mt-0.5">
-                  ENABLED
-                </span>
-              </div>
-
-              {/* Card 4: Very Light Pastel Mint / Sage */}
-              <div className="bg-[#FAF9F6] hover:bg-[#F5F2EB] transition-colors p-3 rounded-xl border border-gray-200/60 flex flex-col items-center text-center">
-                <div className="w-9 h-9 rounded-xl bg-gray-100 text-gray-500 flex items-center justify-center text-base mb-1.5 shadow-2xs border border-gray-200/50">
-                  <i className="fa-solid fa-gift" />
-                </div>
-                <span className="text-xs font-bold text-gray-800 truncate w-full">
-                  Prosperity Gifts
-                </span>
-                <span className="text-[9.5px] text-gray-400 font-semibold uppercase mt-0.5">
-                  ENABLED
-                </span>
-              </div>
-            </div>
-          </div>
-
           {/* Recent Orders Table */}
           <div className="bg-white rounded-2xl p-4 sm:p-5 border border-gray-200/70 shadow-2xs flex flex-col">
             <div className="flex items-center justify-between mb-3 pb-2.5 border-b border-gray-100">
@@ -758,14 +664,6 @@ export default function AdminDashboardPage() {
               >
                 <i className="fa-solid fa-plus text-[11px]" />
                 <span>Add New Product</span>
-              </Link>
-
-              <Link
-                href="/admin/homepage"
-                className="w-full py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-semibold rounded-full text-center transition-colors no-underline flex items-center justify-center gap-2 border border-gray-200/70"
-              >
-                <i className="fa-solid fa-arrows-up-down text-[11px] text-gray-600" />
-                <span>Reorder Homepage</span>
               </Link>
             </div>
           </div>

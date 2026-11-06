@@ -6,7 +6,6 @@ import {
   CreateProductInput,
   UpdateProductInput,
   UpdateOrderStatusInput,
-  UpdateHomepageSectionInput,
 } from '../validators/admin.validator';
 import { ApiError } from '../utils/ApiError';
 import { OrderStatus } from '@/app/generated/prisma/client';
@@ -286,26 +285,5 @@ export const adminService = {
       ...customerListPage(customer.orders, customer._count.orders, page),
       totalAmount: await adminRepository.sumCustomerOrders(id),
     };
-  },
-
-  async getHomepageSections() {
-    const sections = await adminRepository.getHomepageSections();
-    return sections.map((sec) => ({
-      id: sec.sectionKey as any,
-      sectionKey: sec.sectionKey,
-      name: sec.name,
-      enabled: sec.enabled,
-      title: sec.title,
-      subtitle: sec.subtitle || undefined,
-      ctaText: sec.ctaText || undefined,
-      ctaLink: sec.ctaLink || undefined,
-      badge: sec.badge || undefined,
-      order: sec.order,
-    }));
-  },
-
-  async updateHomepageSections(input: UpdateHomepageSectionInput) {
-    await adminRepository.updateHomepageSections(input.sections);
-    return this.getHomepageSections();
   },
 };

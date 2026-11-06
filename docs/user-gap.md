@@ -44,7 +44,7 @@ Consequence: **changing the admin password does not lock the door.** `admin`/`ad
 | `middleware.ts:39` | Accepts `mfs_admin_auth=true` cookie as admin clearance — settable by anyone via `document.cookie` in devtools |
 | `app/admin/login/page.tsx:50–52` | The login page writes that cookie + `localStorage` flag client-side |
 | `server/middlewares/withAuth.ts:19–31, 46–49` | `withAuth`/`withRole` inject a fake `DEV_ADMIN` user for **every** request in dev — server-side checks only exist in prod builds |
-| API routes | Only `app/api/admin/products/[id]/detail` uses `withRole('ADMIN')`. Dashboard, orders, categories, homepage, import, export rely on middleware alone (bypass = gap T-01) |
+| API routes | Only `app/api/admin/products/[id]/detail` uses `withRole('ADMIN')`. Dashboard, orders, categories, import, export rely on middleware alone (bypass = gap T-01) |
 | `middleware.ts:20`, `lib/auth.ts:10` | Hardcoded `NEXTAUTH_SECRET` fallbacks, committed to git history |
 | `prisma/seed.ts:18` | Seeds admin with password `admin` |
 
@@ -62,7 +62,7 @@ A forged cookie + middleware is the only thing between an attacker and product/o
 
 ## 6. No User Management
 
-- Admin sidebar has exactly: Dashboard, Products, Orders, Categories, Homepage. There is no `/admin/users`.
+- Admin sidebar has: Dashboard, Products, Categories, Customer Users, Orders.
 - No `/api/admin/users` route, no list/search/detail/block/delete for accounts.
 - Customers surface to the admin only inside order rows (`customerName` string on `Order`).
 - There is no way to promote an account to ADMIN other than editing the DB.

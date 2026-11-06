@@ -4,34 +4,27 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { ProductLink } from '@/shop/components/ProductDrawerProvider';
 
+import { circularCategories, summerCollections, todaysDeals } from '@/lib/placeholder-data';
 import {
-  circularCategories,
-  summerCollections,
-  birthdayHeroCards,
-  specialGiftCategories,
-  todaysDeals,
-  fashionGuideData,
+  homeSections,
+  heroBanner,
+  prosperityCards,
+  specialGifts,
+  guideCards,
   blogPosts,
-} from '@/lib/placeholder-data';
+  type SectionCopy,
+} from '@/home/content';
 import { CategoryCircle } from '@/components/CategoryCircle';
 import { HoverVideoCard } from '@/components/HoverVideoCard';
 import { useCart } from '@/context/CartContext';
-import { useStore, HomeSectionConfig } from '@/context/StoreContext';
+import { useStore } from '@/context/StoreContext';
 import { useLocale } from '@/context/CurrencyContext';
 import { translateCategory, translateProductTitle } from '@/lib/translations';
 
 export default function MiracleFengShuiHomePage() {
   const { addFavorite, removeFavorite, showGuestToast, userLoggedIn } = useCart();
   const { formatPrice, language, t } = useLocale();
-  const {
-    sections,
-    products: dynamicProducts,
-    heroBanner,
-    prosperityCards,
-    specialGifts,
-    guideCards,
-    blogPosts,
-  } = useStore();
+  const { products: dynamicProducts } = useStore();
 
   const [activeSlide, setActiveSlide] = useState(0);
   const [favoritePicks, setFavoritePicks] = useState<Record<string, boolean>>({});
@@ -96,10 +89,10 @@ export default function MiracleFengShuiHomePage() {
       setActiveSlide((prev) => (prev + 1) % slideCount);
     }, 5000);
     return () => clearInterval(timer);
-  }, [heroBanner?.slides?.length]);
+  }, []);
 
   // 1. HERO SECTION
-  const renderHero = (section: HomeSectionConfig) => {
+  const renderHero = (section: SectionCopy) => {
     const slides =
       heroBanner?.slides && heroBanner.slides.length > 0
         ? heroBanner.slides
@@ -223,7 +216,7 @@ export default function MiracleFengShuiHomePage() {
   };
 
   // 2. FEATURED INTERESTS
-  const renderFeaturedInterests = (section: HomeSectionConfig) => (
+  const renderFeaturedInterests = (section: SectionCopy) => (
     <section key="featured_interests" className="etsy-container py-6 sm:py-9 border-b border-etsy-border">
       <h2 style={{ marginBottom: '28px' }} className="text-[20px] sm:text-[24px] font-bold text-etsy-dark tracking-tight">
         {language === 'ar' ? t('home.featured_interests_title') : section.title}
@@ -239,7 +232,7 @@ export default function MiracleFengShuiHomePage() {
   );
 
   // 3. AUSPICIOUS COLLECTIONS
-  const renderAuspiciousCollections = (section: HomeSectionConfig) => (
+  const renderAuspiciousCollections = (section: SectionCopy) => (
     <section key="auspicious_collections" className="etsy-container py-6 sm:py-9 border-b border-etsy-border">
       <h2 style={{ marginBottom: '28px' }} className="text-[20px] sm:text-[24px] font-bold text-etsy-dark tracking-tight">
         {language === 'ar' ? t('home.auspicious_collections_title') : section.title}
@@ -253,7 +246,7 @@ export default function MiracleFengShuiHomePage() {
   );
 
   // 4. PROSPERITY GIFTS & THUMBNAILS
-  const renderProsperityGifts = (section: HomeSectionConfig) => {
+  const renderProsperityGifts = (section: SectionCopy) => {
     // Dynamically show up to 6 products from store
     const picks = dynamicProducts.slice(0, 6);
 
@@ -358,7 +351,7 @@ export default function MiracleFengShuiHomePage() {
   };
 
   // 5. SPECIAL GIFTS
-  const renderSpecialGifts = (section: HomeSectionConfig) => (
+  const renderSpecialGifts = (section: SectionCopy) => (
     <section key="special_gifts" className="etsy-container py-10 border-b border-etsy-border">
       <h2 style={{ marginBottom: '28px' }} className="text-[21px] sm:text-[24px] font-bold text-etsy-dark tracking-tight">
         {language === 'ar' ? t('home.special_gifts_title') : section.title}
@@ -385,7 +378,7 @@ export default function MiracleFengShuiHomePage() {
   );
 
   // 6. TODAY'S DEALS
-  const renderTodaysDeals = (section: HomeSectionConfig) => (
+  const renderTodaysDeals = (section: SectionCopy) => (
     <section key="todays_deals" className="etsy-container py-10 border-b border-etsy-border">
       <div style={{ marginBottom: '28px' }} className="flex items-center gap-3">
         <h2 className="text-[21px] sm:text-[24px] font-bold text-etsy-dark tracking-tight">
@@ -486,7 +479,7 @@ export default function MiracleFengShuiHomePage() {
   );
 
   // 7. FASHION & ENERGY GUIDE ("Curated Style & Chi")
-  const renderFashionGuide = (section: HomeSectionConfig) => (
+  const renderFashionGuide = (section: SectionCopy) => (
     <section key="fashion_guide" className="etsy-container py-10 sm:py-14 border-b border-etsy-border">
       <div className="flex flex-col gap-4 md:gap-6">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
@@ -578,7 +571,7 @@ export default function MiracleFengShuiHomePage() {
   );
 
   // 8. SACRED KNOWLEDGE / BLOG ("blob section")
-  const renderSacredKnowledge = (section: HomeSectionConfig) => (
+  const renderSacredKnowledge = (section: SectionCopy) => (
     <section key="sacred_knowledge" className="etsy-container py-8 sm:py-12 border-b border-etsy-border">
       <div style={{ marginBottom: '22px' }} className="flex items-center justify-between">
         <Link href="/shop" className="group inline-flex items-center gap-2 no-underline">
@@ -638,31 +631,14 @@ export default function MiracleFengShuiHomePage() {
 
   return (
     <div className="pb-12 relative">
-      {/* Render Homepage Sections in Dynamic Order */}
-      {sections.map((section) => {
-        if (!section.enabled) return null;
-
-        switch (section.id) {
-          case 'hero':
-            return renderHero(section);
-          case 'featured_interests':
-            return renderFeaturedInterests(section);
-          case 'auspicious_collections':
-            return renderAuspiciousCollections(section);
-          case 'prosperity_gifts':
-            return renderProsperityGifts(section);
-          case 'special_gifts':
-            return renderSpecialGifts(section);
-          case 'todays_deals':
-            return renderTodaysDeals(section);
-          case 'fashion_guide':
-            return renderFashionGuide(section);
-          case 'sacred_knowledge':
-            return renderSacredKnowledge(section);
-          default:
-            return null;
-        }
-      })}
+      {renderHero(homeSections.hero)}
+      {renderFeaturedInterests(homeSections.featured_interests)}
+      {renderAuspiciousCollections(homeSections.auspicious_collections)}
+      {renderProsperityGifts(homeSections.prosperity_gifts)}
+      {renderSpecialGifts(homeSections.special_gifts)}
+      {renderTodaysDeals(homeSections.todays_deals)}
+      {renderFashionGuide(homeSections.fashion_guide)}
+      {renderSacredKnowledge(homeSections.sacred_knowledge)}
     </div>
   );
 }

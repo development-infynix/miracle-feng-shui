@@ -89,22 +89,3 @@ export const updateOrderStatusSchema = z.object({
 });
 
 export type UpdateOrderStatusInput = z.infer<typeof updateOrderStatusSchema>;
-
-export const updateHomepageSectionSchema = z.object({
-  sections: z.array(
-    z.object({
-      id: z.string(),
-      sectionKey: z.string().optional(),
-      name: z.string().optional(),
-      title: z.string().optional(),
-      subtitle: z.string().nullable().optional(),
-      ctaText: z.string().nullable().optional(),
-      ctaLink: z.string().nullable().optional(),
-      badge: z.string().nullable().optional(),
-      order: z.number().int().optional(),
-      enabled: z.boolean().optional(),
-    })
-  ),
-});
-
-export type UpdateHomepageSectionInput = z.infer<typeof updateHomepageSectionSchema>;

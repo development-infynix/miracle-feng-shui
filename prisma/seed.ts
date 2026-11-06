@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import prisma from '../lib/prisma';
-import { products, categories, defaultSections } from './seed-data';
+import { products, categories } from './seed-data';
 
 function slugify(text: string): string {
   return text
@@ -78,37 +78,7 @@ async function main() {
   }
   console.log(`✅ ${categoryMap.size} Categories seeded`);
 
-  // 4. Seed Homepage Sections
-  for (let i = 0; i < defaultSections.length; i++) {
-    const sec = defaultSections[i];
-    await prisma.homepageSection.upsert({
-      where: { sectionKey: sec.id },
-      update: {
-        name: sec.name,
-        title: sec.title,
-        subtitle: sec.subtitle,
-        ctaText: sec.ctaText,
-        ctaLink: sec.ctaLink,
-        badge: sec.badge,
-        order: i,
-        enabled: sec.enabled,
-      },
-      create: {
-        sectionKey: sec.id,
-        name: sec.name,
-        title: sec.title,
-        subtitle: sec.subtitle,
-        ctaText: sec.ctaText,
-        ctaLink: sec.ctaLink,
-        badge: sec.badge,
-        order: i,
-        enabled: sec.enabled,
-      },
-    });
-  }
-  console.log(`✅ ${defaultSections.length} Homepage sections seeded`);
-
-  // 5. Seed Products
+  // 3. Seed Products
   console.log(`📦 Seeding ${products.length} Products...`);
   const createdProducts = [];
   for (const prod of products) {
