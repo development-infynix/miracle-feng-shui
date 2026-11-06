@@ -1,27 +1,47 @@
 import React from 'react';
 import { PillButton, openAuthModal } from '../homeUi';
 
-/** One white tile of the bento: a serif title, then its content. */
+/**
+ * How a tile is painted. Most are outlined on the stone page; a few are filled with a brand colour
+ * and carry a line illustration, so the bento has rhythm.
+ */
+export type TileTone = 'outline' | 'purple' | 'charcoal';
+
+const TONE: Record<TileTone, string> = {
+  outline: 'border border-ink/25',
+  purple: 'bg-logo-purple',
+  charcoal: 'bg-ink-fill',
+};
+
+/** One tile of the bento: a serif title, its content, and an optional illustration. */
 export function BentoTile({
   title,
   titleId,
+  tone = 'outline',
+  art,
   className = '',
   children,
 }: {
   title: string;
   titleId: string;
+  tone?: TileTone;
+  /** A decorative line illustration; the tile that passes it also places it. */
+  art?: React.ReactNode;
   className?: string;
   children: React.ReactNode;
 }) {
+  const filled = tone !== 'outline';
   return (
-    <section
-      aria-labelledby={titleId}
-      className={`relative isolate flex flex-col overflow-hidden border border-ink/25 p-5 sm:p-6 ${className}`}
-    >
-      <h3 id={titleId}>
-        <span className="font-display text-[21px] font-bold leading-tight tracking-[-0.01em] text-ink sm:text-[24px]">{title}</span>
+    <section aria-labelledby={titleId} className={`relative isolate flex flex-col overflow-hidden p-5 sm:p-6 ${TONE[tone]} ${className}`}>
+      <h3 id={titleId} className="relative z-10">
+        <span
+          className={`font-display text-[21px] font-bold leading-tight tracking-[-0.01em] sm:text-[24px] ${filled ? 'text-stone' : 'text-ink'}`}
+        >
+          {title}
+        </span>
       </h3>
-      <div className="mt-3 flex flex-1 flex-col">{children}</div>
+      <div className="relative z-10 mt-3 flex flex-1 flex-col">{children}</div>
+      {art}
     </section>
   );
 }
@@ -58,6 +78,11 @@ export function Thumb({ src, size = 'h-12 w-12' }: { src?: string; size?: string
 }
 
 /** A grey bar standing in for text while a tile loads. */
-export function SkeletonLine({ className = '' }: { className?: string }) {
-  return <span aria-hidden="true" className={`block h-4 animate-pulse bg-ink/10 motion-reduce:animate-none ${className}`} />;
+export function SkeletonLine({ className = '', light = false }: { className?: string; light?: boolean }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={`block h-4 animate-pulse motion-reduce:animate-none ${light ? 'bg-stone/20' : 'bg-ink/10'} ${className}`}
+    />
+  );
 }

@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 260" fill="none" stroke="#EEEBE3" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+  <!-- A shopping bag, hand drawn: stone line on charcoal, the shop's things peeking out, a gold lucky coin as its tag. -->
+
+  <!-- Handles, behind what's in the bag -->
+  <path d="M74 120 C 70 84, 104 80, 108 118" />
+  <path d="M128 118 C 126 82, 162 80, 162 116" />
+
+  <!-- Money tree sprig -->
+  <path d="M150 104 C 152 80, 160 62, 176 44" />
+  <path d="M160 70 c 10 -10 24 -8 30 -2 c -8 10 -22 12 -30 2 z" fill="#3A3632" />
+  <path d="M168 54 c -4 -12 2 -24 12 -28 c 4 12 -2 24 -12 28 z" fill="#3A3632" />
+  <path d="M154 84 c -12 -6 -26 -2 -30 6 c 10 6 24 4 30 -6 z" fill="#3A3632" />
+
+  <!-- Crystal point -->
+  <path d="M98 108 L 104 58 L 118 40 L 130 58 L 126 108" fill="#3A3632" />
+  <path d="M104 58 L 130 58 M118 40 L 116 108" stroke-width="3" />
+
+  <!-- Candle with its flame -->
+  <path d="M64 108 L 64 64 C 64 60, 88 60, 88 64 L 88 108" fill="#3A3632" />
+  <path d="M64 66 C 70 70, 82 70, 88 66" stroke-width="3" />
+  <path d="M76 58 L 76 50" stroke-width="3" />
+  <path d="M76 48 C 68 40, 74 28, 78 22 C 84 32, 86 42, 76 48 Z" fill="#E7A93B" stroke-width="3.5" />
+
+  <!-- Bag body, slightly uneven like a pen line -->
+  <path d="M40 106 L 196 102 L 206 236 C 206 240, 204 242, 200 242 L 36 244 C 32 244, 30 242, 30 238 Z" fill="#3A3632" />
+  <path d="M40 106 L 30 238" stroke-width="3" opacity="0.5" />
+  <path d="M44 122 L 192 118" stroke-width="3" />
+
+  <!-- Lucky coin tag on a cord from the right handle -->
+  <path d="M160 118 C 164 134, 176 140, 184 150" stroke-width="3" />
+  <circle cx="190" cy="168" r="20" fill="#E7A93B" />
+  <rect x="183" y="161" width="14" height="14" fill="#3A3632" stroke-width="3.5" />
+  <path d="M176 156 q -3 5 -1 11 M204 180 q 3 -5 1 -11" stroke-width="2.5" />
+
+  <!-- A little stitched label on the bag -->
+  <path d="M60 196 L 120 194" stroke-width="3" stroke-dasharray="2 9" />
+  <path d="M60 214 L 104 213" stroke-width="3" stroke-dasharray="2 9" />
+</svg>

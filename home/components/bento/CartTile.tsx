@@ -7,13 +7,27 @@ import { useLocale } from '@/context/CurrencyContext';
 import { PillLink, TextLink } from '../homeUi';
 import { BentoTile, SignInPrompt, SkeletonLine, Thumb } from './BentoTile';
 
-/** What's in the cart: a few photos, the item count and the subtotal. */
+/** A shopping bag with the shop's things in it and a gold lucky coin tag, drawn in stone on the charcoal. */
+function CartArt() {
+  return (
+    <img
+      src="/illustrations/cart-bag.svg"
+      alt=""
+      aria-hidden="true"
+      loading="lazy"
+      className="pointer-events-none absolute -bottom-3 -right-3 h-44 w-auto sm:h-48"
+    />
+  );
+}
+
+/** What's in the cart: a few photos, the item count and the subtotal, on the charcoal tile. */
 export default function CartTile({ className }: { className?: string }) {
   const { status } = useSession();
   const { items, count, subtotal, cartLoading } = useCart();
   const { formatPrice, t } = useLocale();
   const title = t('home.tile_cart', 'Your cart');
 
+  // Guests don't get this tile on the homepage; this keeps it honest anywhere else it's used.
   if (status === 'unauthenticated') {
     return (
       <BentoTile title={title} titleId="home-tile-cart" className={className}>
@@ -26,23 +40,32 @@ export default function CartTile({ className }: { className?: string }) {
     );
   }
 
+  const tile = (children: React.ReactNode) => (
+    <BentoTile tone="charcoal" title={title} titleId="home-tile-cart" className={`min-h-[260px] ${className ?? ''}`} art={<CartArt />}>
+      {/* Leaves room for the drawing on the right. */}
+      <div className="flex max-w-[62%] flex-1 flex-col">{children}</div>
+    </BentoTile>
+  );
+
   if (status === 'loading' || cartLoading) {
-    return (
-      <BentoTile title={title} titleId="home-tile-cart" className={className}>
-        <SkeletonLine className="w-2/3" />
-        <SkeletonLine className="mt-2 w-1/3" />
-      </BentoTile>
+    return tile(
+      <>
+        <SkeletonLine light className="w-2/3" />
+        <SkeletonLine light className="mt-2 w-1/3" />
+      </>
     );
   }
 
   if (items.length === 0) {
-    return (
-      <BentoTile title={title} titleId="home-tile-cart" className={className}>
-        <p className="font-geist text-[15px] leading-relaxed text-ink-muted">{t('home.cart_empty', 'Your cart is empty.')}</p>
+    return tile(
+      <>
+        <p className="font-geist text-[15px] leading-relaxed text-stone/80">{t('home.cart_empty', 'Your cart is empty.')}</p>
         <div className="mt-auto pt-5">
-          <TextLink href="/shop">{t('home.browse_products', 'Browse all products')}</TextLink>
+          <TextLink light href="/shop">
+            {t('home.browse_products', 'Browse all products')}
+          </TextLink>
         </div>
-      </BentoTile>
+      </>
     );
   }
 
@@ -52,24 +75,26 @@ export default function CartTile({ className }: { className?: string }) {
     String(count)
   );
 
-  return (
-    <BentoTile title={title} titleId="home-tile-cart" className={className}>
+  return tile(
+    <>
       <div className="flex items-center">
         {shown.map((item, index) => (
-          <span key={item.id} className={index > 0 ? '-ml-3 ring-2 ring-stone' : 'ring-2 ring-stone'}>
+          <span key={item.id} className={index > 0 ? '-ml-3 ring-2 ring-ink-fill' : 'ring-2 ring-ink-fill'}>
             <Thumb src={item.product.images?.[0]} />
           </span>
         ))}
         {items.length > shown.length && (
-          <span className="ml-2 font-geist text-[14px] text-ink-muted tabular-nums">+{items.length - shown.length}</span>
+          <span className="ml-2 font-geist text-[14px] text-stone/80 tabular-nums">+{items.length - shown.length}</span>
         )}
       </div>
-      <p className="mt-3 font-geist text-[15px] text-ink-muted tabular-nums">
-        {itemsLabel} · <span className="font-semibold text-ink">{formatPrice(subtotal)}</span>
+      <p className="mt-3 font-geist text-[15px] text-stone/80 tabular-nums">
+        {itemsLabel} · <span className="font-semibold text-stone">{formatPrice(subtotal)}</span>
       </p>
       <div className="mt-auto pt-5">
-        <PillLink href="/cart">{t('home.view_cart', 'View cart')}</PillLink>
+        <PillLink href="/cart" variant="light">
+          {t('home.view_cart', 'View cart')}
+        </PillLink>
       </div>
-    </BentoTile>
+    </>
   );
 }

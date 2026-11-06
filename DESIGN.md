@@ -227,7 +227,7 @@ Warm neutral stone and black ink, with one small purple mark and one warm gold t
 - **Scrollbar Thumb** (#C9C3B5): the page scrollbar on a Stone track.
 
 ### Named Rules
-**The Photographs Carry The Colour Rule.** Everything that isn't a product or category photo is stone, white, or ink. If a surface needs colour to be interesting, it needs a photograph instead.
+**The Photographs Carry The Colour Rule.** Everything that isn't a product or category photo is stone, white, or ink, with one exception: a few homepage bento tiles are filled with Logo Purple or Ink Fill and carry a line illustration (see Illustrations). If any other surface needs colour to be interesting, it needs a photograph instead.
 
 **The Small Mark Rule.** Logo Purple is for the logo, avatar, count badges, column heads, hover text and the saved heart. Never a fill larger than a badge or avatar, never a button, never a background.
 
@@ -267,7 +267,7 @@ Content sits in a centred container up to 1280px wide, with 16px gutters on phon
 Every section opens with the same heading row: a 1px Ink-at-15% hairline across the full container, then the serif headline on the left and an optional underlined text link (View all, All products) on the right, baseline-aligned, 20–24px below the rule. Content starts 24–32px under the heading.
 
 - **Product and category grids:** 2 columns on phones, 4 from 768px, with 12px gaps on phones and 20px from 640px. New arrivals shows 8 products on desktop and the first 4 on phones.
-- **Bento:** 1 column on phones (account, cart, best sellers, favorites, socials); from 640px Best sellers moves to the top as a full-width shelf with the other four tiles 2 by 2 below; from 1024px those four sit in one row of 4 and the shelf shows 4 products at 4:3. 16px gaps.
+- **Bento:** 1 column on phones (account, cart, best sellers, favorites, socials); from 640px Best sellers moves to the top as a full-width shelf with the other four tiles 2 by 2 below; from 1024px those four sit in one row of 4 and the shelf shows 4 products at 4:3. 16px gaps. Guests (and while the session loads) see only Best sellers and the socials tile: stacked on phones and tablets, side by side from 1024px with Best sellers spanning three columns.
 - **Breakpoints:** 640px (gutters, type step), 768px (navbar switches to desktop, grids go to 4), 1024px (bento goes to 4).
 - **Navbar:** 64px tall on phones, 72px from 768px, sharing the 1280px container.
 
@@ -323,6 +323,11 @@ Rules are hairlines: 1px Ink at 15% above section headings, card price rows and 
 
 ### Bento Tile
 *`home/components/bento/`.* The same box as the product card: sharp corners, a 1px Ink-at-25% outline, the page showing through, and 20px / 24px padding; serif title, then content that pushes its action to the bottom. Guests see a reason line in Ink Muted and a sharp 48px button (Ink Fill in Profile, a 1px Ink outline in Cart and Favorites). Photos and thumbnails are sharp on Veil Bottom; social platform rows are sharp with an Ink-at-15% outline, the platform's own full-colour icon, and a faint white hover. Loading shows pulsing Ink-at-10% bars.
+
+- **Filled tiles:** two tiles break the outline for rhythm, each with sharp corners and an illustration. *Follow along* is filled Logo Purple: stone title, platform rows with a Stone-at-30% outline, each brand icon on a small stone square, and three neighbours drawn along the bottom edge. *Your cart* (signed in) is filled Ink Fill: stone title and text at 80%, a stone *View cart* block with an ink label, thumbnails ringed in the fill, a hand-drawn shopping bag bottom right (a candle, a crystal and a money tree sprig peeking out, a gold lucky coin as its tag); the content keeps to the left 62% so it never runs under the drawing.
+
+### Illustrations
+*`public/illustrations/`, credits in `CREDITS.md`.* Hand-drawn line art in one voice: Open Peeps figures (CC0) rendered to static SVG, plus objects from the shop's world drawn in the same line (the cart's shopping bag with its lucky coin tag). People appear only where the tile is about people (socials); a tile about a thing shows the thing. Lines are Stone on a filled tile and Ink on the page; the only fills are the tile colour, Gold for coins and charms, and the drawing's own blocks. Illustrations are decorative (`aria-hidden`, empty alt), never carry information, and sit only on filled bento tiles for now. New drawings use the same stroke weight and these colours; no gradients, no shadows, no rounded tile corners around them.
 
 ### Navigation
 *`components/Header.tsx`, `components/nav/`.*
