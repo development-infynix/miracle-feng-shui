@@ -7,18 +7,7 @@ import { downloadStandaloneTaxInvoice } from '@/lib/invoice';
 import { ProductLink } from '@/shop/components/ProductDrawerProvider';
 import CancelOrderModal from './CancelOrderModal';
 import RefundSubmittedModal from './RefundSubmittedModal';
-import {
-  card,
-  FormError,
-  primaryButton,
-  primaryLabel,
-  skeleton,
-  smallButton,
-  smallLabel,
-  focusRing,
-  textButton,
-  textLabel,
-} from './profileUi';
+import { FormError, skeleton } from './profileUi';
 
 const FALLBACK_IMAGE = '/images/miracle.jpeg';
 export const SUPPORT_EMAIL = 'care@miraclefengshui.com';
@@ -58,6 +47,14 @@ export interface CustomerOrder {
   shopName: string;
   items: OrderItem[];
 }
+
+// Stone & Gold: the same sharp, lightly outlined box as the product card.
+const box = 'border border-ink/25';
+const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink';
+const action = `group inline-flex h-10 min-w-[96px] shrink-0 items-center justify-center gap-2 border px-4 ${focusRing}`;
+const actionLabel = 'font-geist text-[14px] font-semibold';
+const linkButton = `group cursor-pointer ${focusRing}`;
+const linkLabel = 'font-geist text-[14px] font-semibold text-ink underline decoration-[1.5px] underline-offset-[5px] transition-colors group-hover:text-logo-purple';
 
 const RED_STATUSES = ['CANCELLATION_REQUESTED', 'CANCELLATION_APPROVED', 'CANCELLED'];
 
@@ -124,20 +121,20 @@ function OrderCard({
   };
 
   return (
-    <li className="rounded-lg bg-white shadow-[0_6px_10px_rgba(67,23,105,0.14)]">
-      <div className="space-y-2 border-b border-[#431769]/15 p-4 sm:px-6">
+    <li className={box}>
+      <div className="space-y-2.5 border-b border-ink/15 p-4 sm:p-5">
         <div className="flex items-start justify-between gap-x-6">
           <div className="min-w-0">
-            <p className="font-outfit text-[15px] font-semibold text-[#111111]">
+            <p className="font-display text-[16px] font-bold leading-tight text-ink sm:text-[21px]">
               {t('profile.order', 'Order')} #{order.orderNumber}
             </p>
-            <p className="font-outfit text-[13px] text-[#5B4A70]">{order.date}</p>
+            <p className="mt-0.5 font-geist text-[13px] text-ink-muted">{order.date}</p>
           </div>
-          <p className="font-outfit text-[18px] font-bold tabular-nums text-[#111111]">{formatPrice(order.total || order.totalAmount)}</p>
+          <p className="font-geist text-[18px] font-bold tabular-nums text-ink">{formatPrice(order.total || order.totalAmount)}</p>
         </div>
         {/* The status and what the customer can do about it share one line. */}
         <div className="flex items-center justify-between gap-3">
-          <p aria-live="polite" className={`flex min-w-0 items-center gap-2 font-outfit text-[14px] font-medium ${red ? 'text-[#8F1610]' : 'text-[#431769]'}`}>
+          <p aria-live="polite" className={`flex min-w-0 items-center gap-2 font-geist text-[14px] font-semibold ${red ? 'text-[#8F1610]' : 'text-ink'}`}>
             <i aria-hidden="true" className={`${status.icon} text-[13px]`} />
             {status.key ? t(status.key, status.label) : status.label}
           </p>
@@ -146,9 +143,9 @@ function OrderCard({
               type="button"
               onClick={onCancel}
               aria-label={`${t('profile.cancel_order', 'Cancel')}: ${t('profile.order', 'Order')} #${order.orderNumber}`}
-              className={`group inline-flex h-10 min-w-[96px] shrink-0 cursor-pointer items-center justify-center rounded-md border border-[#8F1610]/40 px-4 ${focusRing}`}
+              className={`${action} cursor-pointer border-[#8F1610]/50 transition-colors hover:bg-[#8F1610]/5`}
             >
-              <span className="font-outfit text-[14px] font-semibold text-[#8F1610] transition-colors group-hover:text-[#5E0E0A]">
+              <span className={`${actionLabel} text-[#8F1610]`}>
                 {t('profile.cancel_order', 'Cancel')}
               </span>
             </button>
@@ -159,9 +156,9 @@ function OrderCard({
               disabled={requesting}
               onClick={() => void requestRefund()}
               aria-label={`${t('profile.refund', 'Refund')}: ${t('profile.order', 'Order')} #${order.orderNumber}`}
-              className={`group inline-flex h-10 min-w-[96px] shrink-0 cursor-pointer items-center justify-center rounded-md border border-[#D9A400] bg-[#FFF3C4] px-4 disabled:cursor-not-allowed disabled:opacity-60 ${focusRing}`}
+              className={`${action} cursor-pointer border-[#D9A400] bg-[#FFF3C4] transition-colors hover:bg-[#FFEAA0] disabled:cursor-not-allowed disabled:opacity-60`}
             >
-              <span className="font-outfit text-[14px] font-semibold text-[#5C4300] transition-colors group-hover:text-[#3D2C00]">
+              <span className={`${actionLabel} text-[#5C4300]`}>
                 {requesting ? t('profile.refund_sending', 'Sending…') : t('profile.refund', 'Refund')}
               </span>
             </button>
@@ -170,10 +167,10 @@ function OrderCard({
             <button
               type="button"
               disabled
-              className="inline-flex h-10 min-w-[96px] shrink-0 cursor-not-allowed items-center justify-center gap-2 rounded-md border border-[#D9A400]/60 bg-[#FFF9E3] px-4"
+              className={`${action} cursor-not-allowed border-[#D9A400]/60 bg-[#FFF9E3]`}
             >
               <i aria-hidden="true" className="fa-regular fa-clock text-[13px] text-[#5C4300]" />
-              <span className="font-outfit text-[14px] font-semibold text-[#5C4300]">
+              <span className={`${actionLabel} text-[#5C4300]`}>
                 {order.refund.status === 'PROCESSING' ? t('profile.refund_processing_short', 'Processing') : t('profile.cancel_pending', 'Pending')}
               </span>
             </button>
@@ -182,15 +179,15 @@ function OrderCard({
             <button
               type="button"
               disabled
-              className="inline-flex h-10 min-w-[96px] shrink-0 cursor-not-allowed items-center justify-center gap-2 rounded-md border border-[#431769]/25 bg-[#EEEBE3] px-4"
+              className={`${action} cursor-not-allowed border-ink/20`}
             >
-              <i aria-hidden="true" className="fa-regular fa-clock text-[13px] text-[#5B4A70]" />
-              <span className="font-outfit text-[14px] font-semibold text-[#5B4A70]">{t('profile.cancel_pending', 'Pending')}</span>
+              <i aria-hidden="true" className="fa-regular fa-clock text-[13px] text-ink-muted" />
+              <span className={`${actionLabel} text-ink-muted`}>{t('profile.cancel_pending', 'Pending')}</span>
             </button>
           )}
         </div>
         {order.refund && (
-          <p aria-live="polite" className="flex items-center gap-2 font-outfit text-[14px] font-medium text-[#5C4300]">
+          <p aria-live="polite" className="flex items-center gap-2 font-geist text-[14px] font-medium text-[#5C4300]">
             <i aria-hidden="true" className={`${order.refund.status === 'PROCESSED' ? 'fa-solid fa-circle-check' : 'fa-regular fa-clock'} text-[13px]`} />
             {order.refund.status === 'PROCESSED'
               ? t('profile.refunded', '{amount} refunded').replace('{amount}', formatPrice(order.refund.amount))
@@ -201,25 +198,25 @@ function OrderCard({
         )}
         {refundError && <FormError>{refundError}</FormError>}
         {order.cancellationDeclined && (
-          <p className="w-full font-outfit text-[13px] text-[#5B4A70]">
+          <p className="w-full font-geist text-[13px] text-ink-muted">
             {t('profile.cancel_declined', "Your cancellation request wasn't approved.")}
           </p>
         )}
         {order.tracking && (
-          <p className="w-full font-outfit text-[13px] text-[#2B1A3F]">
+          <p className="w-full font-geist text-[13px] text-ink">
             {order.tracking.courier ? `${order.tracking.courier}: ` : `${t('profile.tracking', 'Tracking')}: `}
             <span className="font-medium tabular-nums">{order.tracking.number}</span>
           </p>
         )}
       </div>
 
-      <ul className="list-none divide-y divide-[#431769]/15 px-4 sm:px-6">
+      <ul className="list-none divide-y divide-ink/15 px-4 sm:px-5">
         {order.items.map((item, index) => {
           const title = item.title || item.name || item.productName || '';
           const productRef = item.productId || item.slug;
           return (
             <li key={item.id || index} className="grid grid-cols-[64px_minmax(0,1fr)] items-center gap-3 py-4 sm:grid-cols-[72px_minmax(0,1fr)_auto] sm:gap-4">
-              <ProductLink product={productRef} aria-hidden="true" tabIndex={-1} className="block overflow-hidden rounded-md bg-[#F3ECFB]">
+              <ProductLink product={productRef} aria-hidden="true" tabIndex={-1} className="block overflow-hidden bg-[#E2DDD1]">
                 <img
                   src={item.image || FALLBACK_IMAGE}
                   alt=""
@@ -231,30 +228,29 @@ function OrderCard({
                 />
               </ProductLink>
               <div className="min-w-0">
-                <ProductLink product={productRef} className={`group block w-fit rounded-sm ${focusRing}`}>
-                  <span className="line-clamp-2 font-outfit text-[15px] font-semibold leading-snug text-[#111111] transition-colors group-hover:text-[#7A2FC0]">
+                <ProductLink product={productRef} className={`group block w-fit ${focusRing}`}>
+                  <span className="line-clamp-2 font-geist text-[15px] font-semibold leading-snug text-ink transition-colors group-hover:text-logo-purple">
                     {title}
                   </span>
                 </ProductLink>
-                <p className="mt-0.5 font-outfit text-[13px] tabular-nums text-[#5B4A70]">
+                <p className="mt-0.5 font-geist text-[13px] tabular-nums text-ink-muted">
                   {formatPrice(item.price * (item.quantity || 1))} · {t('profile.qty', 'Qty')} {item.quantity || 1}
                 </p>
               </div>
-              <ProductLink product={productRef} className={`${smallButton} col-span-2 sm:col-span-1`}>
-                <span className={smallLabel}>{t('cart.view_item', 'View item')}</span>
-                <i aria-hidden="true" className="fa-solid fa-angles-right text-[13px] text-[#431769] transition-colors group-hover:text-[#7A2FC0]" />
+              <ProductLink product={productRef} className={`${action} col-span-2 border-ink-fill bg-ink-fill transition-shadow duration-300 hover:shadow-[0_8px_22px_rgba(231,169,59,0.45)] sm:col-span-1`}>
+                <span className={`${actionLabel} text-stone`}>{t('cart.view_item', 'View item')}</span>
               </ProductLink>
             </li>
           );
         })}
       </ul>
 
-      <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-[#431769]/15 p-4 sm:px-6">
-        <button type="button" onClick={() => downloadStandaloneTaxInvoice(invoicePayload(order))} className={textButton}>
-          <span className={textLabel}>{t('profile.download_invoice', 'Download invoice')}</span>
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-ink/15 p-4 sm:px-5">
+        <button type="button" onClick={() => downloadStandaloneTaxInvoice(invoicePayload(order))} className={linkButton}>
+          <span className={linkLabel}>{t('profile.download_invoice', 'Download invoice')}</span>
         </button>
-        <a href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(`Order ${order.orderNumber}`)}`} className={textButton}>
-          <span className={textLabel}>{t('profile.order_help', 'Get help with this order')}</span>
+        <a href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(`Order ${order.orderNumber}`)}`} className={linkButton}>
+          <span className={linkLabel}>{t('profile.order_help', 'Get help with this order')}</span>
         </a>
       </div>
     </li>
@@ -288,11 +284,11 @@ export default function ProfileOrders() {
 
   if (failed && !orders) {
     return (
-      <div className={`${card} text-center`}>
-        <p role="alert" className="font-outfit text-[15px] text-[#2B1A3F]">
+      <div className={`${box} p-5 text-center`}>
+        <p role="alert" className="font-geist text-[15px] text-ink">
           {t('profile.orders_failed', "Couldn't load your orders.")}{' '}
-          <button type="button" onClick={() => void load()} className={textButton}>
-            <span className={textLabel}>{t('profile.try_again', 'Try again')}</span>
+          <button type="button" onClick={() => void load()} className={linkButton}>
+            <span className={linkLabel}>{t('profile.try_again', 'Try again')}</span>
           </button>
         </p>
       </div>
@@ -303,7 +299,7 @@ export default function ProfileOrders() {
     return (
       <div aria-busy="true" className="space-y-4">
         {[0, 1].map((n) => (
-          <div key={n} className={`${card} space-y-3`}>
+          <div key={n} className={`${box} space-y-3 p-5`}>
             <div className={`${skeleton} h-4 w-1/3`} />
             <div className={`${skeleton} h-16 w-full`} />
           </div>
@@ -314,17 +310,17 @@ export default function ProfileOrders() {
 
   if (orders.length === 0) {
     return (
-      <div className={`${card} py-12 text-center`}>
+      <div className={`${box} px-5 py-12 text-center`}>
         <h2>
-          <span className="block font-serif text-[24px] font-bold tracking-tight text-[#111111]">
+          <span className="block font-display text-[24px] font-bold tracking-tight text-ink">
             {t('profile.no_orders', 'No orders yet')}
           </span>
         </h2>
-        <p className="mx-auto mt-2 max-w-[42ch] font-outfit text-[15px] leading-relaxed text-[#5B4A70]">
+        <p className="mx-auto mt-2 max-w-[42ch] font-geist text-[15px] leading-relaxed text-ink-muted">
           {t('profile.no_orders_hint', 'When you place an order, you can follow it here and get your invoice.')}
         </p>
-        <Link href="/shop" className={`${primaryButton} mt-5`}>
-          <span className={primaryLabel}>{t('product.browse', 'Browse products')}</span>
+        <Link href="/shop" className={`mt-5 inline-flex h-12 items-center justify-center bg-ink-fill px-6 transition-shadow duration-300 hover:shadow-[0_10px_28px_rgba(231,169,59,0.45)] ${focusRing}`}>
+          <span className="font-geist text-[15px] font-semibold text-stone">{t('product.browse', 'Browse products')}</span>
         </Link>
       </div>
     );

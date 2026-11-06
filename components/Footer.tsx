@@ -9,7 +9,7 @@ import type { NavCategory } from '@/lib/nav-categories';
 import { FACEBOOK_URL, INSTAGRAM_URL } from '@/lib/social-links';
 import { translateCategory } from '@/lib/translations';
 
-const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#141210]';
+const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ink';
 const socialLink = `group flex h-9 w-9 items-center justify-center rounded-full ${focusRing}`;
 const socialIcon = 'h-6 w-6 transition-opacity group-hover:opacity-75';
 
@@ -21,7 +21,7 @@ function FooterLink({ href, label, onClick }: {
   return (
     <li>
       <Link href={href} onClick={onClick} className={`group flex min-h-9 w-fit items-center rounded-md py-1 ${focusRing}`}>
-        <span className="font-geist text-[15px] font-medium leading-snug text-[#141210] transition-colors group-hover:text-[#431769]">
+        <span className="font-geist text-[15px] font-medium leading-snug text-ink transition-colors group-hover:text-logo-purple">
           {label}
         </span>
       </Link>
@@ -33,7 +33,7 @@ function FooterGroup({ title, className, children }: { title: string; className?
   return (
     <div className={className}>
       <h3>
-        <span className="block pb-1.5 font-geist text-[13px] font-semibold text-[#431769]">{title}</span>
+        <span className="block pb-1.5 font-geist text-[13px] font-semibold text-logo-purple">{title}</span>
       </h3>
       <ul className="list-none">{children}</ul>
     </div>
@@ -75,7 +75,7 @@ export function Footer({ categories }: { categories: NavCategory[] }) {
             {/* The spacing is on a wrapper because a global heading rule overrides margins on h2. */}
             <div className="mt-4">
               <h2>
-                <span className="block max-w-[22ch] font-display text-[24px] font-normal leading-tight tracking-tight text-[#141210] [text-wrap:balance]">
+                <span className="block max-w-[22ch] font-display text-[24px] font-normal leading-tight tracking-tight text-ink [text-wrap:balance]">
                   {t('footer.tagline', 'Feng shui decor, jewelry, candles, crystals and books.')}
                 </span>
               </h2>
@@ -115,7 +115,7 @@ export function Footer({ categories }: { categories: NavCategory[] }) {
           </FooterGroup>
         </div>
 
-        <div className="mt-8 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-[#141210]/15 pt-4 font-geist text-[13px] text-[#5E5A52] sm:mt-10">
+        <div className="mt-8 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-ink/15 pt-4 font-geist text-[13px] text-ink-muted sm:mt-10">
           <p>
             © {new Date().getFullYear()} Miracle feng shui. {t('footer.all_rights', 'All rights reserved.')}
           </p>
@@ -131,7 +131,7 @@ export function Footer({ categories }: { categories: NavCategory[] }) {
             lengthAdjust="spacingAndGlyphs"
             fontSize="136"
             fontWeight="700"
-            className="fill-[#141210]/[0.07] font-serif"
+            className="fill-ink/[0.07] font-serif"
           >
             Miracle feng shui
           </text>

@@ -124,6 +124,25 @@ function SiteHeader({
       ? `${t("nav.cart", "Cart")} (${count})`
       : t("nav.cart", "Cart");
 
+  // The cart icon with its count. `display` sets where it shows: "flex" everywhere, or tablet and up only.
+  const cartLink = (display: string) => (
+    <Link
+      href="/cart"
+      aria-label={cartLabel}
+      className={`group ${mobileIcon} ${display}`}
+    >
+      <i
+        aria-hidden="true"
+        className="fa-solid fa-cart-shopping text-[17px] text-ink transition-colors group-hover:text-logo-purple"
+      />
+      {count > 0 && (
+        <span className={`${navBadge} absolute -right-0.5 -top-0.5`}>
+          {count}
+        </span>
+      )}
+    </Link>
+  );
+
   return (
     <>
       <header
@@ -168,20 +187,25 @@ function SiteHeader({
           </nav>
 
           <div className="ml-auto flex items-center justify-end gap-0.5 md:ml-0 md:flex-1 md:gap-1.5">
-            <button
-              type="button"
-              onClick={() => setSearchOpen(true)}
-              aria-label={t("nav.search", "Search")}
-              className={`${navItem} hidden md:inline-flex`}
-            >
-              <i
-                aria-hidden="true"
-                className="fa-solid fa-magnifying-glass text-[15px] text-ink transition-colors group-hover:text-logo-purple"
-              />
-              <span className={`${navLabel} hidden lg:inline`}>
-                {t("nav.search", "Search")}
-              </span>
-            </button>
+            {/* The shop page has its own search bar, so the cart takes the search's place, before Favorites. */}
+            {onShopPage && userLoggedIn && cartLink("flex")}
+            {/* The shop page has its own search bar, so the navbar's search stays out of the way there. */}
+            {!onShopPage && (
+              <button
+                type="button"
+                onClick={() => setSearchOpen(true)}
+                aria-label={t("nav.search", "Search")}
+                className={`${navItem} hidden md:inline-flex`}
+              >
+                <i
+                  aria-hidden="true"
+                  className="fa-solid fa-magnifying-glass text-[15px] text-ink transition-colors group-hover:text-logo-purple"
+                />
+                <span className={`${navLabel} hidden lg:inline`}>
+                  {t("nav.search", "Search")}
+                </span>
+              </button>
+            )}
 
             {userLoggedIn ? (
               <Link
@@ -207,18 +231,20 @@ function SiteHeader({
               </button>
             )}
 
-            {/* Phones: only search and favorites sit in the bar; everything else is in the menu. */}
-            <button
-              type="button"
-              onClick={() => setSearchOpen(true)}
-              aria-label={t("nav.search", "Search")}
-              className={`${mobileIcon} md:hidden`}
-            >
-              <i
-                aria-hidden="true"
-                className="fa-solid fa-magnifying-glass text-[17px] text-ink"
-              />
-            </button>
+            {/* Phones: only search (the cart on the shop page) and favorites sit in the bar; everything else is in the menu. */}
+            {!onShopPage && (
+              <button
+                type="button"
+                onClick={() => setSearchOpen(true)}
+                aria-label={t("nav.search", "Search")}
+                className={`${mobileIcon} md:hidden`}
+              >
+                <i
+                  aria-hidden="true"
+                  className="fa-solid fa-magnifying-glass text-[17px] text-ink"
+                />
+              </button>
+            )}
             {userLoggedIn ? (
               <Link
                 href="/profile?tab=favorites"
@@ -248,21 +274,8 @@ function SiteHeader({
                 />
               </button>
             )}
-            <Link
-              href="/cart"
-              aria-label={cartLabel}
-              className={`group ${mobileIcon} hidden md:flex`}
-            >
-              <i
-                aria-hidden="true"
-                className="fa-solid fa-cart-shopping text-[17px] text-ink transition-colors group-hover:text-logo-purple"
-              />
-              {userLoggedIn && count > 0 && (
-                <span className={`${navBadge} absolute -right-0.5 -top-0.5`}>
-                  {count}
-                </span>
-              )}
-            </Link>
+            {/* Only signed-in customers have a cart. On the shop page it sits before Favorites instead. */}
+            {userLoggedIn && !onShopPage && cartLink("hidden md:flex")}
 
             {userLoggedIn && (
               <span className="ml-1 hidden md:block">
@@ -305,17 +318,19 @@ function SiteHeader({
           favoritesCount={favorites.length}
           cartCount={userLoggedIn ? count : 0}
           onClose={closeMobileMenu}
-          onSearch={() => setSearchOpen(true)}
+          onSearch={onShopPage ? undefined : () => setSearchOpen(true)}
           onSignIn={openSignIn}
           onSignOut={handleSignOut}
         />
       </div>
 
-      <GeneralSearchModal
-        open={searchOpen}
-        onClose={() => setSearchOpen(false)}
-        categories={navCategories}
-      />
+      {!onShopPage && (
+        <GeneralSearchModal
+          open={searchOpen}
+          onClose={() => setSearchOpen(false)}
+          categories={navCategories}
+        />
+      )}
 
       <AuthModal
         open={showAuthModal}

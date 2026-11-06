@@ -52,7 +52,7 @@ export default function FavoritesTile({ className }: { className?: string }) {
       <ul className="grid list-none grid-cols-4 gap-2">
         {favorites.slice(0, SHOWN).map((product) => (
           <li key={product.id}>
-            <ProductLink product={product} aria-label={product.name} className={`block rounded-[6px] ${focusRing}`}>
+            <ProductLink product={product} aria-label={product.name} className={`block ${focusRing}`}>
               <Thumb src={product.images?.[0]} size="aspect-square w-full" />
             </ProductLink>
           </li>

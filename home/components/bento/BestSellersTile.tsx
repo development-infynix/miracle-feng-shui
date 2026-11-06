@@ -20,8 +20,8 @@ export default function BestSellersTile({ products, className }: { products: Pro
             const name = translateProductTitle(product.name, language, product.id);
             return (
               <li key={product.id} className="min-w-0">
-                <ProductLink product={product} className={`group block rounded-[6px] ${focusRing}`}>
-                  <span className="block aspect-square overflow-hidden rounded-[6px] bg-stone lg:aspect-[16/10]">
+                <ProductLink product={product} className={`group block ${focusRing}`}>
+                  <span className="block aspect-square overflow-hidden bg-[#E2DDD1] lg:aspect-[16/10]">
                     <img
                       src={product.images[0] || '/images/miracle.jpeg'}
                       alt=""

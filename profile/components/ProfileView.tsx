@@ -21,7 +21,6 @@ export interface CustomerProfile {
 }
 
 const TABS: ProfileTab[] = ['settings', 'favorites', 'orders'];
-const glass = 'glass-veil rounded-lg shadow-[0_6px_10px_rgba(67,23,105,0.14),inset_0_-3px_5px_rgba(67,23,105,0.1)]';
 
 const parseTab = (value: string | null): ProfileTab => (TABS.includes(value as ProfileTab) ? (value as ProfileTab) : 'settings');
 
@@ -86,35 +85,38 @@ export default function ProfileView() {
       <h1 className="sr-only">{t('profile.title', 'Your profile')}</h1>
 
       <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[300px_minmax(0,1fr)] lg:gap-8">
-        <aside className="space-y-3 lg:sticky" style={{ top: headerHeight + 16 }}>
-          <div className={`${glass} p-5`}>
+        <aside className="space-y-4 lg:sticky" style={{ top: headerHeight + 16 }}>
+          {/* Same card as the product card: sharp corners, a light outline and the page showing through. */}
+          <div className="border border-ink/25 p-4 sm:p-5">
             {profile ? (
               <div className="flex items-center gap-4 lg:block">
-                <p aria-hidden="true" className="font-serif text-[40px] font-bold leading-none tracking-tight text-[#431769] lg:text-[64px]">
+                <span
+                  aria-hidden="true"
+                  className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-logo-purple font-display text-[22px] font-bold text-white lg:h-20 lg:w-20 lg:text-[30px]"
+                >
                   {initialsOf(profile.name)}
-                </p>
+                </span>
                 <div className="min-w-0 lg:mt-4">
-                  <p className="truncate font-serif text-[20px] font-bold leading-tight tracking-tight text-[#111111] lg:text-[22px]">{profile.name}</p>
-                  <p className="mt-1 flex items-center gap-2 font-outfit text-[13px] text-[#2B1A3F]">
-                    <i aria-hidden="true" className="fa-regular fa-envelope text-[12px] text-[#431769]" />
-                    <span className="min-w-0 truncate">{profile.email}</span>
-                  </p>
-                  <p className="mt-1 font-outfit text-[12px] text-[#5B4A70]">
+                  <p className="truncate font-display text-[20px] font-bold leading-tight tracking-tight text-ink lg:text-[24px]">{profile.name}</p>
+                  <p className="mt-1 truncate font-geist text-[14px] text-ink-muted">{profile.email}</p>
+                  <p className="mt-0.5 font-geist text-[13px] text-ink-muted">
                     {t('profile.joined', 'Joined {date}').replace('{date}', joined)}
                   </p>
                 </div>
               </div>
             ) : (
-              <div aria-busy="true" className="space-y-2.5">
-                <div className={`${skeleton} h-10 w-16`} />
-                <div className={`${skeleton} h-4 w-2/3`} />
-                <div className={`${skeleton} h-3 w-5/6`} />
+              <div aria-busy="true" className="flex items-center gap-4 lg:block">
+                <div className={`${skeleton} h-14 w-14 rounded-full lg:h-20 lg:w-20`} />
+                <div className="flex-1 space-y-2 lg:mt-4">
+                  <div className={`${skeleton} h-5 w-2/3`} />
+                  <div className={`${skeleton} h-3.5 w-5/6`} />
+                </div>
               </div>
             )}
           </div>
 
-          {/* Desktop: rows under the identity card. Phones use the fixed bar below instead. */}
-          <nav aria-label={t('profile.title', 'Your profile')} className="hidden gap-3 lg:grid">
+          {/* Desktop: the tabs as rows in one outlined box under the identity card. Phones use the fixed bar below instead. */}
+          <nav aria-label={t('profile.title', 'Your profile')} className="hidden divide-y divide-ink/15 border border-ink/25 lg:grid">
             {menu.map(({ id, label, icon }) => {
               const selected = tab === id;
               return (
@@ -123,13 +125,12 @@ export default function ProfileView() {
                   type="button"
                   aria-current={selected ? 'page' : undefined}
                   onClick={() => openTab(id)}
-                  className={`${glass} group flex h-14 cursor-pointer items-center justify-between px-5 ${focusRing}`}
+                  className={`group flex h-12 cursor-pointer items-center gap-3 px-5 transition-colors ${selected ? 'bg-ink-fill' : 'hover:bg-white/60'} ${focusRing}`}
                 >
-                  <span className={`flex min-w-0 items-center gap-3 font-outfit text-[15px] font-semibold transition-colors group-hover:text-[#7A2FC0] ${selected ? 'text-[#7A2FC0]' : 'text-[#111111]'}`}>
-                    <i aria-hidden="true" className={`${icon} text-[14px]`} />
-                    <span className="truncate">{label}</span>
+                  <i aria-hidden="true" className={`${icon} w-4 text-center text-[14px] ${selected ? 'text-stone' : 'text-ink-muted transition-colors group-hover:text-logo-purple'}`} />
+                  <span className={`truncate font-geist text-[15px] font-semibold ${selected ? 'text-stone' : 'text-ink transition-colors group-hover:text-logo-purple'}`}>
+                    {label}
                   </span>
-                  <i aria-hidden="true" className={`fa-solid fa-chevron-right text-[12px] transition-[color,transform] duration-200 group-hover:translate-x-0.5 group-hover:text-[#7A2FC0] motion-reduce:transition-none ${selected ? 'text-[#7A2FC0]' : 'text-[#5B4A70]'}`} />
                 </button>
               );
             })}
@@ -169,12 +170,12 @@ export default function ProfileView() {
         </div>
       </div>
 
-      {/* Phones: the menus stay in reach, fixed to the bottom of the screen. */}
+      {/* Phones: the tabs stay in reach, as sharp blocks in a stone bar fixed to the bottom of the screen. */}
       <nav
         aria-label={t('profile.title', 'Your profile')}
-        className="glass-veil fixed inset-x-0 bottom-0 z-50 grid grid-cols-3 gap-1.5 px-2 pb-[max(8px,env(safe-area-inset-bottom))] pt-2 shadow-[0_-6px_10px_rgba(67,23,105,0.14),inset_0_2px_0_rgba(255,255,255,0.7)] lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-50 grid grid-cols-3 gap-1.5 border-t border-ink/15 bg-stone/95 px-3 pb-[max(10px,env(safe-area-inset-bottom))] pt-2.5 backdrop-blur-md lg:hidden"
       >
-        {menu.map(({ id, label }) => {
+        {menu.map(({ id, label, icon }) => {
           const selected = tab === id;
           return (
             <button
@@ -182,11 +183,10 @@ export default function ProfileView() {
               type="button"
               aria-current={selected ? 'page' : undefined}
               onClick={() => openTab(id)}
-              className={`group flex h-12 min-w-0 cursor-pointer items-center justify-center rounded-md px-1 ${selected ? 'bg-[#431769]' : ''} ${focusRing}`}
+              className={`group flex h-11 min-w-0 cursor-pointer items-center justify-center gap-2 px-2 transition-colors ${selected ? 'bg-ink-fill' : ''} ${focusRing}`}
             >
-              <span className={`truncate font-outfit text-[14px] font-semibold ${selected ? 'text-white' : 'text-[#111111] transition-colors group-hover:text-[#7A2FC0]'}`}>
-                {label}
-              </span>
+              <i aria-hidden="true" className={`${icon} text-[13px] ${selected ? 'text-stone' : 'text-ink-muted'}`} />
+              <span className={`truncate font-geist text-[14px] font-semibold ${selected ? 'text-stone' : 'text-ink'}`}>{label}</span>
             </button>
           );
         })}

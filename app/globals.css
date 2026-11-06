@@ -8,6 +8,8 @@
   --color-stone: #EEEBE3;
   --color-ink: #141210;
   --color-ink-muted: #5E5A52;
+  /* Solid fills (buttons, selected tabs, photo labels): a warm charcoal, softer than ink text. */
+  --color-ink-fill: #3A3632;
   --color-gold: #E7A93B;
   --color-logo-purple: #431769;
   --color-etsy-orange: #F1641E;

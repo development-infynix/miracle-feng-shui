@@ -8,9 +8,9 @@ import Link from 'next/link';
 export const CONTAINER = 'mx-auto w-full max-w-[1280px] px-4 sm:px-6';
 export const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#141210]';
 
-const pillBase = `group inline-flex h-12 shrink-0 items-center justify-center rounded-full px-6 transition-[background-color,box-shadow] duration-300 ${focusRing}`;
-const pillPrimary = `${pillBase} bg-ink hover:shadow-[0_10px_28px_rgba(231,169,59,0.45)]`;
-const pillOutline = `${pillBase} border-[1.5px] border-ink hover:bg-white`;
+const pillBase = `group inline-flex h-12 shrink-0 items-center justify-center px-6 transition-[background-color,box-shadow] duration-300 ${focusRing}`;
+const pillPrimary = `${pillBase} bg-ink-fill hover:shadow-[0_10px_28px_rgba(231,169,59,0.45)]`;
+const pillOutline = `${pillBase} border border-ink hover:bg-white/60`;
 const pillText = 'font-geist text-[15px] font-semibold leading-none';
 
 /** A black or outline pill that links somewhere. */
@@ -66,7 +66,7 @@ export function SectionHeading({
 export function TextLink({ href, children }: { href: string; children: React.ReactNode }) {
   return (
     <Link href={href} className={`group shrink-0 rounded-sm ${focusRing}`}>
-      <span className="font-geist text-[15px] font-semibold text-ink underline decoration-[1.5px] underline-offset-[6px] transition-colors group-hover:decoration-gold">
+      <span className="font-geist text-[15px] font-semibold text-ink underline decoration-[1.5px] underline-offset-[6px] transition-colors group-hover:text-logo-purple">
         {children}
       </span>
     </Link>

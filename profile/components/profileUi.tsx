@@ -1,22 +1,22 @@
 import React from 'react';
 
-export const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#3A1F62]';
-export const card = 'rounded-lg bg-white p-5 shadow-[0_6px_10px_rgba(67,23,105,0.14)] sm:p-6';
-export const primaryButton = `inline-flex h-12 cursor-pointer items-center justify-center rounded-md bg-[#431769] px-6 transition-colors hover:bg-[#3A1F62] disabled:cursor-not-allowed disabled:opacity-50 ${focusRing}`;
-export const secondaryButton = `group inline-flex h-12 cursor-pointer items-center justify-center rounded-md border border-[#431769] px-5 disabled:cursor-not-allowed disabled:opacity-50 ${focusRing}`;
-export const smallButton = `group inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-md border border-[#431769]/30 px-3.5 ${focusRing}`;
+export const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ink';
+export const card = 'border border-ink/25 p-5 sm:p-6';
+export const primaryButton = `inline-flex h-12 cursor-pointer items-center justify-center bg-ink-fill px-6 transition-shadow duration-300 hover:shadow-[0_8px_22px_rgba(231,169,59,0.45)] disabled:cursor-not-allowed disabled:opacity-50 ${focusRing}`;
+export const secondaryButton = `group inline-flex h-12 cursor-pointer items-center justify-center border border-ink px-5 disabled:cursor-not-allowed disabled:opacity-50 ${focusRing}`;
+export const smallButton = `group inline-flex h-10 cursor-pointer items-center justify-center gap-2 border border-ink/30 px-3.5 ${focusRing}`;
 export const textButton = `group cursor-pointer rounded-sm disabled:cursor-not-allowed disabled:opacity-50 ${focusRing}`;
-export const primaryLabel = 'font-outfit text-[15px] font-semibold text-white';
-export const secondaryLabel = 'font-outfit text-[15px] font-semibold text-[#431769] transition-colors group-hover:text-[#7A2FC0]';
-export const smallLabel = 'font-outfit text-[14px] font-semibold text-[#431769] transition-colors group-hover:text-[#7A2FC0]';
-export const textLabel = 'font-outfit text-[14px] font-medium text-[#431769] underline underline-offset-2 transition-colors group-hover:text-[#7A2FC0]';
-export const skeleton = 'animate-pulse rounded-sm bg-[#431769]/10 motion-reduce:animate-none';
+export const primaryLabel = 'font-geist text-[15px] font-semibold text-stone';
+export const secondaryLabel = 'font-geist text-[15px] font-semibold text-ink transition-colors group-hover:text-logo-purple';
+export const smallLabel = 'font-geist text-[14px] font-semibold text-ink transition-colors group-hover:text-logo-purple';
+export const textLabel = 'font-geist text-[14px] font-medium text-ink underline underline-offset-2 transition-colors group-hover:text-logo-purple';
+export const skeleton = 'animate-pulse bg-ink/10 motion-reduce:animate-none';
 
 export function CardHeading({ children, action }: { children: React.ReactNode; action?: React.ReactNode }) {
   return (
     <div className="flex min-h-10 items-center justify-between gap-3">
       <h2>
-        <span className="block font-serif text-[22px] font-bold tracking-tight text-[#111111]">{children}</span>
+        <span className="block font-display text-[22px] font-bold tracking-tight text-ink">{children}</span>
       </h2>
       {action}
     </div>
@@ -27,8 +27,8 @@ export function CardHeading({ children, action }: { children: React.ReactNode; a
 export function Detail({ label, value, className = '' }: { label: string; value: React.ReactNode; className?: string }) {
   return (
     <div className={className}>
-      <dt className="font-outfit text-[13px] text-[#5B4A70]">{label}</dt>
-      <dd className="mt-0.5 break-words font-outfit text-[16px] font-medium text-[#111111]">{value}</dd>
+      <dt className="font-geist text-[13px] text-ink-muted">{label}</dt>
+      <dd className="mt-0.5 break-words font-geist text-[16px] font-medium text-ink">{value}</dd>
     </div>
   );
 }
@@ -46,7 +46,7 @@ type FieldProps = React.InputHTMLAttributes<HTMLInputElement> & {
 export const Field = React.forwardRef<HTMLInputElement, FieldProps>(function Field({ label, id, hint, action, inside, className = '', ...input }, ref) {
   return (
     <div className={className}>
-      <label htmlFor={id} className="block font-outfit text-[13px] font-semibold text-[#431769]">
+      <label htmlFor={id} className="block font-geist text-[13px] font-semibold text-ink">
         {label}
       </label>
       <div className="mt-1.5 flex items-center gap-2">
@@ -58,14 +58,14 @@ export const Field = React.forwardRef<HTMLInputElement, FieldProps>(function Fie
             aria-describedby={hint ? `${id}-hint` : undefined}
             // Replaces the site-wide outline with the field's own focus ring.
             style={{ outline: 'none' }}
-            className={`h-12 w-full rounded-md border border-[#431769]/25 bg-white pl-4 ${inside ? 'pr-12' : 'pr-4'} font-outfit text-[16px] text-[#111111] caret-[#7A2FC0] transition-[border-color,box-shadow] placeholder:text-[#5B4A70] focus:border-[#7A2FC0] focus:shadow-[0_0_0_3px_rgba(122,47,192,0.18)] disabled:cursor-not-allowed disabled:bg-[#EEEBE3] disabled:text-[#5B4A70]`}
+            className={`h-12 w-full border border-ink/25 bg-white pl-4 ${inside ? 'pr-12' : 'pr-4'} font-geist text-[16px] text-ink caret-ink transition-[border-color,box-shadow] placeholder:text-ink-muted focus:border-ink focus:shadow-[0_0_0_3px_rgba(20,18,16,0.12)] disabled:cursor-not-allowed disabled:bg-[#EEEBE3] disabled:text-ink-muted`}
           />
           {inside && <div className="absolute inset-y-0 end-1 flex items-center">{inside}</div>}
         </div>
         {action}
       </div>
       {hint && (
-        <p id={`${id}-hint`} className="mt-1 font-outfit text-[13px] text-[#5B4A70]">
+        <p id={`${id}-hint`} className="mt-1 font-geist text-[13px] text-ink-muted">
           {hint}
         </p>
       )}
@@ -75,7 +75,7 @@ export const Field = React.forwardRef<HTMLInputElement, FieldProps>(function Fie
 
 export function FormError({ children }: { children: React.ReactNode }) {
   return (
-    <p role="alert" className="font-outfit text-[14px] font-medium text-[#8F1610]">
+    <p role="alert" className="font-geist text-[14px] font-medium text-[#8F1610]">
       {children}
     </p>
   );
@@ -83,7 +83,7 @@ export function FormError({ children }: { children: React.ReactNode }) {
 
 export function FormSuccess({ children }: { children: React.ReactNode }) {
   return (
-    <p role="status" className="flex items-center gap-2 font-outfit text-[14px] font-medium text-[#431769]">
+    <p role="status" className="flex items-center gap-2 font-geist text-[14px] font-medium text-ink">
       <i aria-hidden="true" className="fa-solid fa-check text-[12px]" />
       {children}
     </p>

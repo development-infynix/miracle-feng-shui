@@ -26,7 +26,7 @@ export default function SocialsTile({ className }: { className?: string }) {
               href={platform.url}
               target="_blank"
               rel="noopener noreferrer"
-              className={`group flex items-center gap-3 rounded-[8px] bg-stone p-3 transition-colors hover:bg-[#E5E1D6] ${focusRing}`}
+              className={`group flex items-center gap-3 border border-ink/15 p-3 transition-colors hover:bg-white/60 ${focusRing}`}
             >
               <img src={platform.icon} alt="" className="h-8 w-8 shrink-0" />
               <span className="min-w-0 flex-1">

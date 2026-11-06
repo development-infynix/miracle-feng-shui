@@ -56,7 +56,7 @@ export default function CartTile({ className }: { className?: string }) {
     <BentoTile title={title} titleId="home-tile-cart" className={className}>
       <div className="flex items-center">
         {shown.map((item, index) => (
-          <span key={item.id} className={index > 0 ? '-ml-3 rounded-[8px] ring-2 ring-white' : 'rounded-[8px] ring-2 ring-white'}>
+          <span key={item.id} className={index > 0 ? '-ml-3 ring-2 ring-stone' : 'ring-2 ring-stone'}>
             <Thumb src={item.product.images?.[0]} />
           </span>
         ))}

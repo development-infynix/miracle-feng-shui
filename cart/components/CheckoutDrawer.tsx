@@ -15,11 +15,11 @@ import { isCartItemBlocked } from './cartStock';
 import { openRazorpay, type RazorpaySuccess } from './razorpayCheckout';
 
 const FALLBACK_IMAGE = '/images/miracle.jpeg';
-const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#3A1F62]';
-const sectionTitle = 'block font-outfit text-[13px] font-semibold text-[#431769]';
+const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ink';
+const sectionTitle = 'block font-geist text-[13px] font-semibold text-ink';
 const textLink = `group cursor-pointer rounded-sm ${focusRing}`;
-const textLinkLabel = 'font-outfit text-[14px] font-medium text-[#431769] underline underline-offset-2 transition-colors group-hover:text-[#7A2FC0]';
-const skeleton = 'animate-pulse rounded-sm bg-[#431769]/10 motion-reduce:animate-none';
+const textLinkLabel = 'font-geist text-[14px] font-medium text-ink underline underline-offset-2 transition-colors group-hover:text-logo-purple';
+const skeleton = 'animate-pulse rounded-sm bg-ink/10 motion-reduce:animate-none';
 
 type PaymentChoice = 'online' | 'cod';
 
@@ -46,7 +46,7 @@ function ChoiceRow({ name, checked, disabled, onChange, children, action }: {
   action?: React.ReactNode;
 }) {
   return (
-    <div className={`relative rounded-md border bg-white/55 transition-colors ${checked ? 'border-[#7A2FC0]' : 'border-white/70'}`}>
+    <div className={`relative border bg-white/55 transition-colors ${checked ? 'border-ink' : 'border-white/70'}`}>
       <label className={`flex items-start gap-3 p-3 ${action ? 'pr-16' : ''} ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
         <input
           type="radio"
@@ -54,7 +54,7 @@ function ChoiceRow({ name, checked, disabled, onChange, children, action }: {
           checked={checked}
           disabled={disabled}
           onChange={onChange}
-          className="mt-0.5 h-[18px] w-[18px] shrink-0 cursor-[inherit] accent-[#431769]"
+          className="mt-0.5 h-[18px] w-[18px] shrink-0 cursor-[inherit] accent-[#3A3632]"
         />
         <span className="min-w-0 flex-1">{children}</span>
       </label>
@@ -249,7 +249,7 @@ export default function CheckoutDrawer({ open, onClose }: CheckoutDrawerProps) {
         <div
           aria-hidden="true"
           onClick={close}
-          className={`absolute inset-0 bg-[#2B154C]/25 backdrop-blur-md transition-opacity duration-300 motion-reduce:transition-none ${slidIn ? 'opacity-100' : 'opacity-0'}`}
+          className={`absolute inset-0 bg-[#141210]/25 backdrop-blur-md transition-opacity duration-300 motion-reduce:transition-none ${slidIn ? 'opacity-100' : 'opacity-0'}`}
         />
 
         <aside
@@ -261,11 +261,11 @@ export default function CheckoutDrawer({ open, onClose }: CheckoutDrawerProps) {
           aria-modal="true"
           aria-label={t('checkout.drawer_title', 'Checkout')}
           aria-busy={processing}
-          className={`glass-veil absolute inset-y-0 right-0 flex w-full max-w-[520px] flex-col overflow-hidden shadow-[-6px_0_24px_rgba(67,23,105,0.18),inset_2px_0_2px_rgba(255,255,255,0.7)] transition-transform duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${slidIn ? 'translate-x-0' : 'translate-x-full'}`}
+          className={`glass-veil absolute inset-y-0 right-0 flex w-full max-w-[520px] flex-col overflow-hidden shadow-[-6px_0_24px_rgba(20,18,16,0.18),inset_2px_0_2px_rgba(255,255,255,0.7)] transition-transform duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${slidIn ? 'translate-x-0' : 'translate-x-full'}`}
         >
           <header className="flex h-16 shrink-0 items-center justify-between gap-3 pl-6 pr-3">
             <h2>
-              <span className="block font-serif text-[24px] font-bold tracking-tight text-[#111111]">{t('checkout.drawer_title', 'Checkout')}</span>
+              <span className="block font-display text-[24px] font-bold tracking-tight text-ink">{t('checkout.drawer_title', 'Checkout')}</span>
             </h2>
             <button
               type="button"
@@ -274,7 +274,7 @@ export default function CheckoutDrawer({ open, onClose }: CheckoutDrawerProps) {
               onClick={close}
               className={`group flex h-10 w-10 cursor-pointer items-center justify-center rounded-full disabled:cursor-not-allowed disabled:opacity-40 ${focusRing}`}
             >
-              <i aria-hidden="true" className="fa-solid fa-xmark text-[18px] text-[#111111] transition-colors group-hover:text-[#7A2FC0]" />
+              <i aria-hidden="true" className="fa-solid fa-xmark text-[18px] text-ink transition-colors group-hover:text-logo-purple" />
             </button>
           </header>
 
@@ -291,7 +291,7 @@ export default function CheckoutDrawer({ open, onClose }: CheckoutDrawerProps) {
 
               <div className="mt-2 space-y-2">
                 {addressesFailed && !addresses && (
-                  <p role="alert" className="font-outfit text-[14px] text-[#2B1A3F]">
+                  <p role="alert" className="font-geist text-[14px] text-ink">
                     {t('profile.addresses_failed', "Couldn't load your addresses.")}{' '}
                     <button type="button" onClick={() => setAttempt((value) => value + 1)} className={textLink}>
                       <span className={textLinkLabel}>{t('profile.try_again', 'Try again')}</span>
@@ -300,21 +300,21 @@ export default function CheckoutDrawer({ open, onClose }: CheckoutDrawerProps) {
                 )}
 
                 {!addresses && !addressesFailed && (
-                  <div aria-busy="true" className="space-y-2 rounded-md bg-white/55 p-3">
+                  <div aria-busy="true" className="space-y-2 bg-white/55 p-3">
                     <div className={`${skeleton} h-4 w-1/3`} />
                     <div className={`${skeleton} h-4 w-5/6`} />
                   </div>
                 )}
 
                 {addresses?.length === 0 && (
-                  <div className="rounded-md bg-white/55 p-4 text-center">
-                    <p className="font-outfit text-[14px] text-[#2B1A3F]">{t('checkout.no_address', 'Add a delivery address to place your order.')}</p>
+                  <div className="bg-white/55 p-4 text-center">
+                    <p className="font-geist text-[14px] text-ink">{t('checkout.no_address', 'Add a delivery address to place your order.')}</p>
                     <button
                       type="button"
                       onClick={() => openAddressDrawer(null)}
-                      className={`mt-3 inline-flex h-11 cursor-pointer items-center rounded-md bg-[#431769] px-5 transition-colors hover:bg-[#3A1F62] ${focusRing}`}
+                      className={`mt-3 inline-flex h-11 cursor-pointer items-center bg-ink-fill px-5 transition-colors hover:shadow-[0_8px_22px_rgba(231,169,59,0.45)] ${focusRing}`}
                     >
-                      <span className="font-outfit text-[14px] font-semibold text-white">{t('profile.add_address', 'Add address')}</span>
+                      <span className="font-geist text-[14px] font-semibold text-white">{t('profile.add_address', 'Add address')}</span>
                     </button>
                   </div>
                 )}
@@ -338,36 +338,36 @@ export default function CheckoutDrawer({ open, onClose }: CheckoutDrawerProps) {
                       </button>
                     }
                   >
-                    <span className="block font-outfit text-[14px] font-semibold text-[#111111]">
+                    <span className="block font-geist text-[14px] font-semibold text-ink">
                       {address.name}
-                      <span className="ml-2 font-medium text-[#5B4A70]">{t(`profile.type_${address.type.toLowerCase()}`, address.type)}</span>
+                      <span className="ml-2 font-medium text-ink-muted">{t(`profile.type_${address.type.toLowerCase()}`, address.type)}</span>
                     </span>
-                    <span className="mt-0.5 block font-outfit text-[13px] leading-snug text-[#2B1A3F]">
+                    <span className="mt-0.5 block font-geist text-[13px] leading-snug text-ink">
                       {[address.line1, address.line2, address.city, `${address.state} ${address.pincode}`].filter(Boolean).join(', ')}
                     </span>
-                    <span className="mt-0.5 block font-outfit text-[13px] tabular-nums text-[#5B4A70]">{address.phone}</span>
+                    <span className="mt-0.5 block font-geist text-[13px] tabular-nums text-ink-muted">{address.phone}</span>
                   </ChoiceRow>
                 ))}
               </div>
             </section>
 
-            <section aria-labelledby="checkout-payment" className="border-t border-[#431769]/15 pt-4">
+            <section aria-labelledby="checkout-payment" className="border-t border-ink/15 pt-4">
               <h3 id="checkout-payment"><span className={sectionTitle}>{t('checkout.payment', 'Payment')}</span></h3>
               <div className="mt-2 space-y-2">
                 <ChoiceRow name="checkout-payment" checked={payment === 'online'} disabled={processing} onChange={() => setPayment('online')}>
-                  <span className="block font-outfit text-[14px] font-semibold text-[#111111]">{t('checkout.pay_online', 'Pay online')}</span>
-                  <span className="block font-outfit text-[13px] text-[#5B4A70]">{t('checkout.pay_online_hint', 'Card or UPI, handled securely by Razorpay')}</span>
+                  <span className="block font-geist text-[14px] font-semibold text-ink">{t('checkout.pay_online', 'Pay online')}</span>
+                  <span className="block font-geist text-[13px] text-ink-muted">{t('checkout.pay_online_hint', 'Card or UPI, handled securely by Razorpay')}</span>
                 </ChoiceRow>
                 <ChoiceRow name="checkout-payment" checked={payment === 'cod'} disabled={processing || !COD_ENABLED} onChange={() => setPayment('cod')}>
-                  <span className={`block font-outfit text-[14px] font-semibold ${COD_ENABLED ? 'text-[#111111]' : 'text-[#5B4A70]'}`}>{t('checkout.pay_cod', 'Cash on delivery')}</span>
-                  <span className="block font-outfit text-[13px] text-[#5B4A70]">
+                  <span className={`block font-geist text-[14px] font-semibold ${COD_ENABLED ? 'text-ink' : 'text-ink-muted'}`}>{t('checkout.pay_cod', 'Cash on delivery')}</span>
+                  <span className="block font-geist text-[13px] text-ink-muted">
                     {COD_ENABLED ? t('checkout.cod_hint', 'Pay when your order arrives') : t('checkout.cod_unavailable', 'Not available right now')}
                   </span>
                 </ChoiceRow>
               </div>
             </section>
 
-            <section aria-labelledby="checkout-summary" className="border-t border-[#431769]/15 pt-4">
+            <section aria-labelledby="checkout-summary" className="border-t border-ink/15 pt-4">
               <h3 id="checkout-summary"><span className={sectionTitle}>{t('cart.order_summary', 'Order Summary')}</span></h3>
               <ul className="mt-2 list-none space-y-2.5">
                 {items.map((item) => (
@@ -375,31 +375,31 @@ export default function CheckoutDrawer({ open, onClose }: CheckoutDrawerProps) {
                     <img
                       src={item.product.images[0] || FALLBACK_IMAGE}
                       alt=""
-                      className="h-12 w-12 rounded-md bg-white/50 object-cover"
+                      className="h-12 w-12 bg-white/50 object-cover"
                       onError={(e) => {
                         const image = e.currentTarget;
                         if (!image.src.endsWith(FALLBACK_IMAGE)) image.src = FALLBACK_IMAGE;
                       }}
                     />
                     <div className="min-w-0">
-                      <p className="truncate font-outfit text-[14px] font-medium text-[#111111]">
+                      <p className="truncate font-geist text-[14px] font-medium text-ink">
                         {translateProductTitle(item.product.name, language, item.product.id)}
                       </p>
-                      <p className="font-outfit text-[13px] tabular-nums text-[#5B4A70]">{t('profile.qty', 'Qty')} {item.quantity}</p>
+                      <p className="font-geist text-[13px] tabular-nums text-ink-muted">{t('profile.qty', 'Qty')} {item.quantity}</p>
                       {isCartItemBlocked(item) && (
-                        <p className="font-outfit text-[13px] font-medium text-[#8F1610]">
+                        <p className="font-geist text-[13px] font-medium text-[#8F1610]">
                           {item.product.stock === 0
                             ? t('shop.out_of_stock', 'Out of stock')
                             : t('shop.only_left', 'Only {count} left').replace('{count}', String(item.product.stock))}
                         </p>
                       )}
                     </div>
-                    <p className="font-outfit text-[14px] font-semibold tabular-nums text-[#111111]">{formatPrice(item.product.price * item.quantity)}</p>
+                    <p className="font-geist text-[14px] font-semibold tabular-nums text-ink">{formatPrice(item.product.price * item.quantity)}</p>
                   </li>
                 ))}
               </ul>
 
-              <dl className="mt-3 space-y-1.5 border-t border-[#431769]/15 pt-3 font-outfit text-[14px] tabular-nums text-[#111111]">
+              <dl className="mt-3 space-y-1.5 border-t border-ink/15 pt-3 font-geist text-[14px] tabular-nums text-ink">
                 <div className="flex justify-between gap-3">
                   <dt>{t('cart.items_subtotal', 'Items')} ({itemsLabel})</dt>
                   <dd className="font-medium">{formatPrice(subtotal)}</dd>
@@ -410,47 +410,47 @@ export default function CheckoutDrawer({ open, onClose }: CheckoutDrawerProps) {
                 </div>
               </dl>
 
-              <p className="mt-3 flex items-center gap-2.5 rounded-md bg-white/55 p-3 font-outfit text-[14px] font-medium text-[#111111]">
-                <i aria-hidden="true" className="fa-solid fa-truck-fast text-[14px] text-[#431769]" />
+              <p className="mt-3 flex items-center gap-2.5 bg-white/55 p-3 font-geist text-[14px] font-medium text-ink">
+                <i aria-hidden="true" className="fa-solid fa-truck-fast text-[14px] text-ink" />
                 {t('checkout.expected_delivery', 'Expected delivery within 7 days')}
               </p>
               {chargedInOtherCurrency && (
-                <p className="mt-2 font-outfit text-[13px] leading-snug text-[#2B1A3F]">
+                <p className="mt-2 font-geist text-[13px] leading-snug text-ink">
                   {t('checkout.charged_in_inr', 'You will be charged ₹{amount} in Indian rupees. The final amount may vary slightly with your bank’s exchange rate.').replace('{amount}', subtotal.toLocaleString('en-IN'))}
                 </p>
               )}
-              <p className="mt-2 font-outfit text-[13px] text-[#5B4A70]">
+              <p className="mt-2 font-geist text-[13px] text-ink-muted">
                 {t('checkout.agree_prefix', 'By placing your order, you agree to our')}{' '}
-                <Link href="/terms" className={textLink}><span className="font-medium text-[#431769] underline underline-offset-2 transition-colors group-hover:text-[#7A2FC0]">{t('footer.terms', 'Terms & Conditions')}</span></Link>{' '}
+                <Link href="/terms" className={textLink}><span className="font-medium text-ink underline underline-offset-2 transition-colors group-hover:text-logo-purple">{t('footer.terms', 'Terms & Conditions')}</span></Link>{' '}
                 {t('checkout.agree_and', 'and')}{' '}
-                <Link href="/return-policy" className={textLink}><span className="font-medium text-[#431769] underline underline-offset-2 transition-colors group-hover:text-[#7A2FC0]">{t('checkout.return_policy', 'Return Policy')}</span></Link>.
+                <Link href="/return-policy" className={textLink}><span className="font-medium text-ink underline underline-offset-2 transition-colors group-hover:text-logo-purple">{t('checkout.return_policy', 'Return Policy')}</span></Link>.
               </p>
             </section>
           </div>
 
-          <footer className="shrink-0 border-t border-[#431769]/15 px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-3 sm:px-6">
+          <footer className="shrink-0 border-t border-ink/15 px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-3 sm:px-6">
             {error && (
-              <p role="alert" className="mb-3 font-outfit text-[14px] font-medium text-[#8F1610]">
+              <p role="alert" className="mb-3 font-geist text-[14px] font-medium text-[#8F1610]">
                 {error}
               </p>
             )}
             {!error && blocked && (
-              <p role="alert" className="mb-3 font-outfit text-[14px] font-medium text-[#8F1610]">
+              <p role="alert" className="mb-3 font-geist text-[14px] font-medium text-[#8F1610]">
                 {t('checkout.fix_stock', 'Some items are no longer available in that quantity. Close this and update your cart to continue.')}
               </p>
             )}
             <div className="flex items-center justify-between gap-4">
-              <p className="min-w-0 font-outfit tabular-nums text-[#111111]">
-                <span className="block text-[12px] text-[#5B4A70]">{t('product.total', 'Total')}</span>
+              <p className="min-w-0 font-geist tabular-nums text-ink">
+                <span className="block text-[12px] text-ink-muted">{t('product.total', 'Total')}</span>
                 <span className="block truncate text-[22px] font-bold leading-tight">{formatPrice(subtotal)}</span>
               </p>
               <button
                 type="button"
                 disabled={!canSubmit}
                 onClick={() => void placeOrder()}
-                className={`h-12 shrink-0 cursor-pointer rounded-md bg-[#431769] px-8 transition-colors hover:bg-[#3A1F62] disabled:cursor-not-allowed disabled:opacity-50 ${focusRing}`}
+                className={`h-12 shrink-0 cursor-pointer bg-ink-fill px-8 transition-colors hover:shadow-[0_8px_22px_rgba(231,169,59,0.45)] disabled:cursor-not-allowed disabled:opacity-50 ${focusRing}`}
               >
-                <span aria-live="polite" className="font-outfit text-[15px] font-semibold text-white">{submitLabel}</span>
+                <span aria-live="polite" className="font-geist text-[15px] font-semibold text-white">{submitLabel}</span>
               </button>
             </div>
           </footer>

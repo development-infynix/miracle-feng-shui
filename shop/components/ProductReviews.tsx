@@ -19,8 +19,8 @@ type ReviewsPage = {
 };
 
 const MIN_COMMENT_LENGTH = 3;
-const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#3A1F62]';
-const sectionLabel = 'block font-outfit text-[13px] font-semibold text-[#431769]';
+const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ink';
+const sectionLabel = 'block font-geist text-[13px] font-semibold text-ink';
 
 async function fetchReviews(productId: string, page: number, signal?: AbortSignal) {
   const res = await fetch(`/api/products/${encodeURIComponent(productId)}/reviews?page=${page}`, { signal });
@@ -101,7 +101,7 @@ export function StarRating({ rating, className = '', label }: { rating: number; 
   const rounded = Math.round(Math.max(0, Math.min(5, rating)) * 2) / 2;
   return (
     <div
-      className={`flex items-center gap-0.5 text-[#431769] ${className}`}
+      className={`flex items-center gap-0.5 text-ink ${className}`}
       {...(label ? { role: 'img', 'aria-label': label } : { 'aria-hidden': true })}
     >
       {[1, 2, 3, 4, 5].map((star) => {
@@ -168,7 +168,7 @@ function ReviewForm({ productId, onSaved, onCancel }: {
 
   return (
     <form onSubmit={submit} noValidate className="space-y-4 text-left">
-      {error && <p role="alert" className="font-outfit text-[14px] text-[#8F1610]">{error}</p>}
+      {error && <p role="alert" className="font-geist text-[14px] text-[#8F1610]">{error}</p>}
 
       <fieldset>
         <legend className={sectionLabel}>{t('product.review_your_rating', 'Your rating')}</legend>
@@ -177,7 +177,7 @@ function ReviewForm({ productId, onSaved, onCancel }: {
             <label
               key={star}
               onMouseEnter={() => setHovered(star)}
-              className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-md has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-[#3A1F62]"
+              className="flex h-10 w-10 cursor-pointer items-center justify-center has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ink"
             >
               <input
                 ref={star === 1 ? firstStar : undefined}
@@ -189,7 +189,7 @@ function ReviewForm({ productId, onSaved, onCancel }: {
                 aria-label={t('product.rating_out_of', '{rating} out of 5').replace('{rating}', String(star))}
                 className="sr-only"
               />
-              <i aria-hidden="true" className={`${star <= shownRating ? 'fa-solid' : 'fa-regular'} fa-star text-[20px] text-[#431769]`} />
+              <i aria-hidden="true" className={`${star <= shownRating ? 'fa-solid' : 'fa-regular'} fa-star text-[20px] text-ink`} />
             </label>
           ))}
         </div>
@@ -203,7 +203,7 @@ function ReviewForm({ productId, onSaved, onCancel }: {
           value={comment}
           onChange={(e) => setComment(e.target.value)}
           style={{ outline: 'none' }}
-          className="mt-2 block w-full resize-y rounded-md border border-white/70 bg-white/55 px-4 py-3 font-outfit text-[16px] text-[#111111] caret-[#7A2FC0] transition-[border-color,box-shadow] focus:border-[#7A2FC0] focus:shadow-[0_0_0_3px_rgba(122,47,192,0.18)]"
+          className="mt-2 block w-full resize-y border border-white/70 bg-white/55 px-4 py-3 font-geist text-[16px] text-ink caret-ink transition-[border-color,box-shadow] focus:border-ink focus:shadow-[0_0_0_3px_rgba(20,18,16,0.12)]"
         />
       </div>
 
@@ -211,14 +211,14 @@ function ReviewForm({ productId, onSaved, onCancel }: {
         <button
           type="submit"
           disabled={saving}
-          className={`h-12 min-w-0 flex-1 cursor-pointer rounded-md bg-[#431769] px-4 transition-colors hover:bg-[#3A1F62] disabled:cursor-wait disabled:opacity-60 ${focusRing}`}
+          className={`h-12 min-w-0 flex-1 cursor-pointer bg-ink-fill px-4 transition-colors hover:shadow-[0_8px_22px_rgba(231,169,59,0.45)] disabled:cursor-wait disabled:opacity-60 ${focusRing}`}
         >
-          <span className="font-outfit text-[15px] font-semibold text-white">
+          <span className="font-geist text-[15px] font-semibold text-white">
             {saving ? t('product.review_saving', 'Submitting…') : t('product.review_submit', 'Submit review')}
           </span>
         </button>
         <button type="button" onClick={onCancel} className={`group h-12 shrink-0 cursor-pointer px-3 ${focusRing}`}>
-          <span className="font-outfit text-[15px] font-semibold text-[#431769] transition-colors group-hover:text-[#7A2FC0]">
+          <span className="font-geist text-[15px] font-semibold text-ink transition-colors group-hover:text-logo-purple">
             {t('product.review_cancel', 'Cancel')}
           </span>
         </button>
@@ -253,16 +253,16 @@ export function ProductReviewList({ state, productId, signedIn, guest, onSignIn 
       }}
     />
   ) : submitted ? (
-    <p role="status" className="font-outfit text-[14px] font-medium text-[#2B1A3F]">
+    <p role="status" className="font-geist text-[14px] font-medium text-ink">
       {t('product.review_thanks', 'Thanks! Your review has been added.')}
     </p>
   ) : guest ? (
-    <button type="button" onClick={onSignIn} className={`h-12 cursor-pointer rounded-md bg-[#431769] px-6 transition-colors hover:bg-[#3A1F62] ${focusRing}`}>
-      <span className="font-outfit text-[15px] font-semibold text-white">{t('product.login_to_review', 'Login to add review')}</span>
+    <button type="button" onClick={onSignIn} className={`h-12 cursor-pointer bg-ink-fill px-6 transition-colors hover:shadow-[0_8px_22px_rgba(231,169,59,0.45)] ${focusRing}`}>
+      <span className="font-geist text-[15px] font-semibold text-white">{t('product.login_to_review', 'Login to add review')}</span>
     </button>
   ) : signedIn ? (
-    <button type="button" onClick={() => setWriting(true)} className={`h-12 cursor-pointer rounded-md bg-[#431769] px-6 transition-colors hover:bg-[#3A1F62] ${focusRing}`}>
-      <span className="font-outfit text-[15px] font-semibold text-white">{t('product.add_review', 'Add review')}</span>
+    <button type="button" onClick={() => setWriting(true)} className={`h-12 cursor-pointer bg-ink-fill px-6 transition-colors hover:shadow-[0_8px_22px_rgba(231,169,59,0.45)] ${focusRing}`}>
+      <span className="font-geist text-[15px] font-semibold text-white">{t('product.add_review', 'Add review')}</span>
     </button>
   ) : null;
 
@@ -271,9 +271,9 @@ export function ProductReviewList({ state, productId, signedIn, guest, onSignIn 
       <div aria-busy="true" className="space-y-5">
         {[0, 1, 2].map((row) => (
           <div key={row} className="space-y-2">
-            <div className="h-3 w-40 animate-pulse rounded-sm bg-[#431769]/10 motion-reduce:animate-none" />
-            <div className="h-3 w-full animate-pulse rounded-sm bg-[#431769]/10 motion-reduce:animate-none" />
-            <div className="h-3 w-3/4 animate-pulse rounded-sm bg-[#431769]/10 motion-reduce:animate-none" />
+            <div className="h-3 w-40 animate-pulse rounded-sm bg-ink/10 motion-reduce:animate-none" />
+            <div className="h-3 w-full animate-pulse rounded-sm bg-ink/10 motion-reduce:animate-none" />
+            <div className="h-3 w-3/4 animate-pulse rounded-sm bg-ink/10 motion-reduce:animate-none" />
           </div>
         ))}
       </div>
@@ -287,11 +287,11 @@ export function ProductReviewList({ state, productId, signedIn, guest, onSignIn 
           {!writing && (
             <div className="mx-auto mb-5 max-w-[36ch]">
               <h3>
-                <span className="block font-serif text-[22px] font-bold text-[#111111]">
+                <span className="block font-display text-[22px] font-bold text-ink">
                   {t('product.no_reviews', 'No reviews yet')}
                 </span>
               </h3>
-              <p className="mt-2 font-outfit text-[14px] leading-relaxed text-[#2B1A3F]">
+              <p className="mt-2 font-geist text-[14px] leading-relaxed text-ink">
                 {t('product.reviews_empty_hint', 'Be the first to review this product.')}
               </p>
             </div>
@@ -300,10 +300,10 @@ export function ProductReviewList({ state, productId, signedIn, guest, onSignIn 
         </div>
       )}
 
-      {total !== null && total > 0 && <div className="border-b border-[#431769]/15 pb-4">{reviewAction}</div>}
+      {total !== null && total > 0 && <div className="border-b border-ink/15 pb-4">{reviewAction}</div>}
 
       {reviews.length > 0 && (
-        <ul className="divide-y divide-[#431769]/15">
+        <ul className="divide-y divide-ink/15">
           {reviews.map((review) => (
             <li key={review.id} className="space-y-1.5 py-4 first:pt-0">
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -312,21 +312,21 @@ export function ProductReviewList({ state, productId, signedIn, guest, onSignIn 
                   className="text-[12px]"
                   label={t('product.rating_out_of', '{rating} out of 5').replace('{rating}', String(review.rating))}
                 />
-                <span className="font-outfit text-[14px] font-semibold text-[#111111]">{review.author}</span>
-                <span className="font-outfit text-[12px] tabular-nums text-[#5B4A70]">{review.date}</span>
+                <span className="font-geist text-[14px] font-semibold text-ink">{review.author}</span>
+                <span className="font-geist text-[12px] tabular-nums text-ink-muted">{review.date}</span>
               </div>
-              {review.productVariation && <p className="font-outfit text-[12px] text-[#5B4A70]">{review.productVariation}</p>}
-              <p className="whitespace-pre-line font-outfit text-[15px] leading-relaxed text-[#2B1A3F]">{review.comment}</p>
+              {review.productVariation && <p className="font-geist text-[12px] text-ink-muted">{review.productVariation}</p>}
+              <p className="whitespace-pre-line font-geist text-[15px] leading-relaxed text-ink">{review.comment}</p>
             </li>
           ))}
         </ul>
       )}
 
       {failed && (
-        <p role="alert" className="py-4 text-center font-outfit text-[14px] text-[#2B1A3F]">
+        <p role="alert" className="py-4 text-center font-geist text-[14px] text-ink">
           {t('product.reviews_error', "Couldn't load reviews.")}{' '}
           <button type="button" onClick={retry} className={`group cursor-pointer ${focusRing}`}>
-            <span className="font-outfit text-[14px] font-semibold text-[#431769] underline underline-offset-2 transition-colors group-hover:text-[#7A2FC0]">
+            <span className="font-geist text-[14px] font-semibold text-ink underline underline-offset-2 transition-colors group-hover:text-logo-purple">
               {t('product.reviews_retry', 'Try again')}
             </span>
           </button>
@@ -339,9 +339,9 @@ export function ProductReviewList({ state, productId, signedIn, guest, onSignIn 
             type="button"
             onClick={() => void loadMore()}
             disabled={loading}
-            className={`group h-11 cursor-pointer rounded-md border border-[#431769]/30 px-5 disabled:cursor-wait disabled:opacity-60 ${focusRing}`}
+            className={`group h-11 cursor-pointer border border-ink/30 px-5 disabled:cursor-wait disabled:opacity-60 ${focusRing}`}
           >
-            <span className="font-outfit text-[14px] font-semibold text-[#431769] transition-colors group-hover:text-[#7A2FC0]">
+            <span className="font-geist text-[14px] font-semibold text-ink transition-colors group-hover:text-logo-purple">
               {loading ? t('shop.loading_more', 'Loading…') : t('product.reviews_load_more', 'Load more reviews')}
             </span>
           </button>

@@ -1,117 +1,186 @@
 ---
 name: Miracle Feng Shui
-description: A storefront for feng shui decor, jewelry, candles, crystals and books, with navigation made of liquid glass.
+description: A storefront for feng shui decor, jewelry, candles, crystals and books, set in black ink on warm stone.
 colors:
-  royal-amethyst: "#431769"
-  deep-plum: "#3A1F62"
-  awakened-violet: "#7A2FC0"
-  lilac-mist: "#F3ECFB"
-  lilac-depth: "#DCCDF0"
-  thread-lilac: "#E6DBF3"
-  ink: "#111111"
-  dusk-plum: "#2B1A3F"
-  muted-plum: "#5B4A70"
-  veil-plum: "#2B154C"
-  page-white: "#FFFFFF"
-  page-ground: "#F7F4EC"
+  stone: "#EEEBE3"
+  ink: "#141210"
+  ink-muted: "#5E5A52"
+  ink-fill: "#3A3632"
+  logo-purple: "#431769"
+  gold: "#E7A93B"
+  veil-top: "#FBFAF6"
+  veil-bottom: "#E2DDD1"
+  tile-white: "#FFFFFF"
+  selection-wash: "#F3DDA8"
+  scrollbar-thumb: "#C9C3B5"
 typography:
+  display:
+    fontFamily: "Charis SIL, Charter, Cambria, Georgia, serif"
+    fontSize: "96px"
+    fontWeight: 700
+    lineHeight: 0.96
+    letterSpacing: "-0.03em"
+  headline:
+    fontFamily: "Charis SIL, Charter, Cambria, Georgia, serif"
+    fontSize: "36px"
+    fontWeight: 700
+    lineHeight: 1.25
+    letterSpacing: "-0.02em"
+  title:
+    fontFamily: "Charis SIL, Charter, Cambria, Georgia, serif"
+    fontSize: "24px"
+    fontWeight: 700
+    lineHeight: 1.25
+    letterSpacing: "-0.01em"
   wordmark:
-    fontFamily: "Charter, 'Charter Bitstream', Cambria, Georgia, serif"
+    fontFamily: "Charis SIL, Charter, Cambria, Georgia, serif"
     fontSize: "21px"
     fontWeight: 700
     lineHeight: 1
     letterSpacing: "-0.025em"
+  body:
+    fontFamily: "Geist, Helvetica Neue, Arial, sans-serif"
+    fontSize: "15px"
+    fontWeight: 400
+    lineHeight: 1.625
   nav-label:
-    fontFamily: "Outfit, sans-serif"
-    fontSize: "14px"
-    fontWeight: 500
-    letterSpacing: "0.01em"
-  menu-row:
-    fontFamily: "Outfit, sans-serif"
+    fontFamily: "Geist, Helvetica Neue, Arial, sans-serif"
     fontSize: "15px"
     fontWeight: 500
-  input:
-    fontFamily: "Outfit, sans-serif"
-    fontSize: "16px"
-    fontWeight: 500
-  section-label:
-    fontFamily: "Outfit, sans-serif"
+  button-label:
+    fontFamily: "Geist, Helvetica Neue, Arial, sans-serif"
+    fontSize: "15px"
+    fontWeight: 600
+    lineHeight: 1
+  card-name:
+    fontFamily: "Geist, Helvetica Neue, Arial, sans-serif"
+    fontSize: "15px"
+    fontWeight: 600
+    lineHeight: 1.375
+  card-price:
+    fontFamily: "Geist, Helvetica Neue, Arial, sans-serif"
+    fontSize: "17px"
+    fontWeight: 700
+    fontFeature: "\"tnum\""
+  caption:
+    fontFamily: "Geist, Helvetica Neue, Arial, sans-serif"
+    fontSize: "13px"
+    fontWeight: 400
+  column-head:
+    fontFamily: "Geist, Helvetica Neue, Arial, sans-serif"
     fontSize: "13px"
     fontWeight: 600
-  caption:
-    fontFamily: "Outfit, sans-serif"
-    fontSize: "12px"
-    fontWeight: 400
-  card-title:
-    fontFamily: "Outfit, sans-serif"
-    fontSize: "16px"
-    fontWeight: 600
-  card-price:
-    fontFamily: "Outfit, sans-serif"
-    fontSize: "18px"
-    fontWeight: 700
-  image-label:
-    fontFamily: "Outfit, sans-serif"
+  photo-label:
+    fontFamily: "Geist, Helvetica Neue, Arial, sans-serif"
     fontSize: "11px"
     fontWeight: 600
+    lineHeight: 1
+    fontFeature: "\"tnum\""
+  badge:
+    fontFamily: "Geist, Helvetica Neue, Arial, sans-serif"
+    fontSize: "11px"
+    fontWeight: 600
+    lineHeight: 1
+    fontFeature: "\"tnum\""
 rounded:
-  thumbnail: "6px"
-  card: "8px"
-  row: "16px"
-  panel: "28px"
+  sharp: "0px"
+  label: "2px"
+  thumb: "6px"
+  inset: "8px"
+  tile: "10px"
+  panel: "14px"
   pill: "9999px"
 spacing:
-  thread-gap: "24px"
-  row-inset: "12px"
-  icon-target: "36px"
+  gutter-phone: "16px"
+  gutter: "24px"
+  container: "1280px"
+  grid-gap-phone: "12px"
+  grid-gap: "20px"
+  section-gap-phone: "64px"
+  section-gap: "96px"
+  tile-pad: "24px"
+  card-pad: "16px"
 components:
-  nav-pill:
-    backgroundColor: "{colors.lilac-mist}"
-    textColor: "{colors.ink}"
-    typography: "{typography.nav-label}"
+  button-primary:
+    backgroundColor: "{colors.ink}"
+    textColor: "{colors.stone}"
+    typography: "{typography.button-label}"
     rounded: "{rounded.pill}"
-    height: "56px"
-    padding: "0 16px"
-  nav-pill-mobile:
-    backgroundColor: "{colors.lilac-mist}"
+    height: "48px"
+    padding: "0 24px"
+  button-outline:
     textColor: "{colors.ink}"
+    typography: "{typography.button-label}"
     rounded: "{rounded.pill}"
-    height: "52px"
-    padding: "0 8px 0 12px"
-  drop-panel:
-    backgroundColor: "{colors.lilac-mist}"
+    height: "48px"
+    padding: "0 24px"
+  button-outline-hover:
+    backgroundColor: "{colors.tile-white}"
+  text-link:
     textColor: "{colors.ink}"
-    rounded: "{rounded.panel}"
-    padding: "12px"
+    typography: "{typography.button-label}"
+  product-card:
+    textColor: "{colors.ink}"
+    rounded: "{rounded.sharp}"
+    padding: "14px 16px 16px"
+  product-card-name-hover:
+    textColor: "{colors.logo-purple}"
+  photo-label:
+    backgroundColor: "{colors.ink}"
+    textColor: "{colors.tile-white}"
+    typography: "{typography.photo-label}"
+    rounded: "{rounded.label}"
+    padding: "4px 8px"
+  category-tile:
+    textColor: "{colors.ink}"
+    typography: "{typography.title}"
+    rounded: "{rounded.sharp}"
+    padding: "14px 16px 16px"
+  bento-tile:
+    backgroundColor: "transparent"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.sharp}"
+    padding: "{spacing.tile-pad}"
+  header:
+    backgroundColor: "{colors.stone}"
+    textColor: "{colors.ink}"
+    height: "72px"
   nav-item:
     textColor: "{colors.ink}"
     typography: "{typography.nav-label}"
+    rounded: "{rounded.pill}"
     height: "40px"
     padding: "0 12px"
   nav-item-hover:
-    textColor: "{colors.awakened-violet}"
-  nav-item-selected:
-    textColor: "{colors.awakened-violet}"
-  menu-row:
+    textColor: "{colors.logo-purple}"
+  nav-panel:
+    backgroundColor: "{colors.tile-white}"
     textColor: "{colors.ink}"
-    typography: "{typography.menu-row}"
-    rounded: "{rounded.row}"
+    rounded: "{rounded.panel}"
+    padding: "12px"
+  panel-row:
+    textColor: "{colors.ink}"
+    typography: "{typography.nav-label}"
+    rounded: "{rounded.tile}"
     height: "44px"
     padding: "0 12px"
+  panel-row-hover:
+    backgroundColor: "{colors.stone}"
   count-badge:
-    backgroundColor: "{colors.royal-amethyst}"
-    textColor: "{colors.page-white}"
+    backgroundColor: "{colors.logo-purple}"
+    textColor: "{colors.tile-white}"
+    typography: "{typography.badge}"
     rounded: "{rounded.pill}"
-    height: "16px"
+    height: "18px"
     padding: "0 4px"
-  chip:
-    textColor: "{colors.ink}"
-    typography: "{typography.section-label}"
+  avatar:
+    backgroundColor: "{colors.logo-purple}"
+    textColor: "{colors.tile-white}"
     rounded: "{rounded.pill}"
-    height: "32px"
-    padding: "0 10px"
-  product-thumbnail:
-    rounded: "{rounded.thumbnail}"
+    size: "36px"
+  thumbnail:
+    backgroundColor: "{colors.stone}"
+    rounded: "{rounded.thumb}"
     size: "48px"
 ---
 
@@ -119,236 +188,193 @@ components:
 
 ## Overview
 
-**Creative North Star: "The Poured Thread"**
+**Creative North Star: "Stone & Gold"**
 
-Everything that floats above the store is one body of liquid glass. A pill does not open a menu; it pours one. The second shape drains out of the first, stays joined by a thin thread of the same liquid, and is drawn back in when dismissed. In a shop about flow and connection, the navigation behaves the way the subject describes: nothing appears from nowhere, and connected things stay connected.
+A quiet stone page where full-colour product photography carries the colour, set off by black ink, black pills and a bold brand serif. The ground is warm stone, text and controls are near-black ink, and the photographs are the only saturated thing on screen. The world comes from the user's reference image (`public/images/image.png`: stone ground, black ink, black pills), with the reference's lime replaced by the logo purple.
 
-The glass is the only loud thing here. Products supply the colour and the imagery, so the chrome keeps to one family of lilac and plum, text stays dark and quiet, and interaction shows through a colour change, not extra shapes. The thread is the one authored motion moment, and it is worth more because nothing else competes with it.
+Colour outside the photographs is rationed to two marks. Logo purple is a small identity mark: the logo, the avatar, count badges, hover text and a saved heart. Gold never sits on the page at rest; it appears only as a soft warm shadow that rises under a black pill or a card when the pointer is on it. There is no ambient motion, no pointer glow and no decorative illustration. Image zoom and the gold hover shadow are the only movement.
 
-This system currently covers the storefront header, the search modal, the customer sign in modal, the shop page, the product details drawer, the cart page, the profile page and the footer. The rest of the storefront still uses an older Etsy-derived palette (the `etsy-*` tokens in `app/globals.css`), and the admin panel has its own restrained black-and-white working style. Treat the older storefront styling as not yet migrated, and don't copy it into new work. Leave the admin as it is unless asked.
+Scope. This system is shipped on the homepage, the navbar (with its dropdown panels and phone menu), the footer, the shop product card, the category tile, the profile page (identity card, tabs, orders, settings cards and forms), the shop page's search and Filters button, and every storefront drawer (product details, filters, checkout, address details). The shop page's applied-filter pills, the cart page, the auth modal, the search modal and the order confirmation page still carry lilac-era component styling and are **pending migration to Stone & Gold** (see Components). The admin panel has its own black-and-white working style and is outside this system.
 
 **Key Characteristics:**
-- Floating lilac glass pills on the shared goo filter, never on a solid header bar.
-- A liquid thread linking every parent shape to whatever it opens.
-- Text-only hover and selection: colour changes, no pills or fills.
-- One purple family, with the products as the only other colour.
-- Sharp product thumbnails set against soft, rounded glass.
+- Warm stone ground, black ink, photographs as the only colour.
+- A bold brand serif (Charis SIL, Charter's open edition) for display and the wordmark; Geist for everything else.
+- Black full pills and outline pills as the only buttons.
+- Sharp, lightly outlined product cards and category tiles that let the stone show through.
+- Logo purple for small marks only; gold only as a hover shadow.
+- No ambient motion.
 
 ## Colors
 
-A single violet family, from pale lilac glass to near-black plum, on a warm cream page.
+Warm neutral stone and black ink, with one small purple mark and one warm gold that only exists on hover.
 
 ### Primary
-- **Royal Amethyst:** taken from the logo. Used for the logo mark, count badges, the account avatar, section labels, the **View all** link and panel icons.
-- **Deep Plum:** the darker partner, used for focus rings.
-- **Awakened Violet:** the state colour. Hover, selected and the keyboard-active row all use it, as does the text cursor. It never fills an area.
+- **Ink** (#141210): all text, icons, the primary pill fill, the outline pill stroke, hairline rules (at 15%), card outlines (at 25%), photo labels and the focus ring. It is warm black, never pure #000.
+
+### Secondary
+- **Logo Purple** (#431769): taken from the logo. Used only for small marks: the logo, the account avatar, count badges, footer column heads, hover text on nav items and card names, the active nav label and the filled saved heart.
+
+### Tertiary
+- **Gold** (#E7A93B): never painted on the page. It exists only as the soft hover shadow under black pills (45% alpha) and under product cards and category tiles (35% alpha).
 
 ### Neutral
-- **Lilac Mist and Lilac Depth:** the top and bottom of the glass gradient. Every pill and panel uses this exact pair.
-- **Thread Lilac:** the solid midpoint that fills the thread, so it blends into both shapes it joins.
-- **Ink:** default text and icons on glass.
-- **Dusk Plum:** longer messages on glass, such as "no results" text.
-- **Muted Plum:** secondary text on glass, such as placeholders and product categories. Never use a neutral gray on glass.
-- **Veil Plum:** the tint behind blurred overlays, at 15% over the page for the phone menu and 25% for the search modal.
-- **Page Ground:** the page background, a warm cream. It stays neutral so the veil is the only purple surface.
-- **Page White:** content cards, and text on Royal Amethyst.
+- **Stone** (#EEEBE3): the storefront page ground (also exposed as `page-ground`), the scrolled navbar backing, the phone menu sheet, the text on black pills, thumbnail wells and panel-row hover.
+- **Ink Muted** (#5E5A52): secondary text: category captions, product counts, tile body copy, emails, the copyright line, struck-through prices and menu icons.
+- **Ink Fill (#3A3632):** a warm charcoal for every solid fill: black pills, the selected profile tab, photo labels (rating, Out of stock), View item and empty-state buttons. Softer than Ink, which stays the text colour. Chosen by the user over pitch black.
+- **Veil Top / Veil Bottom** (#FBFAF6 to #E2DDD1): the vertical gradient of the interface glass (the footer sheet, and the drawers and pop-ups still pending migration). Veil Bottom is also the photo well behind product and category images while they load.
+- **Tile White** (#FFFFFF): nav dropdown panels, phone-menu category and social tiles, text on Ink labels and on Logo Purple.
+- **Selection Wash** (#F3DDA8): text selection background, with Ink text.
+- **Scrollbar Thumb** (#C9C3B5): the page scrollbar on a Stone track.
 
 ### Named Rules
-**The State Is Violet Rule.** Hover, selected and active all mean text turning Awakened Violet. If a state needs anything else, question the state first.
+**The Photographs Carry The Colour Rule.** Everything that isn't a product or category photo is stone, white, or ink. If a surface needs colour to be interesting, it needs a photograph instead.
 
-**The Veil Is The Interface Rule.** The veil (the Lilac Mist to Lilac Depth gradient, `glass-veil` in code) belongs to everything that frames the shop: navbar, footer, drawers, pop-ups, the cart summary and checkout bar. Content cards are white on the cream page, so the photos stay the main colour. Pop-ups share one overlay: Veil Plum at 25% with blur.
+**The Small Mark Rule.** Logo Purple is for the logo, avatar, count badges, column heads, hover text and the saved heart. Never a fill larger than a badge or avatar, never a button, never a background.
 
-**The Accent, Not The Ground Rule.** Purple belongs on the glass and small controls. Never tint a whole page or section lilac or purple: it was tried and read as generic AI styling, especially on phones. The footer is the one exception, because it is a sheet of the glass itself.
-
-**The Products Own Colour Rule.** Purple is the only chrome colour. Orange, green and other accents don't belong on glass, including highlights on a category or link.
+**The Gold Is Light Rule.** Gold is a hover shadow under black pills, product cards and category tiles, nothing else. No gold text, fills, borders, icons, glows that follow the pointer, or static gold at rest.
 
 ## Typography
 
-**Wordmark Font:** Charter (with Cambria and Georgia fallbacks)
-**Interface Font:** Outfit (with sans-serif fallback)
+**Display Font:** Charis SIL (Charter's open-licence edition, loaded through next/font as `--font-charis`), with Charter, Cambria and Georgia fallbacks
+**Body Font:** Geist (next/font, `--font-geist-sans`), with Helvetica Neue and Arial fallbacks
 
-**Character:** A bookish serif names the brand once, and a soft geometric sans does all the work around it. Outfit's round forms echo the pills they sit in.
+**Character:** A sturdy, bookish brand serif in bold speaks the headline and names things; a plain, precise grotesque does all the interface work. The serif is the wordmark's own face, so the page headline and the logo read as one voice.
 
 ### Hierarchy
-- **Wordmark:** "Miracle feng shui" beside the logo, at 21px on tablet and up and 18px on phones.
-- **Nav label:** the main links, the category pill and the Clear action.
-- **Menu row:** rows in the phone menu.
-- **Input:** the search field. It stays at 16px so iOS doesn't zoom when it's focused.
-- **Section label:** "Browse categories" and "New arrivals", at a heavier weight in Royal Amethyst. Normal case, never tracked capitals.
-- **Caption:** secondary lines such as a product's category.
+- **Display** (700, `clamp(40px, 6.8vw, 96px)`, 0.96, -0.03em, balanced wrap): the homepage headline only, full width, capped at 96px.
+- **Headline** (700, 28px on phones / 36px from 640px, tight, -0.02em): section headings ("New arrivals", "Shop by category", "Your corner").
+- **Title** (700, 21px / 24px, -0.01em): bento tile titles; category tile names use the same serif at 17px / 21px. The phone menu's "Categories" heading is 22px.
+- **Wordmark** (700, 19px / 21px, 1, tight): "Miracle feng shui" beside the logo. The footer repeats it as a giant decorative band at 7% Ink.
+- **Body** (400, 15px, 1.625): tile copy and empty states, in Ink Muted.
+- **Nav label** (500, 15px): navbar links and panel rows.
+- **Button label** (600, 15px, 1): pills and underlined text links.
+- **Card name** (600, 12.5px / 15px, snug, 2-line clamp) and **card price** (700, 12px / 17px, tabular figures).
+- **Caption** (400, 11.5px / 13px): category under a product name, low-stock note (500, Ink), copyright.
+- **Column head** (600, 13px, Logo Purple): footer group heads, sentence case.
+- **Photo label / badge** (600, 10–11px, tabular): rating and Out of stock labels, count badges.
 
 ### Named Rules
-**The Set It On The Element Rule.** `globals.css` gives buttons and headings their own font and colour outside Tailwind's layers, so those override inherited styles and utilities. Inside glass, put `font-outfit` and the colour on an inner span of a button, link or heading. Skipping this produces the fallback font or the wrong colour.
+**The One Serif Rule.** The brand serif is the only display face. Don't introduce Young Serif, Playfair, Cinzel or any second display family on storefront surfaces.
+
+**The Set It On The Span Rule.** `globals.css` gives `body`, buttons and `h1`–`h4` their own font family and colour outside Tailwind's layers. Put `font-display` / `font-geist` and the colour on an inner span inside every heading, link and button, as the shipped components do.
+
+**The Sentence Case Rule.** Headings, labels and column heads are sentence case at normal tracking. No tracked capitals, no small label above a heading.
 
 ## Layout
 
-The header is a sticky, transparent strip holding a floating pill inside a container of up to 1040px, with 12px side margins on phones and 24px from the small breakpoint up. The strip ignores pointer events and only the shapes accept them, so the page stays clickable around the pill.
+Content sits in a centred container up to 1280px wide, with 16px gutters on phones and 24px from 640px. Homepage sections stack with 64px between them on phones and 96px from 640px; the headline block sits above with its own 32–56px top and 56–80px bottom space.
 
-From the medium breakpoint (768px) up, the pill has three zones: brand on the left, main links in the centre, and social and account on the right. Below it, the pill holds only the brand and the bubble menu icon.
+Every section opens with the same heading row: a 1px Ink-at-15% hairline across the full container, then the serif headline on the left and an optional underlined text link (View all, All products) on the right, baseline-aligned, 20–24px below the rule. Content starts 24–32px under the heading.
 
-- **Tablet and up, category pill:** open on a visitor's first page load. Once they close it, it stays closed on later page loads until they open it again. While open, it pushes the page down instead of covering it. The space is reserved in CSS so the server render is already the right height.
-- **Phones, menu panel:** floats over the page, which blurs and stops scrolling behind it.
-- **Search modal:** a 640px column, placed 12vh from the top on tablet and up and at the top of the screen on phones.
-
-Tall panels scroll inside themselves and keep within the viewport.
+- **Product and category grids:** 2 columns on phones, 4 from 768px, with 12px gaps on phones and 20px from 640px. New arrivals shows 8 products on desktop and the first 4 on phones.
+- **Bento:** 1 column on phones, 2 from 640px, 4 from 1024px with Best sellers spanning two rows on the right half; 12px / 16px gaps.
+- **Breakpoints:** 640px (gutters, type step), 768px (navbar switches to desktop, grids go to 4), 1024px (bento goes to 4).
+- **Navbar:** 64px tall on phones, 72px from 768px, sharing the 1280px container.
 
 ## Elevation & Depth
 
-Depth comes from the material rather than a stack of shadows. A single soft violet drop shadow sits under the merged shape, and the puffiness comes from inside the filter: a bright rim along the top edge and a soft plum shade along the bottom. Real backdrop blur on the content layer lets the page show through the slightly translucent glass.
+Flat by default. The page is one plane of stone; cards are outlined, not lifted, and the only shadows at rest belong to interface layers (the scrolled header hairline, dropdown panels and the footer sheet). Depth on content is a response to hover, and that response is warm gold light rather than a dark drop.
 
 ### Shadow Vocabulary
-- **Glass lift** (`drop-shadow(0 6px 10px rgba(67, 23, 105, 0.14))`): under every goo shape, applied after the goo filter so the thread casts it too.
-- **Top rim** (white at 70%, 2px inner offset): light catching the top edge, inside the filter.
-- **Bottom shade** (Royal Amethyst at 16%, 3px inner offset, 2px blur): the underside of the glass, inside the filter.
+- **Gold pill glow** (`box-shadow: 0 10px 28px rgba(231,169,59,0.45)`): under a black pill on hover, over 300ms.
+- **Gold card glow** (`box-shadow: 0 14px 36px rgba(231,169,59,0.35)`): under a product card or category tile on hover, over 500ms.
+- **Header hairline** (`box-shadow: 0 1px 0 rgba(20,18,16,0.1)`): under the navbar once it takes its stone backing (Stone at 95% with medium backdrop blur).
+- **Panel drop** (`box-shadow: 0 18px 40px rgba(20,18,16,0.12)`): under the white Categories and account dropdowns.
+- **Footer glass** (`box-shadow: 0 -6px 10px rgba(20,18,16,0.12), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 -3px 5px rgba(20,18,16,0.12)`): the footer sheet's upward lift, bright top rim and soft lower shade.
 
 ### Named Rules
-**The One Liquid Rule.** Joined shapes share one filtered layer, so the shadow and rim follow the merged outline. Don't add a `box-shadow` or border to a single pill; it breaks the illusion that they are one body.
+**The Flat Until Touched Rule.** Content surfaces carry no shadow at rest. A card or pill gains depth only on hover, and only as gold light.
 
 ## Shapes
 
-Glass is fully round: pills use a full radius and panels use 28px. Corners inside the glass step down with their content: rows use 16px, chips are full pills, and product thumbnails, form fields and the primary button are deliberately sharp at 6px, so the things you act on read as crisp objects on soft liquid.
+Two geometries meet: sharp rectangles for what shows products, soft rounds for what you press or what frames you.
 
-The thread is the signature shape. It's a narrow strip that the goo filter flares into concave shoulders where it meets each parent. It hangs below the control that opened it and stays on the straight edge of the shape below, clear of the rounded corners.
+- **Sharp (0px):** product cards and category tiles, with a 1px Ink-at-25% outline and a transparent body so the stone shows through. Photos run full bleed to the outline.
+- **Label (2px):** the black photo labels (rating, Out of stock); they read as cut tags.
+- **Thumb (6px):** small product photos in the navbar and search (bento photos are sharp).
+- **Inset (8px):** social platform rows inside a tile, category photos in the dropdown.
+- **Tile (10px):** phone-menu tiles and panel rows. Bento tiles are sharp, like the product card.
+- **Panel (14px):** the white dropdown panels.
+- **Pill (full):** every button, nav item hit area, badge and avatar.
+
+Rules are hairlines: 1px Ink at 15% above section headings, card price rows and footer copyright; Ink at 10% inside white panels.
 
 ## Components
 
-### Goo Shell (signature)
-*The reusable base for all liquid surfaces (`components/GooNavShell.tsx`).* Use it for anything that opens from a pill.
+### Buttons
+*Black ink and stone, the reference image's own pill.*
+- **Shape:** full pill, 48px tall, 24px side padding.
+- **Primary:** Ink Fill, Stone label (button label type). Used once per tile at most (View cart, Sign in in the Profile tile).
+- **Outline:** 1.5px Ink stroke, transparent, Ink label; hover fills Tile White. Used for secondary guest invitations (Cart and Favorites tiles).
+- **Hover / Focus:** primary gains the gold pill glow over 300ms; focus is the site-wide 2px Ink outline at 2px offset.
+- **Text link:** Ink, button label type, 1.5px underline at 6px offset. On hover the text turns Logo Purple (`TextLink` in `home/components/homeUi.tsx`).
 
-- **Structure:** the shapes sit in a filtered layer behind the content, because the filter would melt text. The content sits above with backdrop blur and no background of its own.
-- **Filter:** Gaussian blur (9) followed by an alpha threshold (`18a − 7`) merges shapes, then the rim and shade are added and alpha is scaled to 94%. Each shell needs a unique filter id, since a filter inside a hidden shell can't serve a visible one.
-- **Geometry:** a 24px gap with a 14px thread. The blur keeps the two shapes apart at that gap, so only the thread joins them. Reducing the gap makes them merge outright.
-- **Opening:** the shape starts squeezed inside the parent and pours out over 640ms. A small pill overshoots (`cubic-bezier(0.22, 1.3, 0.36, 1)`) and a tall panel settles more gently (`cubic-bezier(0.22, 1.08, 0.36, 1)`). The thread thins from 48px to 14px over 760ms.
-- **Closing:** faster, at 300ms, with the thread retracting in 200ms.
-- **Fallback:** with no filter support, the shapes and a plain connector still show. Reduced-motion users get no transitions.
+### Product Card (signature)
+*`shop/components/ShopProductCard.tsx`, used on the homepage and (with lilac-era surroundings) the shop and favorites grids.*
+- **Shape:** sharp corners, 1px Ink-at-25% outline, transparent background, equal heights in a row. The whole card opens the product.
+- **Photo:** full bleed, square on phones and 5:4 from 640px, on a Veil Bottom well; zooms to 1.04 over 700ms on hover. Out of stock dims the photo to 60%.
+- **Labels on the photo:** sharp black labels with white tabular text: Out of stock at top left, the admin-entered rating (star + number, hidden at 0) at bottom left. No discount, bestseller or other badges.
+- **Details:** the name (card name type, 2 lines max), then its category caption in Ink Muted, then a low-stock note ("Only N left") under 10 in stock.
+- **Price row:** under a 1px Ink-at-15% hairline at the card's foot: any real compare-at price struck through in Ink Muted, then the price in bold. The heart sits in this row with no ring or fill: left of right-aligned prices on phones, right of left-aligned prices from 640px. No arrow or chevron.
+- **Hover:** the gold card glow, the photo zoom, and the name turning Logo Purple. The heart turns Logo Purple on its own hover and fills Logo Purple when saved.
+
+### Category Tile
+*`home/components/LatestCategories.tsx`.* The product card's treatment: sharp, Ink-at-25% outline, transparent, gold card glow and photo zoom on hover. A 4:5 photo (or a large faded serif initial when there is no image), then the name in the serif at title weight turning Logo Purple on hover, and a product count caption.
+
+### Bento Tile
+*`home/components/bento/`.* The same box as the product card: sharp corners, a 1px Ink-at-25% outline, the page showing through, and 20px / 24px padding; serif title, then content that pushes its action to the bottom. Guests see a reason line in Ink Muted and a sharp 48px button (Ink Fill in Profile, a 1px Ink outline in Cart and Favorites). Photos and thumbnails are sharp on Veil Bottom; social platform rows are sharp with an Ink-at-15% outline, the platform's own full-colour icon, and a faint white hover. Loading shows pulsing Ink-at-10% bars.
 
 ### Navigation
-- **Main pill:** text links in the centre: Categories, Products, Search, then Sign in for guests or Favorites and Cart for signed-in customers. Instagram and Facebook icons sit on the right, and signed-in customers also get an account avatar there.
-- **Category pill:** the 4 latest categories from the server plus **View all**, separated by short 1px dividers. Categories shows as selected while it's open.
-- **Phone bar:** only the logo with its wordmark and the bubble menu icon. The icon rotates 180° over 500ms as the menu opens.
-- **Phone menu:** categories, then **View all**, a divider, and actions: Products, Search, Sign in (or the account items), Instagram and Facebook.
-
-### Search Modal
-- **Search pill:** icon, input, a Clear action once there's text, and a close button. The thread hangs from the search icon.
-- **Cursor:** a 2px Awakened Violet blinking bar marks the empty focused field, since the native caret is too faint on glass. The browser's focus outline is switched off on this input only.
-- **Panel:** with no query, category chips and New arrivals (the latest 4). While searching, up to 6 server results and a "See all results" row. It also has loading, no-results and failure states with **Try again**.
-- **Rows:** a 48px thumbnail, name and category, and price. On tablet and up, an arrow marks the active row.
-
-### Auth Modal
-- **Pill:** a compact handle, centred above the panel and only as wide as its contents, with Sign in and Create account as text tabs and a close button. The thread hangs from the selected tab and slides across when the mode changes.
-- **Panel:** a serif heading, one line of purpose, the fields, and the submit button. Errors appear above the form, naming the problem and the recovery.
-
-### Inputs
-- **Style:** translucent white (55%) with a white border (70%), with sharp 6px corners, 48px tall, with Royal Amethyst section labels above. Text stays 16px so iOS doesn't zoom.
-- **Focus:** the border turns Awakened Violet with a soft 3px violet ring, replacing the site-wide outline on these fields.
-
-### Primary Button
-- **Style:** a solid Royal Amethyst block with sharp 6px corners, 48px tall, with white text. Hover deepens it to Deep Plum, and it dims while submitting. Keep it to a form's single main action.
-
-### Shop Filter Bar
-- **Layout:** a full-width bar in the page colour that sticks directly under the site header, with applied filters on the left and a glass Filters button with sharp 6px corners on the right. The button shows a badge counting active choices.
-- **Scrolling:** products start below the bar and only ever scroll beneath it. The area behind the site header is the page colour on this page too, so products never show around the pills or under the button.
-- **Heading:** the shop has no visible page heading, because the navbar's Products link and the applied filters already say where you are. A screen-reader heading names the page.
-- **Applied filters:** removable pills with a clear-all link. Sort isn't listed, since it doesn't hide anything.
-
-### Filter Drawer
-- **Shape:** glass from the right edge, up to 400px wide with square corners, over a blurred page. It has no thread, because it comes from the screen edge rather than from a pill.
-- **Sections:** Category, Price, Offers and Sort, in that order. Sort defaults to Newest. Choices apply straight away and the drawer stays open, so the list updates behind it.
-- **Footer:** Clear all, when something is active, and a primary button stating the result count, such as "Show 7 products".
-
-### Shop Product Card
-- **Shape:** a contained white card with 8px corners and the soft glass lift shadow. The card frames the photo: a 4:3 image with 6px corners sits inset from the card edges, and cards in a row share one height.
-- **On the photo:** Out of stock and Bestseller as small sharp labels at top left, with a round glass heart at top right. Discounts show only in the price row.
-- **Details:** category with a small rating chip beside it, then a semibold name and a quiet low-stock note when it applies. The rating is the number an admin entered, and it's hidden when that's 0. Customer reviews don't affect it.
-- **Price row:** below a thin divider, any real compare-at price struck through, then the price in bold, with a double chevron at the far right.
-- **Hover:** the name turns Awakened Violet, the chevron shifts slightly, and the photo zooms a little. The card itself doesn't lift.
-
-### Product Details Drawer
-*Products have no page of their own. Every product link opens this drawer (`shop/components/ProductDetailsDrawer.tsx`), and `/shop?product=<id>` opens it directly.*
-
-- **Shape:** glass from the right edge, up to 520px wide and full width on phones, with square corners over a blurred page. It has no thread, like the filter drawer.
-- **Loading in stages:** cards load only the fields they show. Opening a product shows those straight away and loads the full details for that product alone. Reviews load the first time the Reviews tab is opened.
-- **Tabs:** Product details and Reviews, as text tabs in the header, with the review count from the Review table. The selected tab turns Awakened Violet and draws a 2px line under itself.
-- **Product details:** photo and thumbnails at 6px, category and rating, a serif name, price, description, options, quantity, item details, materials and maker.
-- **Actions:** a fixed footer on the Product details tab, with Buy It Now as an outline and Add to Cart as the primary button. If the product is already in the cart, these become View cart and a disabled Already in cart, and the quantity picker hides. Guests see one primary button, Login to cart, which opens the sign in modal over the drawer.
-- **Reviews:** the Reviews tab shows Add review to signed-in customers and Login to add review to guests, which opens the sign in modal over the drawer. The form takes a star rating and a comment, and saving never changes the rating on the product.
-- **Claims:** only show what's stored for the product. Don't add demand counts, certificates or delivery promises here.
-
-### Cart Page
-*`cart/`, with `app/cart/page.tsx` as a pointer.*
-
-- **Layout:** a stack of white item cards on the cream page, with a glass summary beside them that stays in view on desktop only.
-- **Item cards:** horizontal white cards with 8px corners. A 6px photo is inset on the left, the category, name and price are in the middle, and a bento block of actions sits at the bottom right: Remove as an icon button and a quantity stepper capped at the stock, with View item and its double chevron across the full width below. Chosen options such as size aren't shown. On phones the prices stack vertically at the bottom left of the card, and the action block moves to the right with a shorter View label.
-- **Stock:** an out-of-stock item, or a quantity above the stock, is marked in the row in red and checkout is disabled until it's fixed, since the order would be refused.
-- **Phones:** no summary card. A full-width glass bar fixed to the bottom of the screen holds the total, item count and Checkout.
-- **Feedback:** Remove shows a glass pill at the bottom with Undo. It clears by itself.
-- **Empty states:** guests get Log in, and signed-in customers get Browse products. A skeleton shows while the saved cart loads, so an empty message never flashes.
-- **Honesty:** show only what checkout really does. No coupon field or gift option until they work, and no demand counts, protection claims or payment logos.
-
-### Profile Page
-*`profile/`, with `app/profile/page.tsx` as a pointer. `/profile?tab=settings|favorites|orders`.*
-
-- **Layout:** on desktop, a sticky 300px column of veil on the left, with white content cards on the right. On phones, a compact identity card at the top, and the three menus in a full-width veil bar fixed to the bottom of the screen. The active one fills with Royal Amethyst and white text, matching the cart's Checkout button.
-- **Identity card:** large serif initials in Royal Amethyst, then name, email and the date they joined.
-- **Menu:** Settings, Favorites and Orders. On desktop, the selected one turns Awakened Violet, with no fill.
-- **Settings:** Account details shows label-above-value until Edit, and the email stays locked. The Address book lists saved addresses, and adding or editing opens the Address Details drawer, the same glass from the right edge as the other drawers. With no addresses, the card shows a primary Add address button. Change password stacks its two fields at full width. The current password has a square check button beside it, and the new password field stays disabled until that verifies, with the server checking again on save. Update and Sign out sit side by side in equal widths, on phones too.
-- **Favorites:** shop product cards, 15 at a time from the server. A card leaves the grid as soon as its heart is turned off.
-- **Orders:** real statuses and invoices. Courier and tracking only show when they've been recorded, with no invented dates or tracking numbers.
-- **Cancelling an order:** Cancel sits below the total on orders that haven't shipped. It opens a 28px glass popup with two steps joined by a thread: the customer's reason, then a confirmation stating the request will be validated, with No thanks and Request cancellation. The status then reads Cancellation requested in red, and the button becomes a disabled Pending. A customer gets one request per order, and the popup never promises a refund. On a paid order that's been cancelled, Refund appears in the same place, in yellow, the one colour outside the purple family here. It sends a request straight away and a popup confirms it with the expected time. The button then becomes Pending, then Processing, and a yellow line under the status names the refund's state. The owner approves it from the admin, so a customer's click never moves money.
-
-### Checkout Drawer
-*`cart/components/CheckoutDrawer.tsx`. Checkout has no page of its own, and `/checkout` redirects to the cart.*
-
-- **Shape:** glass from the right edge, up to 520px wide and full width on phones, like the other drawers. Adding or editing an address opens the Address Details drawer on top.
-- **Sections:** Deliver to (the primary address is selected), Payment (Pay online, with Cash on delivery shown disabled while `COD_ENABLED` in `lib/payment-options.ts` is off), and Order Summary, with the note "Expected delivery within 7 days".
-- **Footer:** the total and one primary button, Pay now or Place order. Errors appear directly above it.
-- **Honesty:** the total is exactly what's charged. Prices and stock reload when it opens, and payment stops if the server's total differs from the one shown.
-- **While processing:** it can't be closed, and a second tap can't place a second order.
-
-### Order Confirmation
-*`order-confirmation/`, with `app/order-confirmation/page.tsx` as a pointer. Only the customer who placed the order, or an admin, can open it.*
-
-- **Motion:** the page's one authored moment plays once on arrival. A Royal Amethyst seal swells, throws droplets that stretch on goo threads and detach, and a check draws itself. Then the Order ID pill's receipt pours out on the Goo Shell thread. With reduced motion, everything starts finished.
-- **Content:** a summary, not a list: item count with up to 3 thumbnails, total, payment, the Order ID and Payment ID with copy buttons, date, address, and "Expected delivery within 7 days".
-- **Honesty:** the seal only celebrates a paid or pay-on-delivery order. An unpaid or cancelled order gets a calm status instead, and never says it's confirmed.
+*`components/Header.tsx`, `components/nav/`.*
+- **Bar:** sticky and open on the page (transparent) at the top; once the page scrolls or the phone menu opens it takes a Stone-at-95% backing with blur and the header hairline.
+- **Desktop (768px up):** three zones. Left: the round logo and the serif wordmark. Centre: Categories (with a chevron that turns over) and Products. Right: Search (icon, with label from 1024px), then Sign in for guests or a Favorites heart with a purple count, then the cart as a trolley icon with a purple count badge, then the Logo Purple avatar for signed-in customers.
+- **Items:** nav label type in Ink, 40px tall pill hit areas; hover and the active page turn the label Logo Purple. No filled hover backgrounds.
+- **Dropdowns:** white 14px panels with the panel drop, fading and sliding 4px over 200ms. Categories shows the 4 newest categories as photo tiles (8px) with an underlined All products link; the account panel shows name and email, My orders, Your profile and Sign out as rows that take a Stone hover. Escape or a press outside closes them.
+- **Phones:** the bar holds the brand, a search icon, a favorites heart and a two-line menu button that crosses into an X. The menu is a full Stone sheet under the bar: white category tiles in two columns, All products, then Search, Cart (with count), the account rows or Sign in, and Instagram and Facebook tiles. The page stops scrolling behind it.
+- **Count badges:** an 18px Logo Purple pill with white tabular text.
 
 ### Footer
-*The end of every storefront page except the profile page (`components/Footer.tsx`). A normal full-width footer, not a floating shape: it borrows the glass material only, with no pill, thread or goo filter.*
+*`components/Footer.tsx`; hidden on the profile and admin.* A full-width sheet of the veil gradient with the footer glass shadow. The 1280px container holds the logo, a serif line naming what the shop sells and the social icons, then Shop, Your account and About columns with Logo Purple heads and Ink links that turn Logo Purple on hover. The copyright and region sit below a hairline. A giant wordmark at 7% Ink fills the container width and sinks past the bottom edge, decorative and hidden from screen readers. Guest account links open the sign in modal.
 
-- **Material:** the glass gradient from edge to edge, with the bright top rim, the soft plum shade along the bottom and an upward glass lift. It's the one full-width glass surface, and it stays at the very end of the page.
-- **Layout:** a 1280px container, matching the shop. The logo, a serif line naming what the shop sells and the social icons come first, then Shop (the 4 latest categories and All products), Your account and About. The copyright and region sit below a thin divider.
-- **Wordmark:** the shop's name in Royal Amethyst at 12%, stretched to the full container width and sinking past the bottom edge. It's decorative and hidden from screen readers.
-- **Guests:** account links open the sign in modal instead of leaving the page.
-- **Content:** every link goes to a real page. Don't add placeholder links, app store badges or company claims the shop can't back up.
+### Drawers
+*`shop/components/ProductDetailsDrawer.tsx`, `ShopFilterDrawer.tsx`, `ProductReviews.tsx`, `cart/components/CheckoutDrawer.tsx`, `profile/components/AddressDetailsDrawer.tsx`, shared controls in `profile/components/profileUi.tsx`.*
 
-### Chips
-- **Style:** translucent white (45%) with a white border (70%), in full pills 32px tall. They carry no shadow of their own.
-- **State:** text only, turning Awakened Violet on hover.
+Glass sheets from the right edge with square corners over a page dimmed with Ink at 25% and blur: the filter drawer up to 400px, the product details, checkout and address drawers up to 520px and full width on phones. They keep their behaviour (described under the surfaces below) and wear the system: Geist for every label and value, the brand serif in bold for names and section headings, Ink text with Ink Muted secondary text, Ink hairlines, and no purple except selected or hovered text and small marks.
 
-### Count Badges
-- **Style:** a small Royal Amethyst pill with white text. It sits inline on tablet and up and overlaps the icon on phones where needed.
+- **Primary action:** a sharp 48px Ink Fill block with a Stone label and the gold hover shadow (Add to Cart, Login to cart, Pay now, Save address, Show N products).
+- **Secondary action:** a sharp 48px block with a 1px Ink border and an Ink label that turns Logo Purple on hover (Buy It Now, Cancel).
+- **Fields:** sharp 48px inputs with an Ink-at-25% border, 16px Geist text and an Ink caret; focus darkens the border to Ink with a soft Ink ring.
+- **Tabs and options:** the selected tab or option turns Logo Purple with a 2px Ink underline or a check mark; others are Ink.
+- **Cards inside:** Settings and drawer content cards are boxes with a 1px Ink-at-25% outline on the page, like the product card.
 
-### Social Icons
-- **Style:** the brand's own full-colour SVGs (`instagram-badge.svg`, `facebook.svg`) at 24px in a 36px target, dimming slightly on hover. They are the only exception to the one-purple rule, because they are brand marks.
+### Surfaces pending migration to Stone & Gold
+These still carry lilac-era component styling (Awakened Violet #7A2FC0 text states, Muted Plum #5B4A70 secondary text, the Outfit interface font, and the goo-shell thread motion in `components/GooNavShell.tsx`). Their glass now renders in stone because the veil tokens changed. Their behaviour below is current; their look is not the system and must not be copied into new work.
+
+- **Shop filter bar:** *Migrated:* a sharp search field (1px Ink at 25%, 16px text, clear button) that searches the server about 400ms after typing stops and on Enter, and a sharp Filters button: outlined at rest, Ink Fill with a Stone count square while filters are applied, icon-only on phones where search and Filters share the full width. On the shop page the navbar has no search; signed-in customers get the cart icon before Favorites instead. *Pending:* the applied-filter pills and Clear all link.
+- **Product details drawer** (*migrated, see Drawers*): every product link opens it (`/shop?product=<id>`), from the right, up to 520px, full width on phones. Product details and Reviews tabs; fixed footer with Buy It Now and Add to Cart, which become View cart and a disabled Already in cart when the product is in the cart; guests get Login to cart. Reviews never change the product's rating. Only stored claims are shown.
+- **Cart page and checkout drawer** (*checkout drawer migrated, see Drawers; the cart page is pending*): item cards with quantity capped at stock, Remove with Undo, a sticky summary on desktop and a fixed bottom bar on phones. Checkout is a right drawer with Deliver to, Payment and Order Summary; the total is exactly what's charged, it can't close or double-submit while processing.
+- **Profile page:** Settings, Favorites and Orders; a sticky left column on desktop and a fixed bottom bar on phones. *Migrated:* the identity card uses the product card treatment (sharp corners, 1px Ink at 25%, transparent) with Logo Purple initials in a circle (56px phones, 80px desktop), the name in bold display serif and email and join date in Ink Muted. The tabs are sharp-cornered 48px rows stacked in one box on desktop (1px Ink at 25% outline, Ink-at-15% hairlines between rows) and 44px blocks in a Stone bar with a hairline top on phones, matching the cards; the selected tab fills Ink Fill with Stone text, others turn Logo Purple on hover. *Orders:* each order is a sharp box with a 1px Ink-at-25% outline on the page; the order number in bold display serif, date in Ink Muted, total bold; status in Ink (red #8F1610 only for cancellations); actions are sharp 40px bordered buttons (Cancel red outline, Refund and its pending state in the yellow refund colours, Pending cancellation in Ink at 20%); item rows with sharp photos, Ink names that turn Logo Purple on hover and a sharp View item button in Ink Fill with a Stone label and the gold hover shadow; Download invoice and Get help as underlined Ink links. *Settings:* the cards, buttons and fields now use the Drawers controls below. Order cancellation is one request per order and never promises a refund; refunds are requested, then approved by the owner.
+- **Auth modal and search modal:** sign in / create account, and search with category chips, new arrivals and up to 6 server results.
+- **Order confirmation:** a one-time seal animation on arrival for paid or pay-on-delivery orders only, then a summary with copyable Order and Payment IDs.
 
 ## Do's and Don'ts
 
 ### Do:
-- **Do** build anything that opens from a pill with the Goo Shell, so the thread and material stay identical. Edge drawers use the same glass without a thread.
-- **Do** hang the thread from the control that opened the shape.
-- **Do** keep hover and selected states to a text colour change.
-- **Do** push the page down for the persistent category pill on tablet and up, and float over a blurred page for the phone menu.
-- **Do** load categories and products from the server in glass surfaces, never from the placeholder data.
-- **Do** keep product thumbnails at the sharp 6px radius.
-- **Do** keep every state working from the keyboard, with Deep Plum focus rings, and honour reduced motion.
+- **Do** keep the page Stone (#EEEBE3) and every text and control Ink (#141210), letting the photographs supply the colour.
+- **Do** open every homepage section with the hairline rule, the bold serif headline and, where useful, an underlined text link on the right.
+- **Do** use the black full pill for the single main action and the outline pill for secondary ones, both 48px tall.
+- **Do** use the product card's sharp, Ink-at-25% outlined, transparent treatment for anything that shows products or categories.
+- **Do** limit hover to three things: text turning Logo Purple, the photo zooming to 1.04, and the gold glow under pills and cards.
+- **Do** keep focus visible as the 2px Ink outline, and honour reduced motion (all transitions collapse).
+- **Do** put font and colour classes on an inner span inside headings, links and buttons.
 
 ### Don't:
-- **Don't** use a lilac or purple page background.
-- **Don't** add a white or filled pill behind a hovered item.
-- **Don't** put a solid bar or border behind the header. The pills float.
-- **Don't** use orange, gift icons or other accent highlights on navigation.
-- **Don't** round product thumbnails or image labels to match the glass.
-- **Don't** place text inside the filtered layer, or add a border or `box-shadow` to a single goo shape.
-- **Don't** add a second ambient animation near the thread.
-- **Don't** expand the search field in place. Search opens as a modal.
-- **Don't** show fake urgency or invented claims on glass surfaces.
+- **Don't** paint Gold anywhere at rest: no gold text, fills, borders, icons or pointer-following glow.
+- **Don't** use Logo Purple for buttons, backgrounds or large fills; it is for the logo, avatar, badges, column heads, hover text and the saved heart.
+- **Don't** give product cards or category tiles rounded corners or a full-black outline; the user rejected the heavy outline.
+- **Don't** add discount or bestseller badges, arrows or chevrons to product cards.
+- **Don't** add a description or buttons under the homepage headline, or exceed 96px for it.
+- **Don't** use Young Serif or any second display face; the brand serif is the only one.
+- **Don't** turn the navbar cart into a pill; it is an icon with a count badge.
+- **Don't** add ambient or looping motion to storefront pages.
+- **Don't** copy lilac-era styling (Awakened Violet, Muted Plum, Outfit, goo threads) from the pending surfaces into new work.

@@ -11,10 +11,10 @@ const FALLBACK_IMAGE = '/images/miracle.jpeg';
 const LOW_STOCK = 10;
 // Small sharp labels on the photo: Out of stock and the rating.
 const photoLabel =
-  'absolute inline-flex items-center gap-1 rounded-[2px] bg-ink px-1.5 py-1 font-geist text-[10px] font-semibold leading-none text-white tabular-nums sm:px-2 sm:text-[11px]';
+  'absolute inline-flex items-center gap-1 rounded-[2px] bg-ink-fill px-1.5 py-1 font-geist text-[10px] font-semibold leading-none text-white tabular-nums sm:px-2 sm:text-[11px]';
 
 /**
- * A sharp, black-ruled product card on the stone page: the photo leads, then the name, its category and the price.
+ * A sharp product card with a light outline on the stone page: the photo leads, then the name, its category and the price.
  * The whole card opens the product; the heart saves it.
  */
 export default function ShopProductCard({ product }: { product: ProductSummary }) {

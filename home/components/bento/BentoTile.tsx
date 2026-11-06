@@ -16,7 +16,7 @@ export function BentoTile({
   return (
     <section
       aria-labelledby={titleId}
-      className={`relative isolate flex flex-col overflow-hidden rounded-[10px] border border-ink/10 bg-white p-5 sm:p-6 ${className}`}
+      className={`relative isolate flex flex-col overflow-hidden border border-ink/25 p-5 sm:p-6 ${className}`}
     >
       <h3 id={titleId}>
         <span className="font-display text-[21px] font-bold leading-tight tracking-[-0.01em] text-ink sm:text-[24px]">{title}</span>
@@ -51,7 +51,7 @@ export function SignInPrompt({
 /** A small square product photo with sharp corners. */
 export function Thumb({ src, size = 'h-12 w-12' }: { src?: string; size?: string }) {
   return (
-    <span className={`block shrink-0 overflow-hidden rounded-[6px] bg-stone ${size}`}>
+    <span className={`block shrink-0 overflow-hidden bg-[#E2DDD1] ${size}`}>
       {src && <img src={src} alt="" loading="lazy" className="h-full w-full object-cover" />}
     </span>
   );
@@ -59,5 +59,5 @@ export function Thumb({ src, size = 'h-12 w-12' }: { src?: string; size?: string
 
 /** A grey bar standing in for text while a tile loads. */
 export function SkeletonLine({ className = '' }: { className?: string }) {
-  return <span aria-hidden="true" className={`block h-4 animate-pulse rounded bg-stone motion-reduce:animate-none ${className}`} />;
+  return <span aria-hidden="true" className={`block h-4 animate-pulse bg-ink/10 motion-reduce:animate-none ${className}`} />;
 }
