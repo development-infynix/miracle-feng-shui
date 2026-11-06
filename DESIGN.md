@@ -267,7 +267,7 @@ Content sits in a centred container up to 1280px wide, with 16px gutters on phon
 Every section opens with the same heading row: a 1px Ink-at-15% hairline across the full container, then the serif headline on the left and an optional underlined text link (View all, All products) on the right, baseline-aligned, 20–24px below the rule. Content starts 24–32px under the heading.
 
 - **Product and category grids:** 2 columns on phones, 4 from 768px, with 12px gaps on phones and 20px from 640px. New arrivals shows 8 products on desktop and the first 4 on phones.
-- **Bento:** 1 column on phones, 2 from 640px, 4 from 1024px with Best sellers spanning two rows on the right half; 12px / 16px gaps.
+- **Bento:** 1 column on phones (account, cart, best sellers, favorites, socials); from 640px Best sellers moves to the top as a full-width shelf with the other four tiles 2 by 2 below; from 1024px those four sit in one row of 4 and the shelf shows 4 products at 4:3. 16px gaps.
 - **Breakpoints:** 640px (gutters, type step), 768px (navbar switches to desktop, grids go to 4), 1024px (bento goes to 4).
 - **Navbar:** 64px tall on phones, 72px from 768px, sharing the 1280px container.
 

@@ -11,8 +11,8 @@ import FavoritesTile from './bento/FavoritesTile';
 import SocialsTile from './bento/SocialsTile';
 
 /**
- * The close of the page. Desktop: account and cart on top, favorites and socials below,
- * best sellers filling the right half. Phones: account and cart side by side, then the rest full width.
+ * The close of the page. Tablet and up: best sellers as a full-width shelf on top, then account,
+ * cart, favorites and socials in one row (two by two on tablets). Phones: one column, account first.
  */
 export default function HomeBento({ bestsellers }: { bestsellers: ProductSummary[] }) {
   const { t } = useLocale();
@@ -21,12 +21,12 @@ export default function HomeBento({ bestsellers }: { bestsellers: ProductSummary
     <section aria-labelledby="home-bento-title" className={CONTAINER}>
       <SectionHeading id="home-bento-title" title={t('home.bento_title', 'Your corner')} />
 
-      <div className="mt-6 grid grid-cols-1 gap-3 sm:mt-8 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
-        <ProfileTile className="lg:col-start-1 lg:row-start-1" />
-        <CartTile className="lg:col-start-2 lg:row-start-1" />
-        <BestSellersTile products={bestsellers} className="sm:col-span-2 lg:col-start-3 lg:row-span-2 lg:row-start-1" />
-        <FavoritesTile className="lg:col-start-1 lg:row-start-2" />
-        <SocialsTile className="lg:col-start-2 lg:row-start-2" />
+      <div className="mt-6 grid grid-cols-1 gap-4 sm:mt-8 sm:grid-cols-2 lg:grid-cols-4">
+        <ProfileTile />
+        <CartTile />
+        <BestSellersTile products={bestsellers} className="sm:order-first sm:col-span-2 lg:col-span-4" />
+        <FavoritesTile />
+        <SocialsTile />
       </div>
     </section>
   );

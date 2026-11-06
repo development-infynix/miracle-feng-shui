@@ -8,20 +8,20 @@ import { ProductLink } from '@/shop/components/ProductDrawerProvider';
 import { focusRing, TextLink } from '../homeUi';
 import { BentoTile } from './BentoTile';
 
-/** The products an admin marked as bestsellers: a row of 4 on tablets, 2 by 2 elsewhere. */
+/** The products an admin marked as bestsellers: 2 by 2 on phones, a row of 4 from tablets up. */
 export default function BestSellersTile({ products, className }: { products: ProductSummary[]; className?: string }) {
   const { formatPrice, language, t } = useLocale();
 
   return (
     <BentoTile title={t('home.tile_bestsellers', 'Best sellers')} titleId="home-tile-bestsellers" className={className}>
       {products.length > 0 ? (
-        <ul className="grid list-none grid-cols-2 gap-x-3 gap-y-4 sm:grid-cols-4 sm:gap-x-4 lg:grid-cols-2">
+        <ul className="grid list-none grid-cols-2 gap-x-3 gap-y-4 sm:grid-cols-4 sm:gap-x-4">
           {products.map((product) => {
             const name = translateProductTitle(product.name, language, product.id);
             return (
               <li key={product.id} className="min-w-0">
                 <ProductLink product={product} className={`group block ${focusRing}`}>
-                  <span className="block aspect-square overflow-hidden bg-[#E2DDD1] lg:aspect-[16/10]">
+                  <span className="block aspect-square overflow-hidden bg-[#E2DDD1] lg:aspect-[4/3]">
                     <img
                       src={product.images[0] || '/images/miracle.jpeg'}
                       alt=""
