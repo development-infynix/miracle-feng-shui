@@ -203,7 +203,7 @@ function ReviewForm({ productId, onSaved, onCancel }: {
           value={comment}
           onChange={(e) => setComment(e.target.value)}
           style={{ outline: 'none' }}
-          className="mt-2 block w-full resize-y rounded-lg border border-white/70 bg-white/55 px-4 py-3 text-[16px] text-[#222222] caret-[#222222] transition-[border-color,box-shadow] focus:border-[#222222] focus:shadow-[0_0_0_3px_rgba(34,34,34,0.12)]"
+          className="mt-2 block w-full resize-y rounded-lg border border-[#E1E3DF] bg-white/55 px-4 py-3 text-[16px] text-[#222222] caret-[#222222] transition-[border-color,box-shadow] focus:border-[#222222] focus:shadow-[0_0_0_3px_rgba(34,34,34,0.12)]"
         />
       </div>
 
