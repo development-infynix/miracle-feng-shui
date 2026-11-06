@@ -9,7 +9,8 @@ import { userRepository } from '@/server/repositories/user.repository';
 import { emailService } from '@/server/services/email.service';
 
 const createRazorpayOrder = vi.hoisted(() => vi.fn());
-vi.mock('@/lib/razorpay', () => ({ razorpay: { orders: { create: createRazorpayOrder } } }));
+const fetchPayment = vi.hoisted(() => vi.fn());
+vi.mock('@/lib/razorpay', () => ({ razorpay: { orders: { create: createRazorpayOrder }, payments: { fetch: fetchPayment } } }));
 
 const sign = (text: string, secret: string) => crypto.createHmac('sha256', secret).update(text).digest('hex');
 
@@ -43,6 +44,8 @@ describe('PaymentService', () => {
       vi.restoreAllMocks();
       process.env.RAZORPAY_KEY_SECRET = 'secret';
       vi.spyOn(checkoutSessionRepository, 'findOwner').mockResolvedValue('user-1');
+      vi.spyOn(checkoutSessionRepository, 'findSession').mockResolvedValue({ razorpayOrderId: 'order_1', total: 5000 });
+      fetchPayment.mockReset().mockResolvedValue({ status: 'captured', amount: 500000, currency: 'INR' });
       vi.spyOn(checkoutSessionRepository, 'completePayment').mockResolvedValue({ orderId: 'o1', created: true });
       vi.spyOn(orderRepository, 'findById').mockResolvedValue(paidOrder);
       vi.spyOn(emailService, 'sendOrderConfirmationEmail').mockResolvedValue({ success: true });
@@ -59,6 +62,12 @@ describe('PaymentService', () => {
 
     it('writes nothing when the signature is wrong', async () => {
       await expect(verify('user-1', 'invalid_tampered_signature')).rejects.toThrow('Invalid Razorpay payment signature');
+      expect(checkoutSessionRepository.completePayment).not.toHaveBeenCalled();
+    });
+
+    it('writes nothing when the captured amount does not match the session total', async () => {
+      fetchPayment.mockResolvedValue({ status: 'captured', amount: 100, currency: 'INR' });
+      await expect(verify()).rejects.toThrow('Payment amount does not match the order total');
       expect(checkoutSessionRepository.completePayment).not.toHaveBeenCalled();
     });
 
@@ -141,6 +150,8 @@ describe('PaymentService', () => {
       vi.restoreAllMocks();
       process.env.RAZORPAY_WEBHOOK_SECRET = 'hook';
       process.env.RAZORPAY_KEY_SECRET = 'api';
+      vi.spyOn(checkoutSessionRepository, 'findSession').mockResolvedValue({ razorpayOrderId: 'order_1', total: 5000 });
+      fetchPayment.mockReset().mockResolvedValue({ status: 'captured', amount: 500000, currency: 'INR' });
       vi.spyOn(orderRepository, 'findById').mockResolvedValue(paidOrder);
       vi.spyOn(emailService, 'sendOrderConfirmationEmail').mockResolvedValue({ success: true });
     });
@@ -165,6 +176,7 @@ describe('PaymentService', () => {
     });
 
     it('logs a captured payment with no matching checkout, without failing', async () => {
+      vi.spyOn(checkoutSessionRepository, 'findSession').mockResolvedValue(null);
       vi.spyOn(checkoutSessionRepository, 'completePayment').mockResolvedValue(null);
       const log = vi.spyOn(console, 'error').mockImplementation(() => {});
       const raw = body('payment.captured');
