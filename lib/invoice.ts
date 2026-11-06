@@ -1,6 +1,22 @@
 import { calculateOrderTax } from './tax';
 import { TAX_CONFIG } from './tax/config';
 
+/** The seller block's lines, leaving out any detail that isn't set in .env. */
+function sellerLines(isUAE: boolean): string[] {
+  const s = TAX_CONFIG.seller;
+  const joined = (parts: string[]) => parts.filter(Boolean).join(' &bull; ');
+  const lines = [
+    s.legalName ? `<strong>${s.legalName}</strong>` : '',
+    isUAE
+      ? joined([s.uaeTrn ? `UAE TRN: ${s.uaeTrn}` : ''])
+      : joined([s.gstin ? `GSTIN: ${s.gstin}` : '', s.pan ? `PAN: ${s.pan}` : '']),
+    isUAE ? s.uaeOfficeAddress : s.address,
+    joined([s.email ? `Email: ${s.email}` : '', s.phone ? `Phone: ${s.phone}` : '']),
+  ];
+  return lines.filter(Boolean);
+}
+
+
 export interface TaxInvoiceData {
   orderId: string;
   orderDate: string;
@@ -260,9 +276,7 @@ export function generateTaxInvoiceHTML(data: TaxInvoiceData): string {
       <div>
         <div class="brand-title">${TAX_CONFIG.seller.brandName}</div>
         <div class="brand-sub">
-          <strong>${TAX_CONFIG.seller.legalName}</strong><br />
-          ${isUAE ? `UAE TRN: ${TAX_CONFIG.seller.uaeTrn}<br />${TAX_CONFIG.seller.uaeOfficeAddress}` : `GSTIN: ${TAX_CONFIG.seller.gstin} &bull; PAN: ${TAX_CONFIG.seller.pan}<br />${TAX_CONFIG.seller.address}`}<br />
-          Email: ${TAX_CONFIG.seller.email} &bull; Phone: ${TAX_CONFIG.seller.phone}
+          ${sellerLines(isUAE).join('<br />')}
         </div>
       </div>
       <div class="tax-badge">

@@ -3,7 +3,6 @@
 import React, { useRef, useState } from 'react';
 import Link from 'next/link';
 import { signIn } from 'next-auth/react';
-import GooNavShell from '@/components/GooNavShell';
 import { useLocale } from '@/context/CurrencyContext';
 import { useGlassModal } from './useGlassModal';
 
@@ -11,10 +10,10 @@ const MIN_PASSWORD_LENGTH = 6;
 const MIN_NAME_LENGTH = 2;
 
 const focusRing =
-  'focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#3A1F62]';
-const labelClass = 'mb-1.5 block px-1 font-outfit text-[13px] font-semibold text-[#431769]';
+  'focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ink';
+const labelClass = 'mb-1.5 block font-geist text-[13px] font-semibold text-ink';
 const fieldClass =
-  'h-12 w-full rounded-md border border-white/70 bg-white/55 px-4 font-outfit text-[16px] font-medium text-[#111111] caret-[#7A2FC0] transition-[border-color,box-shadow] placeholder:font-normal placeholder:text-[#5B4A70] focus:border-[#7A2FC0] focus:shadow-[0_0_0_3px_rgba(122,47,192,0.18)] [&:-webkit-autofill]:[-webkit-text-fill-color:#111111] [&:-webkit-autofill]:shadow-[inset_0_0_0_1000px_#F3ECFB]';
+  'h-12 w-full border border-ink/25 bg-white/60 px-4 font-geist text-[16px] font-medium text-ink caret-ink transition-[border-color,box-shadow] placeholder:font-normal placeholder:text-ink-muted focus:border-ink focus:shadow-[0_0_0_3px_rgba(20,18,16,0.12)] [&:-webkit-autofill]:[-webkit-text-fill-color:#141210] [&:-webkit-autofill]:shadow-[inset_0_0_0_1000px_#FBFAF6]';
 // The site-wide focus outline would box in the field. Its border and ring show focus instead.
 const fieldStyle: React.CSSProperties = { outline: 'none' };
 
@@ -29,7 +28,7 @@ interface AuthModalProps {
   onSignedIn: (customer: { name: string; email: string }) => void;
 }
 
-/** Customer sign in and sign up: a glass pill with the form hanging below it on a liquid thread. */
+/** Customer sign in and sign up: one sharp stone panel, with the two tabs on top and the form below. */
 export default function AuthModal({ open, mode, onModeChange, onClose, onSignedIn }: AuthModalProps) {
   const { t } = useLocale();
   const [name, setName] = useState('');
@@ -41,7 +40,6 @@ export default function AuthModal({ open, mode, onModeChange, onClose, onSignedI
 
   const panelRef = useRef<HTMLDivElement>(null);
   const firstFieldRef = useRef<HTMLInputElement>(null);
-  const activeTabRef = useRef<HTMLButtonElement>(null);
   const isRegister = mode === 'register';
 
   const close = () => {
@@ -113,7 +111,7 @@ export default function AuthModal({ open, mode, onModeChange, onClose, onSignedI
 
   return (
     <div
-      className="fixed inset-0 z-[9999] overflow-y-auto no-scrollbar bg-[#2B154C]/25 px-3 pt-2.5 pb-6 backdrop-blur-md animate-in fade-in duration-200 motion-reduce:animate-none md:pt-[9vh]"
+      className="fixed inset-0 z-[9999] overflow-y-auto no-scrollbar bg-[#141210]/25 px-3 pt-2.5 pb-6 backdrop-blur-md animate-in fade-in duration-200 motion-reduce:animate-none md:pt-[9vh]"
       onMouseDown={(e) => {
         if (!submitting && !panelRef.current?.contains(e.target as Node)) close();
       }}
@@ -123,34 +121,57 @@ export default function AuthModal({ open, mode, onModeChange, onClose, onSignedI
         role="dialog"
         aria-modal="true"
         aria-label={isRegister ? t('auth.create_account', 'Create account') : t('nav.signin', 'Sign in')}
-        className="mx-auto w-full max-w-[460px] font-outfit"
+        className="mx-auto w-full max-w-[460px] font-geist"
       >
-        <GooNavShell
-          open={poured}
-          triggerRef={activeTabRef}
-          threadKey={mode}
-          dropId="auth-panel"
-          fitMain
-          dropRadius={28}
-          dropClassName="w-full"
-          dropWrapperClassName="px-2"
-          drop={
+        <div className={`border border-ink/10 glass-veil shadow-[0_18px_40px_rgba(20,18,16,0.18)] transition-[opacity,transform] duration-200 ease-out motion-reduce:transition-none ${poured ? 'translate-y-0 opacity-100' : 'translate-y-1 opacity-0'}`}>
+          <div className="flex h-14 items-center justify-between gap-2 border-b border-ink/10 pl-3 pr-2">
+            <div className="flex items-center gap-0.5">
+              {tabs.map((tab) => {
+                const selected = tab.mode === mode;
+                return (
+                  <button
+                    key={tab.mode}
+                    type="button"
+                    aria-pressed={selected}
+                    onClick={() => switchMode(tab.mode)}
+                    className={`group relative h-14 cursor-pointer px-3 ${focusRing}`}
+                  >
+                    <span
+                      className={`whitespace-nowrap font-geist text-[14px] font-medium tracking-[0.01em] transition-colors group-hover:text-logo-purple ${selected ? 'text-logo-purple' : 'text-ink'}`}
+                    >
+                      {tab.label}
+                    </span>
+                    {selected && <span aria-hidden="true" className="absolute inset-x-3 bottom-0 h-[2px] bg-ink" />}
+                  </button>
+                );
+              })}
+            </div>
+
+            <button
+              type="button"
+              aria-label={t('auth.close', 'Close')}
+              onClick={close}
+              className={`group flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full ${focusRing}`}
+            >
+              <i aria-hidden="true" className="fa-solid fa-xmark text-[17px] text-ink transition-colors group-hover:text-logo-purple" />
+            </button>
+          </div>
             <div className="max-h-[calc(100dvh-112px)] overflow-y-auto no-scrollbar px-5 pb-5 pt-5 md:max-h-[72vh]">
               <h2>
-                <span className="block font-serif text-[24px] font-bold leading-tight tracking-tight text-[#111111]">
+                <span className="block font-display text-[26px] font-bold leading-tight tracking-tight text-ink">
                   {isRegister
                     ? t('auth.register_title', 'Create your account')
                     : t('auth.signin_title', 'Welcome back')}
                 </span>
               </h2>
-              <p className="mt-1 text-[14px] text-[#5B4A70]">
+              <p className="mt-1 text-[14px] text-ink-muted">
                 {isRegister
                   ? t('auth.register_subtitle', 'Save your favorites and track your orders.')
                   : t('auth.signin_subtitle', 'Sign in to see your favorites, cart and orders.')}
               </p>
 
               {error && (
-                <p role="alert" className="mt-4 rounded-md border border-[#A61A11]/25 bg-white/55 px-4 py-3 text-[14px] text-[#8F1610]">
+                <p role="alert" className="mt-4 border border-[#8F1610]/30 bg-white/60 px-4 py-3 font-geist text-[14px] text-[#8F1610]">
                   {error}
                 </p>
               )}
@@ -205,7 +226,7 @@ export default function AuthModal({ open, mode, onModeChange, onClose, onSignedI
                         onClick={close}
                         className={`group mb-1.5 rounded-full px-1 ${focusRing}`}
                       >
-                        <span className="text-[13px] font-medium text-[#431769] underline underline-offset-2 transition-colors group-hover:text-[#7A2FC0]">
+                        <span className="text-[13px] font-medium text-ink underline underline-offset-2 transition-colors group-hover:text-logo-purple">
                           {t('auth.forgot', 'Forgot password?')}
                         </span>
                       </Link>
@@ -231,13 +252,13 @@ export default function AuthModal({ open, mode, onModeChange, onClose, onSignedI
                       onClick={() => setShowPassword((prev) => !prev)}
                       className={`group absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer rounded-full px-2 py-1 ${focusRing}`}
                     >
-                      <span className="font-outfit text-[13px] font-medium text-[#431769] transition-colors group-hover:text-[#7A2FC0]">
+                      <span className="font-geist text-[13px] font-medium text-ink transition-colors group-hover:text-logo-purple">
                         {showPassword ? t('auth.hide', 'Hide') : t('auth.show', 'Show')}
                       </span>
                     </button>
                   </div>
                   {isRegister && (
-                    <p id={passwordHintId} className="mt-1.5 px-1 text-[12px] text-[#5B4A70]">
+                    <p id={passwordHintId} className="mt-1.5 px-1 text-[12px] text-ink-muted">
                       {t('auth.password_hint', 'At least 6 characters.')}
                     </p>
                   )}
@@ -246,9 +267,9 @@ export default function AuthModal({ open, mode, onModeChange, onClose, onSignedI
                 <button
                   type="submit"
                   disabled={submitting}
-                  className={`mt-1 h-12 w-full cursor-pointer rounded-md bg-[#431769] transition-colors hover:bg-[#3A1F62] disabled:cursor-wait disabled:opacity-70 ${focusRing}`}
+                  className={`mt-1 h-12 w-full cursor-pointer bg-ink-fill transition-shadow duration-300 hover:shadow-[0_8px_22px_rgba(231,169,59,0.45)] disabled:cursor-wait disabled:opacity-70 ${focusRing}`}
                 >
-                  <span className="font-outfit text-[15px] font-semibold text-white">
+                  <span className="font-geist text-[15px] font-semibold text-white">
                     {submitting
                       ? isRegister
                         ? t('auth.creating', 'Creating your account…')
@@ -260,7 +281,7 @@ export default function AuthModal({ open, mode, onModeChange, onClose, onSignedI
                 </button>
               </form>
 
-              <p className="mt-4 text-center text-[12px] leading-relaxed text-[#5B4A70]">
+              <p className="mt-4 text-center text-[12px] leading-relaxed text-ink-muted">
                 {t('auth.terms_prefix', 'By continuing, you agree to our')}{' '}
                 <Link href="/terms" onClick={close}>
                   <span className="underline underline-offset-2">{t('auth.terms', 'Terms of Use')}</span>
@@ -272,41 +293,7 @@ export default function AuthModal({ open, mode, onModeChange, onClose, onSignedI
                 .
               </p>
             </div>
-          }
-        >
-          <div className="flex h-14 items-center gap-0.5 pl-2 pr-2">
-            <div className="flex items-center gap-0.5">
-              {tabs.map((tab) => {
-                const selected = tab.mode === mode;
-                return (
-                  <button
-                    key={tab.mode}
-                    ref={selected ? activeTabRef : undefined}
-                    type="button"
-                    aria-pressed={selected}
-                    onClick={() => switchMode(tab.mode)}
-                    className={`group h-10 cursor-pointer rounded-full px-3 ${focusRing}`}
-                  >
-                    <span
-                      className={`whitespace-nowrap font-outfit text-[14px] font-medium tracking-[0.01em] transition-colors group-hover:text-[#7A2FC0] ${selected ? 'text-[#7A2FC0]' : 'text-[#111111]'}`}
-                    >
-                      {tab.label}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-
-            <button
-              type="button"
-              aria-label={t('auth.close', 'Close')}
-              onClick={close}
-              className={`group flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full ${focusRing}`}
-            >
-              <i aria-hidden="true" className="fa-solid fa-xmark text-[17px] text-[#111111] transition-colors group-hover:text-[#7A2FC0]" />
-            </button>
-          </div>
-        </GooNavShell>
+        </div>
       </div>
     </div>
   );

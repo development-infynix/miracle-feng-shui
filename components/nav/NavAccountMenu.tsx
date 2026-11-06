@@ -4,9 +4,10 @@ import React, { useCallback, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useLocale } from '@/context/CurrencyContext';
 import { initialsOf } from '@/lib/initials';
+import RegionOptions from './RegionOptions';
 import { navFocus, navPanel, navPanelClosed, navPanelOpen, panelRow, panelRowLabel, useDismiss } from './navUi';
 
-/** The signed-in customer's avatar, which drops a panel with their name, orders, profile and Sign out. */
+/** The signed-in customer's avatar, which drops a panel with their name, orders, profile, region & currency and Sign out. */
 export default function NavAccountMenu({ name, email, onSignOut }: { name: string; email: string; onSignOut: () => void }) {
   const { t } = useLocale();
   const [open, setOpen] = useState(false);
@@ -52,6 +53,9 @@ export default function NavAccountMenu({ name, email, onSignOut }: { name: strin
             <i aria-hidden="true" className="fa-regular fa-user w-4 text-center text-[14px] text-ink-muted" />
             <span className={panelRowLabel}>{t('profile.title', 'Your profile')}</span>
           </Link>
+        </div>
+        <div className="border-t border-ink/10 py-2">
+          <RegionOptions onPicked={close} />
         </div>
         <div className="border-t border-ink/10 pt-1.5">
           <button

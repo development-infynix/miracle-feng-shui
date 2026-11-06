@@ -3,7 +3,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import GooNavShell from '@/components/GooNavShell';
 import { useLocale } from '@/context/CurrencyContext';
 import { useGlassModal } from './useGlassModal';
 import type { NavCategory } from '@/lib/nav-categories';
@@ -18,8 +17,8 @@ const LISTBOX_ID = 'general-search-results';
 
 const FALLBACK_IMAGE = '/images/miracle.jpeg';
 const iconButtonClass =
-  'group flex w-9 h-9 shrink-0 items-center justify-center rounded-full cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#3A1F62]';
-const sectionTitleClass = 'block px-2 pb-2 font-outfit text-[13px] font-semibold text-[#431769]';
+  'group flex w-9 h-9 shrink-0 items-center justify-center rounded-full cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ink';
+const sectionTitleClass = 'block px-2 pb-2 font-geist text-[13px] font-semibold text-ink';
 
 async function fetchProducts(params: Record<string, string>, signal: AbortSignal) {
   const res = await fetch(`/api/products?${new URLSearchParams(params)}`, { signal });
@@ -41,7 +40,7 @@ interface GeneralSearchModalProps {
   categories: NavCategory[];
 }
 
-/** Site search: a glass search pill with its results hanging below it on a liquid thread. */
+/** Site search: one sharp stone panel, with the search field on top and results below. */
 export default function GeneralSearchModal({ open, onClose, categories }: GeneralSearchModalProps) {
   const router = useRouter();
   const { formatPrice, language, t } = useLocale();
@@ -52,7 +51,6 @@ export default function GeneralSearchModal({ open, onClose, categories }: Genera
   const [retryCount, setRetryCount] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
-  const threadAnchorRef = useRef<HTMLSpanElement>(null);
 
   const poured = useGlassModal({ open, onClose, panelRef, initialFocusRef: inputRef });
 
@@ -143,10 +141,10 @@ export default function GeneralSearchModal({ open, onClose, categories }: Genera
             key={category.id}
             href={`/shop?category=${encodeURIComponent(category.name)}`}
             onClick={onClose}
-            className="group inline-flex h-8 items-center rounded-full border border-white/70 bg-white/45 px-2.5 focus-visible:outline-2 focus-visible:outline-[#3A1F62]"
+            className="group inline-flex h-8 items-center border border-ink/20 bg-white/50 px-2.5 transition-colors hover:bg-white focus-visible:outline-2 focus-visible:outline-ink"
           >
             {/* Text colour sits on this span: the global `a { color: inherit }` rule overrides colour utilities on the link. */}
-            <span className="text-[13px] font-medium text-[#111111] transition-colors group-hover:text-[#7A2FC0]">
+            <span className="text-[13px] font-medium text-ink transition-colors group-hover:text-logo-purple">
               {translateCategory(category.name, language)}
             </span>
           </Link>
@@ -154,9 +152,9 @@ export default function GeneralSearchModal({ open, onClose, categories }: Genera
         <Link
           href="/shop"
           onClick={onClose}
-          className="group inline-flex h-8 items-center rounded-full border border-white/70 bg-white/45 px-2.5 focus-visible:outline-2 focus-visible:outline-[#3A1F62]"
+          className="group inline-flex h-8 items-center border border-ink/20 bg-white/50 px-2.5 transition-colors hover:bg-white focus-visible:outline-2 focus-visible:outline-ink"
         >
-          <span className="flex items-center gap-1.5 text-[13px] font-semibold text-[#431769] transition-colors group-hover:text-[#7A2FC0]">
+          <span className="flex items-center gap-1.5 text-[13px] font-semibold text-ink transition-colors group-hover:text-logo-purple">
             {t('nav.view_all', 'View all')}
             <i aria-hidden="true" className="fa-solid fa-arrow-right text-[10px]" />
           </span>
@@ -174,30 +172,30 @@ export default function GeneralSearchModal({ open, onClose, categories }: Genera
             <ProductLink product={product}
               onClick={onClose}
               onMouseEnter={() => setActiveIndex(idx)}
-              className="group flex items-center gap-3 rounded-2xl p-1.5 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#3A1F62]"
+              className="group flex items-center gap-3 p-1.5 hover:bg-white/60 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ink"
             >
               <img
                 src={product.images[0] || FALLBACK_IMAGE}
                 alt=""
-                className="h-12 w-12 shrink-0 rounded-md bg-white/50 object-cover"
+                className="h-12 w-12 shrink-0 bg-[#E2DDD1] object-cover"
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = FALLBACK_IMAGE;
                 }}
               />
               <span className="min-w-0 flex-1">
-                <span className={`block truncate text-[14px] font-medium transition-colors ${active ? 'text-[#7A2FC0]' : 'text-[#111111]'}`}>
+                <span className={`block truncate text-[14px] font-medium transition-colors ${active ? 'text-logo-purple' : 'text-ink'}`}>
                   {translateProductTitle(product.name, language, product.id)}
                 </span>
-                <span className="block truncate text-[12px] text-[#5B4A70]">
+                <span className="block truncate text-[12px] text-ink-muted">
                   {translateCategory(product.category, language)}
                 </span>
               </span>
-              <span className="shrink-0 text-[13.5px] font-semibold tabular-nums text-[#111111]">
+              <span className="shrink-0 text-[13.5px] font-semibold tabular-nums text-ink">
                 {formatPrice(product.price)}
               </span>
               {/* The wrapper does the hiding: Font Awesome's display rule beats utilities on the icon. */}
               <span aria-hidden="true" className="hidden md:block">
-                <i className={`fa-solid fa-arrow-right text-[11px] text-[#7A2FC0] transition-opacity ${active ? 'opacity-100' : 'opacity-0'}`} />
+                <i className={`fa-solid fa-arrow-right text-[11px] text-logo-purple transition-opacity ${active ? 'opacity-100' : 'opacity-0'}`} />
               </span>
             </ProductLink>
           </li>
@@ -210,10 +208,10 @@ export default function GeneralSearchModal({ open, onClose, categories }: Genera
     <div role="status" aria-label={t('search.loading', 'Loading products')} className="flex flex-col gap-1.5 p-1.5">
       {[0, 1, 2].map((row) => (
         <div key={row} className="flex items-center gap-3 motion-safe:animate-pulse">
-          <div className="h-12 w-12 shrink-0 rounded-md bg-white/55" />
+          <div className="h-12 w-12 shrink-0 bg-ink/10" />
           <div className="flex-1 space-y-2">
-            <div className="h-3 w-3/5 rounded-full bg-white/55" />
-            <div className="h-2.5 w-1/4 rounded-full bg-white/55" />
+            <div className="h-3 w-3/5 bg-ink/10" />
+            <div className="h-2.5 w-1/4 bg-ink/10" />
           </div>
         </div>
       ))}
@@ -222,13 +220,13 @@ export default function GeneralSearchModal({ open, onClose, categories }: Genera
 
   const loadFailed = (message: string) => (
     <div role="alert" className="flex items-center justify-between gap-3 px-2 py-1">
-      <p className="text-[14px] text-[#2B1A3F]">{message}</p>
+      <p className="text-[14px] text-ink">{message}</p>
       <button
         type="button"
         onClick={retry}
-        className="group shrink-0 cursor-pointer rounded-full px-2 py-1 focus-visible:outline-2 focus-visible:outline-[#3A1F62]"
+        className="group shrink-0 cursor-pointer rounded-full px-2 py-1 focus-visible:outline-2 focus-visible:outline-ink"
       >
-        <span className="font-outfit text-[13px] font-semibold text-[#431769] transition-colors group-hover:text-[#7A2FC0]">
+        <span className="font-geist text-[13px] font-semibold text-ink transition-colors group-hover:text-logo-purple">
           {t('search.try_again', 'Try again')}
         </span>
       </button>
@@ -257,7 +255,7 @@ export default function GeneralSearchModal({ open, onClose, categories }: Genera
   } else if (!searching && searchItems.length === 0) {
     panelBody = (
       <div className="space-y-4">
-        <p role="status" className="px-2 pt-1 text-[14px] text-[#2B1A3F]">
+        <p role="status" className="px-2 pt-1 text-[14px] text-ink">
           {t('search.no_results', 'No products match')} &ldquo;{term}&rdquo;.{' '}
           {t('search.no_results_hint', 'Check the spelling, or browse a category.')}
         </p>
@@ -271,12 +269,12 @@ export default function GeneralSearchModal({ open, onClose, categories }: Genera
         <button
           type="submit"
           form="general-search-form"
-          className="group mt-1.5 flex h-11 w-full items-center justify-between gap-3 border-t border-[#431769]/15 px-2 pt-1.5 text-left cursor-pointer focus-visible:outline-2 focus-visible:outline-[#3A1F62]"
+          className="group mt-1.5 flex h-11 w-full items-center justify-between gap-3 border-t border-ink/15 px-2 pt-1.5 text-left cursor-pointer focus-visible:outline-2 focus-visible:outline-ink"
         >
-          <span className="min-w-0 truncate font-outfit text-[14px] font-semibold text-[#431769] transition-colors group-hover:text-[#7A2FC0]">
+          <span className="min-w-0 truncate font-geist text-[14px] font-semibold text-ink transition-colors group-hover:text-logo-purple">
             {t('search.see_all', 'See all results for')} &ldquo;{term}&rdquo;
           </span>
-          <i aria-hidden="true" className="fa-solid fa-arrow-right text-[12px] text-[#431769]" />
+          <i aria-hidden="true" className="fa-solid fa-arrow-right text-[12px] text-ink" />
         </button>
       </div>
     );
@@ -284,7 +282,7 @@ export default function GeneralSearchModal({ open, onClose, categories }: Genera
 
   return (
     <div
-      className="fixed inset-0 z-[9999] overflow-hidden bg-[#2B154C]/25 px-3 pt-2.5 backdrop-blur-md animate-in fade-in duration-200 motion-reduce:animate-none md:pt-[12vh]"
+      className="fixed inset-0 z-[9999] overflow-hidden bg-[#141210]/25 px-3 pt-2.5 backdrop-blur-md animate-in fade-in duration-200 motion-reduce:animate-none md:pt-[12vh]"
       onMouseDown={(e) => {
         if (!panelRef.current?.contains(e.target as Node)) onClose();
       }}
@@ -294,29 +292,17 @@ export default function GeneralSearchModal({ open, onClose, categories }: Genera
         role="dialog"
         aria-modal="true"
         aria-label={t('nav.search', 'Search')}
-        className="mx-auto w-full max-w-[640px] font-outfit"
+        className="mx-auto w-full max-w-[640px] font-geist"
       >
-        <GooNavShell
-          open={poured}
-          triggerRef={threadAnchorRef}
-          dropId="general-search-panel"
-          dropRadius={28}
-          dropClassName="w-full"
-          dropWrapperClassName="px-2"
-          drop={
-            <div className="max-h-[calc(100dvh-124px)] overflow-y-auto no-scrollbar p-3 md:max-h-[58vh]">
-              {panelBody}
-            </div>
-          }
-        >
+        <div className={`border border-ink/10 glass-veil shadow-[0_18px_40px_rgba(20,18,16,0.18)] transition-[opacity,transform] duration-200 ease-out motion-reduce:transition-none ${poured ? 'translate-y-0 opacity-100' : 'translate-y-1 opacity-0'}`}>
           <form
             id="general-search-form"
             role="search"
             onSubmit={handleSubmit}
-            className="flex h-14 items-center gap-1 pl-3 pr-2"
+            className="flex h-14 items-center gap-1 border-b border-ink/10 pl-3 pr-2"
           >
-            <span ref={threadAnchorRef} aria-hidden="true" className="flex w-8 shrink-0 justify-center">
-              <i className="fa-solid fa-magnifying-glass text-[16px] text-[#431769]" />
+            <span aria-hidden="true" className="flex w-8 shrink-0 justify-center">
+              <i className="fa-solid fa-magnifying-glass text-[16px] text-ink" />
             </span>
             <div className="relative h-full min-w-0 flex-1">
               <input
@@ -333,15 +319,15 @@ export default function GeneralSearchModal({ open, onClose, categories }: Genera
               value={query}
               onChange={(e) => updateQuery(e.target.value)}
               onKeyDown={handleInputKeyDown}
-              placeholder={t('nav.search_placeholder', 'Search product, categories...')}
+              placeholder={t('nav.search_placeholder', 'Search items...')}
               style={{ outline: 'none', boxShadow: 'none' }}
-              className={`peer h-full w-full bg-transparent pl-1 text-[16px] font-medium text-[#111111] placeholder:text-[#5B4A70] [text-overflow:ellipsis] ${query ? 'caret-[#7A2FC0]' : 'caret-transparent'}`}
+              className={`peer h-full w-full bg-transparent pl-1 text-[16px] font-medium text-ink placeholder:text-ink-muted [text-overflow:ellipsis] ${query ? 'caret-ink' : 'caret-transparent'}`}
             />
               {/* The native caret is too faint on the glass, so an empty field shows a stronger one. */}
               {!query && (
                 <span
                   aria-hidden="true"
-                  className="search-caret pointer-events-none absolute left-0 top-1/2 hidden h-5 w-0.5 -translate-y-1/2 rounded-full bg-[#7A2FC0] peer-focus:block"
+                  className="search-caret pointer-events-none absolute left-0 top-1/2 hidden h-5 w-0.5 -translate-y-1/2 rounded-full bg-ink peer-focus:block"
                 />
               )}
             </div>
@@ -353,9 +339,9 @@ export default function GeneralSearchModal({ open, onClose, categories }: Genera
                   updateQuery('');
                   inputRef.current?.focus();
                 }}
-                className="group shrink-0 cursor-pointer rounded-full px-2 py-1 focus-visible:outline-2 focus-visible:outline-[#3A1F62]"
+                className="group shrink-0 cursor-pointer rounded-full px-2 py-1 focus-visible:outline-2 focus-visible:outline-ink"
               >
-                <span className="font-outfit text-[13px] font-medium text-[#431769] transition-colors group-hover:text-[#7A2FC0]">
+                <span className="font-geist text-[13px] font-medium text-ink transition-colors group-hover:text-logo-purple">
                   {t('search.clear_short', 'Clear')}
                 </span>
               </button>
@@ -366,10 +352,13 @@ export default function GeneralSearchModal({ open, onClose, categories }: Genera
               onClick={onClose}
               className={iconButtonClass}
             >
-              <i aria-hidden="true" className="fa-solid fa-xmark text-[17px] text-[#111111] transition-colors group-hover:text-[#7A2FC0]" />
+              <i aria-hidden="true" className="fa-solid fa-xmark text-[17px] text-ink transition-colors group-hover:text-logo-purple" />
             </button>
           </form>
-        </GooNavShell>
+            <div className="max-h-[calc(100dvh-124px)] overflow-y-auto no-scrollbar p-3 md:max-h-[58vh]">
+              {panelBody}
+            </div>
+        </div>
       </div>
     </div>
   );

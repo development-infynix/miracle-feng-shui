@@ -68,14 +68,8 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
 
         try {
           const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
-          if (
-            tz.includes('Dubai') ||
-            tz.includes('Gulf') ||
-            tz.includes('Muscat') ||
-            tz.includes('Riyadh') ||
-            tz.includes('Qatar') ||
-            tz.includes('Bahrain')
-          ) {
+          // Only the UAE's own time zone; Oman, Saudi Arabia, Qatar and Bahrain aren't UAE.
+          if (tz === 'Asia/Dubai') {
             detectedCountry = 'UAE';
             detectedCurrency = 'AED';
           } else {

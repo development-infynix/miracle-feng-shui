@@ -6,6 +6,7 @@ import type { NavCategory } from "@/lib/nav-categories";
 import { useLocale } from "@/context/CurrencyContext";
 import { translateCategory } from "@/lib/translations";
 import { FACEBOOK_URL, INSTAGRAM_URL } from "@/lib/social-links";
+import RegionOptions from "./RegionOptions";
 import { navBadge, navFocus, panelRow, panelRowLabel } from "./navUi";
 
 interface NavMobileMenuProps {
@@ -193,6 +194,11 @@ export default function NavMobileMenu({
               </span>
             </button>
           )}
+        </div>
+
+        {/* Region & currency, for guests too. */}
+        <div className="mt-3 border-t border-ink/15 pt-3">
+          <RegionOptions onPicked={onClose} />
         </div>
 
         <div className="mt-3 grid grid-cols-2 gap-3 border-t border-ink/15 pt-4">
