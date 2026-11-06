@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" fill="none" stroke="#EEEBE3" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
+  <!-- A man (right) pushing a shopping trolley (left), hand drawn: stone line on charcoal, a gold lucky coin in the basket. -->
+
+  <!-- Ground -->
+  <path d="M14 184 C 90 182, 220 186, 306 183" stroke-width="2.5" opacity="0.45" />
+
+  <!-- Trolley basket: wider at the top, open grid -->
+  <path d="M28 62 L 196 58 L 182 128 L 46 130 Z" fill="#3A3632" />
+  <path d="M60 61 L 66 129 M94 60 L 96 129 M128 59 L 126 129 M160 59 L 154 128" stroke-width="2.5" />
+  <path d="M35 84 L 191 81 M40 107 L 186 104" stroke-width="2.5" />
+
+  <!-- What's in it: a crystal and a gold lucky coin peeking over the rim -->
+  <path d="M84 60 L 88 34 L 98 24 L 106 34 L 104 60" fill="#3A3632" />
+  <path d="M88 34 L 106 34 M98 24 L 96 60" stroke-width="2.5" />
+  <circle cx="140" cy="46" r="15" fill="#E7A93B" />
+  <rect x="135" y="41" width="10" height="10" fill="#3A3632" stroke-width="3" />
+
+  <!-- Frame, handle and wheels -->
+  <path d="M46 130 L 52 150 L 178 150" />
+  <path d="M182 128 L 178 150" />
+  <path d="M196 58 L 206 42 L 224 40" />
+  <path d="M220 34 L 228 46" stroke-width="6" />
+  <circle cx="66" cy="166" r="11" fill="#3A3632" />
+  <circle cx="164" cy="166" r="11" fill="#3A3632" />
+  <path d="M66 150 L 66 155 M164 150 L 164 155" stroke-width="3" />
+
+  <!-- The man, leaning in to push -->
+  <!-- back leg -->
+  <path d="M268 120 C 276 138, 284 152, 292 170 L 304 174" fill="none" />
+  <!-- front leg -->
+  <path d="M262 122 C 256 140, 250 154, 244 170 L 232 174" fill="none" />
+  <!-- trousers -->
+  <path d="M256 112 L 276 114 C 280 126, 286 142, 296 168 L 286 172 C 276 150, 270 138, 266 128 C 262 142, 256 156, 250 172 L 240 170 C 246 152, 252 132, 256 112 Z" fill="#3A3632" />
+  <!-- shirt, leaning toward the trolley -->
+  <path d="M236 62 C 244 54, 262 54, 270 64 L 278 114 C 268 118, 258 118, 254 114 Z" fill="#EEEBE3" />
+  <path d="M246 60 C 250 66, 258 66, 262 60" stroke="#3A3632" stroke-width="3" />
+  <!-- arms reaching to the handle -->
+  <path d="M244 70 C 238 62, 232 52, 228 44" stroke-width="5" />
+  <path d="M256 74 C 248 64, 240 54, 232 46" stroke-width="5" />
+  <circle cx="227" cy="42" r="4.5" fill="#EEEBE3" />
+  <circle cx="231" cy="45" r="4.5" fill="#EEEBE3" />
+  <!-- head and hair -->
+  <circle cx="246" cy="38" r="15" fill="#3A3632" />
+  <path d="M233 32 C 236 20, 252 16, 260 26 C 256 24, 250 26, 246 24 C 242 28, 238 28, 233 32 Z" fill="#EEEBE3" />
+  <path d="M238 41 C 240 44, 243 44, 244 41" stroke-width="2.5" />
+  <circle cx="239" cy="36" r="1.6" fill="#EEEBE3" stroke="none" />
+</svg>

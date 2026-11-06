@@ -20,7 +20,7 @@ Style reference the owner liked: `public/images/img2.webp` (its bottom five card
   - Guests and while the session loads: only Best sellers (3 columns) plus Socials (1 column) from 1024px; stacked below that.
 - `home/components/bento/BentoTile.tsx`: the tile shell. `tone` is `'outline' | 'purple' | 'charcoal'` and `art` is an optional illustration node the tile places itself. Title and content sit above the art (`z-10`).
 - `home/components/bento/SocialsTile.tsx`: `tone="purple"`, three Open Peeps neighbours along the bottom edge (`Neighbours`).
-- `home/components/bento/CartTile.tsx`: `tone="charcoal"`, the hand-drawn shopping bag (`/illustrations/cart-bag.svg`) bottom right, content limited to the left 62%.
+- `home/components/bento/CartTile.tsx`: `tone="charcoal"`, the hand-drawn shopping bag (`/illustrations/cart-bag.svg`) centred between the message ("Your cart is empty." or the item summary) and the action.
 - `home/components/bento/ProfileTile.tsx`, `FavoritesTile.tsx`, `BestSellersTile.tsx`: outlined, no illustration yet.
 - `home/components/homeUi.tsx`:
   - `PillLink` / `PillButton` have variants `primary` (charcoal), `outline` and `light` (stone block for filled tiles).
@@ -66,7 +66,7 @@ Keep at most two or three filled tiles in the bento at once. The rest stay outli
 
 1. Make the SVG (hand-coded, or commissioned or AI-generated line art cleaned up to the rules above) and save it to `public/illustrations/<name>.svg`.
 2. Add its credit line to `public/illustrations/CREDITS.md`.
-3. In the tile, pass `art={...}` to `BentoTile`. Position it absolutely (bottom right, slightly bleeding off the edge with negative offsets like the cart bag), or in the flow at the bottom like the Socials neighbours. Add `pointer-events-none`.
+3. In the tile, pass `art={...}` to `BentoTile`. Position it absolutely (bottom right, slightly bleeding off the edge with negative offsets), like the cart bag, or in the flow at the bottom like the Socials neighbours. Add `pointer-events-none`.
 4. If the tile becomes filled, switch text to stone (`text-stone`, `text-stone/80`), buttons to `variant="light"`, links to `light`, and skeletons to `<SkeletonLine light />`. Limit content width (for example `max-w-[62%]`) when the art sits beside it.
 5. Update the Bento Tile and Illustrations sections in `DESIGN.md`.
 

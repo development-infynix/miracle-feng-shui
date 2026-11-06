@@ -5,7 +5,8 @@ import type { ProductSummary } from '@/lib/placeholder-data';
 import { useLocale } from '@/context/CurrencyContext';
 import { translateProductTitle } from '@/lib/translations';
 import { ProductLink } from '@/shop/components/ProductDrawerProvider';
-import { focusRing, TextLink } from '../homeUi';
+import Link from 'next/link';
+import { focusRing } from '../homeUi';
 import { BentoTile } from './BentoTile';
 
 /** The products an admin marked as bestsellers: 2 by 2 on phones, a row of 4 from tablets up. */
@@ -13,7 +14,21 @@ export default function BestSellersTile({ products, className }: { products: Pro
   const { formatPrice, language, t } = useLocale();
 
   return (
-    <BentoTile title={t('home.tile_bestsellers', 'Best sellers')} titleId="home-tile-bestsellers" className={className}>
+    <BentoTile
+      title={t('home.tile_bestsellers', 'Best sellers')}
+      titleId="home-tile-bestsellers"
+      className={className}
+      action={
+        <Link
+          href="/shop?sort=relevancy"
+          className={`group inline-flex h-10 shrink-0 items-center justify-center border border-ink px-4 transition-colors hover:bg-white/60 ${focusRing}`}
+        >
+          <span className="font-geist text-[14px] font-semibold text-ink transition-colors group-hover:text-logo-purple">
+            {t('home.view_all', 'View all')}
+          </span>
+        </Link>
+      }
+    >
       {products.length > 0 ? (
         <ul className="grid list-none grid-cols-2 gap-x-3 gap-y-4 sm:grid-cols-4 sm:gap-x-4">
           {products.map((product) => {
@@ -42,9 +57,6 @@ export default function BestSellersTile({ products, className }: { products: Pro
         </p>
       )}
 
-      <div className="mt-auto pt-5">
-        <TextLink href="/shop?sort=relevancy">{t('home.view_all', 'View all')}</TextLink>
-      </div>
     </BentoTile>
   );
 }

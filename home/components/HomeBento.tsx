@@ -16,6 +16,7 @@ import SocialsTile from './bento/SocialsTile';
  * Signed in: best sellers as a full-width shelf on top (from tablets), then account, cart, favorites
  * and socials in one row (two by two on tablets). Phones: one column, account first.
  * Guests (and while the session loads): only best sellers and socials, side by side from desktop.
+ * Best sellers is left out on phones.
  */
 export default function HomeBento({ bestsellers }: { bestsellers: ProductSummary[] }) {
   const { t } = useLocale();
@@ -30,13 +31,13 @@ export default function HomeBento({ bestsellers }: { bestsellers: ProductSummary
         <div className="mt-6 grid grid-cols-1 gap-4 sm:mt-8 sm:grid-cols-2 lg:grid-cols-4">
           <ProfileTile />
           <CartTile />
-          <BestSellersTile products={bestsellers} className="sm:order-first sm:col-span-2 lg:col-span-4" />
+          <BestSellersTile products={bestsellers} className="max-sm:hidden sm:order-first sm:col-span-2 lg:col-span-4" />
           <FavoritesTile />
           <SocialsTile />
         </div>
       ) : (
         <div className="mt-6 grid grid-cols-1 gap-4 sm:mt-8 lg:grid-cols-4">
-          <BestSellersTile products={bestsellers} className="lg:col-span-3" />
+          <BestSellersTile products={bestsellers} className="max-sm:hidden lg:col-span-3" />
           <SocialsTile />
         </div>
       )}

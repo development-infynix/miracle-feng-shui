@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 280" fill="none" stroke="#EEEBE3" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+  <!-- A man pushing an empty trolley, hand drawn: stone line on charcoal, one gold lucky coin. Man on the right, trolley on the left. -->
+
+  <!-- Ground, lightly uneven -->
+  <path d="M24 250 C 120 246, 260 254, 372 248" stroke-width="3" opacity="0.45" />
+
+  <!-- Trolley: basket -->
+  <path d="M42 116 L 182 108 L 188 186 C 188 190, 186 192, 182 192 L 46 196 C 42 196, 40 194, 40 190 Z" />
+  <!-- Basket slats -->
+  <path d="M72 114 L 74 194" stroke-width="3" />
+  <path d="M102 112 L 103 193" stroke-width="3" />
+  <path d="M132 111 L 133 191" stroke-width="3" />
+  <path d="M160 109 L 161 190" stroke-width="3" />
+  <!-- Top rim, slightly wobbly -->
+  <path d="M42 116 C 90 111, 140 110, 182 108" stroke-width="3" />
+
+  <!-- Trolley legs and wheels -->
+  <path d="M60 196 L 54 228" />
+  <path d="M166 192 L 172 226" />
+  <circle cx="52" cy="238" r="12" />
+  <circle cx="174" cy="238" r="12" />
+
+  <!-- Handle reaching right to the man's hands -->
+  <path d="M182 108 C 200 102, 206 98, 218 92" />
+
+  <!-- Gold lucky coin dangling from the basket rim -->
+  <path d="M126 110 C 124 98, 120 92, 116 86" stroke-width="3" />
+  <circle cx="112" cy="68" r="15" fill="#E7A93B" stroke-width="4" />
+  <rect x="107" y="63" width="10" height="10" fill="#3A3632" stroke-width="2.5" />
+
+  <!-- Man: head -->
+  <circle cx="288" cy="68" r="20" />
+  <circle cx="282" cy="65" r="2.5" fill="#EEEBE3" stroke-width="2.5" />
+  <path d="M280 76 C 284 80, 290 81, 294 78" stroke-width="3" />
+  <!-- Little hair tuft -->
+  <path d="M278 52 C 282 44, 292 42, 298 48" stroke-width="3" />
+
+  <!-- Body, leaning forward (toward the trolley, to the left) -->
+  <path d="M276 88 C 272 106, 276 130, 288 148" />
+  <path d="M296 90 C 292 110, 294 130, 290 148" />
+
+  <!-- Arms reaching left to the handle -->
+  <path d="M278 104 C 258 100, 236 96, 219 92" />
+  <path d="M280 118 C 262 114, 240 108, 222 102" />
+
+  <!-- Legs mid-stride -->
+  <path d="M288 148 C 296 166, 300 186, 302 206 L 306 232" />
+  <path d="M288 148 C 280 168, 272 188, 264 206 L 258 232" />
+  <!-- Feet -->
+  <path d="M306 232 L 322 231" stroke-width="4" />
+  <path d="M258 232 L 242 233" stroke-width="4" />
+</svg>

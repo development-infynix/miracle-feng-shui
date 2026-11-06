@@ -3,13 +3,9 @@
 import React from 'react';
 import { useSession } from 'next-auth/react';
 import { useLocale } from '@/context/CurrencyContext';
+import { initialsOf } from '@/lib/initials';
 import { PillLink } from '../homeUi';
 import { BentoTile, SignInPrompt, SkeletonLine } from './BentoTile';
-
-function initialsOf(name: string) {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  return ((parts[0]?.[0] ?? '') + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase() || '?';
-}
 
 /** The customer's account: who's signed in and the way to their orders and settings. */
 export default function ProfileTile({ className }: { className?: string }) {
@@ -41,25 +37,24 @@ export default function ProfileTile({ className }: { className?: string }) {
 
   return (
     <BentoTile title={title} titleId="home-tile-account" className={className}>
-      <div className="flex items-center gap-3">
+      <span className="block truncate font-geist text-[16px] font-semibold text-ink">{name}</span>
+      {session.user.email && <span className="block truncate font-geist text-[14px] text-ink-muted">{session.user.email}</span>}
+
+      {/* The initials block and the two buttons share one width (Orders and Settings side by side);
+          the block grows to fill the tile's height from the email down to the buttons. */}
+      <div className="mt-4 flex w-fit flex-1 flex-col gap-2">
         <span
           aria-hidden="true"
-          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-logo-purple font-display text-[18px] text-white"
+          className="flex min-h-24 w-full flex-1 items-center justify-center bg-logo-purple font-display text-[40px] font-bold leading-none tracking-[0.02em] text-white"
         >
           {initialsOf(name)}
         </span>
-        <span className="min-w-0">
-          <span className="block truncate font-geist text-[16px] font-semibold text-ink">{name}</span>
-          {session.user.email && (
-            <span className="block truncate font-geist text-[14px] text-ink-muted">{session.user.email}</span>
-          )}
-        </span>
-      </div>
-      <div className="mt-auto flex flex-wrap gap-2 pt-5">
-        <PillLink href="/profile?tab=orders">{t('home.my_orders', 'Orders')}</PillLink>
-        <PillLink href="/profile?tab=settings" variant="outline">
-          {t('home.settings', 'Settings')}
-        </PillLink>
+        <div className="flex gap-2">
+          <PillLink href="/profile?tab=orders">{t('home.my_orders', 'Orders')}</PillLink>
+          <PillLink href="/profile?tab=settings" variant="outline">
+            {t('home.settings', 'Settings')}
+          </PillLink>
+        </div>
       </div>
     </BentoTile>
   );

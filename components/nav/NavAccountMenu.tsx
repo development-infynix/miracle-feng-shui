@@ -3,6 +3,7 @@
 import React, { useCallback, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useLocale } from '@/context/CurrencyContext';
+import { initialsOf } from '@/lib/initials';
 import { navFocus, navPanel, navPanelClosed, navPanelOpen, panelRow, panelRowLabel, useDismiss } from './navUi';
 
 /** The signed-in customer's avatar, which drops a panel with their name, orders, profile and Sign out. */
@@ -27,9 +28,9 @@ export default function NavAccountMenu({ name, email, onSignOut }: { name: strin
       >
         <span
           aria-hidden="true"
-          className={`flex h-9 w-9 items-center justify-center rounded-full bg-logo-purple font-display text-[15px] font-bold text-white ring-offset-2 ring-offset-stone transition-shadow ${open ? 'ring-2 ring-ink' : ''}`}
+          className={`flex h-9 w-9 items-center justify-center rounded-full bg-logo-purple font-display text-[13px] font-bold tracking-[0.02em] text-white ring-offset-2 ring-offset-stone transition-shadow ${open ? 'ring-2 ring-ink' : ''}`}
         >
-          {name.charAt(0).toUpperCase() || '?'}
+          {initialsOf(name)}
         </span>
       </button>
 

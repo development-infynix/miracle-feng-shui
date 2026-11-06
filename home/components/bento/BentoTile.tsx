@@ -19,12 +19,15 @@ export function BentoTile({
   titleId,
   tone = 'outline',
   art,
+  action,
   className = '',
   children,
 }: {
   title: string;
   titleId: string;
   tone?: TileTone;
+  /** A control on the right of the title row, such as View all. */
+  action?: React.ReactNode;
   /** A decorative line illustration; the tile that passes it also places it. */
   art?: React.ReactNode;
   className?: string;
@@ -33,13 +36,16 @@ export function BentoTile({
   const filled = tone !== 'outline';
   return (
     <section aria-labelledby={titleId} className={`relative isolate flex flex-col overflow-hidden p-5 sm:p-6 ${TONE[tone]} ${className}`}>
-      <h3 id={titleId} className="relative z-10">
-        <span
-          className={`font-display text-[21px] font-bold leading-tight tracking-[-0.01em] sm:text-[24px] ${filled ? 'text-stone' : 'text-ink'}`}
-        >
-          {title}
-        </span>
-      </h3>
+      <div className="relative z-10 flex items-center justify-between gap-3">
+        <h3 id={titleId}>
+          <span
+            className={`font-display text-[21px] font-bold leading-tight tracking-[-0.01em] sm:text-[24px] ${filled ? 'text-stone' : 'text-ink'}`}
+          >
+            {title}
+          </span>
+        </h3>
+        {action}
+      </div>
       <div className="relative z-10 mt-3 flex flex-1 flex-col">{children}</div>
       {art}
     </section>

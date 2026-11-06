@@ -7,7 +7,8 @@ import { useLocale } from '@/context/CurrencyContext';
 import { PillLink, TextLink } from '../homeUi';
 import { BentoTile, SignInPrompt, SkeletonLine, Thumb } from './BentoTile';
 
-/** A shopping bag with the shop's things in it and a gold lucky coin tag, drawn in stone on the charcoal. */
+/** A shopping bag with the shop's things in it and a gold lucky coin tag, drawn in stone on the charcoal.
+ *  It sits between the message and the action. */
 function CartArt() {
   return (
     <img
@@ -15,7 +16,7 @@ function CartArt() {
       alt=""
       aria-hidden="true"
       loading="lazy"
-      className="pointer-events-none absolute -bottom-3 -right-3 h-44 w-auto sm:h-48"
+      className="pointer-events-none mx-auto my-4 h-36 w-auto sm:h-40"
     />
   );
 }
@@ -41,9 +42,8 @@ export default function CartTile({ className }: { className?: string }) {
   }
 
   const tile = (children: React.ReactNode) => (
-    <BentoTile tone="charcoal" title={title} titleId="home-tile-cart" className={`min-h-[260px] ${className ?? ''}`} art={<CartArt />}>
-      {/* Leaves room for the drawing on the right. */}
-      <div className="flex max-w-[62%] flex-1 flex-col">{children}</div>
+    <BentoTile tone="charcoal" title={title} titleId="home-tile-cart" className={className}>
+      {children}
     </BentoTile>
   );
 
@@ -60,7 +60,8 @@ export default function CartTile({ className }: { className?: string }) {
     return tile(
       <>
         <p className="font-geist text-[15px] leading-relaxed text-stone/80">{t('home.cart_empty', 'Your cart is empty.')}</p>
-        <div className="mt-auto pt-5">
+        <CartArt />
+        <div className="mt-auto">
           <TextLink light href="/shop">
             {t('home.browse_products', 'Browse all products')}
           </TextLink>
@@ -90,7 +91,8 @@ export default function CartTile({ className }: { className?: string }) {
       <p className="mt-3 font-geist text-[15px] text-stone/80 tabular-nums">
         {itemsLabel} · <span className="font-semibold text-stone">{formatPrice(subtotal)}</span>
       </p>
-      <div className="mt-auto pt-5">
+      <CartArt />
+      <div className="mt-auto">
         <PillLink href="/cart" variant="light">
           {t('home.view_cart', 'View cart')}
         </PillLink>
