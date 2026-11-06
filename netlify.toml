@@ -1,0 +1,8 @@
+[build.environment]
+  # These variables hold non-sensitive configuration (public URLs, region,
+  # bucket name, endpoint). Their values are short/common strings such as a
+  # site URL or region code that legitimately appear in source code and in
+  # Next.js build output, which makes secrets scanning fail with false positives.
+  # Real credentials (DATABASE_URL, NEXTAUTH_SECRET, S3 keys, Razorpay secrets,
+  # ADMIN_SEED_PASSWORD) are still scanned.
+  SECRETS_SCAN_OMIT_KEYS = "NEXTAUTH_URL,S3_REGION,S3_ENDPOINT,S3_BUCKET,S3_PUBLIC_URL"
