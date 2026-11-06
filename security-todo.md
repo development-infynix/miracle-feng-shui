@@ -5,9 +5,9 @@
 
 ## 🔴 Critical / High — Fix First
 
-### 1. Stored XSS via image upload
-- [ ] Restrict `/api/api/upload` to ADMIN only — remove the `NODE_ENV === 'development'` customer bypass (`app/api/upload/route.ts:11-14`).
-- [ ] Stop accepting/serving `image/svg+xml` for customer uploads (`server/controllers/upload.controller.ts:14`). Serve uploads with `Content-Disposition: attachment` or `Content-Security-Policy: default-src 'none'; sandbox` for SVG if SVG is ever needed.
+### 1. Stored XSS via image upload ✅ DONE
+- [x] Restrict `/api/upload` to ADMIN only — removed the `NODE_ENV === 'development'` customer bypass (`app/api/upload/route.ts`). Customer/anonymous uploads now 403.
+- [x] Stop accepting `image/svg+xml` for uploads: removed from `ALLOWED_MIME_TYPES` (`server/controllers/upload.controller.ts`) and from the error message. Existing SVGs never served inline — `app/api/images/[...key]/route.ts` redirects them to storage (not in `SERVED_TYPES`), so they can't execute script in the app origin.
 
 ### 2. Payment amount never verified ✅ DONE
 - [x] In `verifyPayment` and the `payment.captured` webhook (`server/services/payment.service.ts`), fetch the Razorpay payment entity and compare `payment.amount === Math.round(session.total * 100)`, `currency === 'INR'`, and status captured/authorized before creating a PAID order. New test: "writes nothing when the captured amount does not match the session total".
