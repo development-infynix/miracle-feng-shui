@@ -17,6 +17,19 @@ function signatureMatches(expected: string, received: string) {
   return expectedBuffer.length === receivedBuffer.length && crypto.timingSafeEqual(expectedBuffer, receivedBuffer);
 }
 
+/**
+ * Totalling what Razorpay captured can never be less than the session total.
+ * A valid signature only proves a payment happened — not that it was the full amount.
+ */
+async function paymentAmountMatches(razorpayOrderId: string, paymentId: string) {
+  const session = await checkoutSessionRepository.findSession(razorpayOrderId);
+  if (!session) return false;
+  const payment = await razorpay.payments.fetch(paymentId);
+  return (payment.status === 'captured' || payment.status === 'authorized')
+    ? payment.amount === Math.round(session.total * 100) && payment.currency === 'INR'
+    : false;
+}
+
 async function sendPaidOrderEmail(orderId: string) {
   const order = await orderRepository.findById(orderId);
   const formatted = orderService.formatOrder(order);
@@ -162,6 +175,10 @@ export const paymentService = {
       throw ApiError.badRequest('Invalid Razorpay payment signature');
     }
 
+    if (!(await paymentAmountMatches(input.razorpay_order_id, input.razorpay_payment_id))) {
+      throw ApiError.badRequest('Payment amount does not match the order total');
+    }
+
     const result = await checkoutSessionRepository.completePayment(input.razorpay_order_id, input.razorpay_payment_id);
     if (!result) throw ApiError.notFound('Order not found');
     if (result.created) return sendPaidOrderEmail(result.orderId);
@@ -187,6 +204,10 @@ export const paymentService = {
 
     if (eventType === 'payment.captured') {
       const payment = event.payload.payment.entity;
+      if (!(await paymentAmountMatches(payment.order_id, payment.id))) {
+        console.error(`[Payments] Payment ${payment.id} amount does not match the session total. Razorpay order: ${payment.order_id}`);
+        return { received: true };
+      }
       // Also covers a customer who paid and closed the page before it could confirm.
       const result = await checkoutSessionRepository.completePayment(payment.order_id, payment.id);
       if (!result) {

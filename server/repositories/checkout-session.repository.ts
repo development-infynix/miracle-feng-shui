@@ -52,6 +52,22 @@ export const checkoutSessionRepository = {
     return order?.userId ?? session?.userId ?? null;
   },
 
+  /** The amount a Razorpay order is expected to have captured — from the open checkout session, or the paid order if the session has already completed. */
+  async findSession(razorpayOrderId: string) {
+    const session = await prisma.checkoutSession.findUnique({
+      where: { razorpayOrderId },
+      select: { razorpayOrderId: true, total: true },
+    });
+    if (session) return session;
+
+    const order = await prisma.order.findUnique({
+      where: { razorpayOrderId },
+      select: { total: true },
+    });
+    if (!order) return null;
+    return { razorpayOrderId, total: order.total };
+  },
+
   /**
    * Writes the paid order, exactly once, so the browser and the webhook can both report the
    * same payment. Returns null if the store has no record of this Razorpay order.

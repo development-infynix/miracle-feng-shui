@@ -182,6 +182,8 @@ model Favorite {
 model Order {
   id                String        @id @default(cuid())
   orderNumber       String        @unique
+  /** Unguessable lookup token that the customer-facing order APIs accept. The friendly orderNumber is for display only. */
+  accessToken       String?       @unique
   userId            String
   user              User          @relation(fields: [userId], references: [id], onDelete: Restrict)
   status            OrderStatus   @default(PENDING)
