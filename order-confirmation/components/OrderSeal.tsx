@@ -13,7 +13,7 @@ const DROPLETS = [
 ];
 
 /**
- * The page's one authored moment: a plum seal swells, throws droplets that stretch on threads of
+ * The page's one authored moment: a green seal swells, throws droplets that stretch on threads of
  * the same liquid as the navigation and then detach, and a check draws itself on top.
  * With reduced motion, only the finished seal shows.
  */
@@ -36,7 +36,7 @@ export function ConfirmedSeal() {
         {DROPLETS.map(({ x, y, size }, index) => (
           <span
             key={index}
-            className="seal-droplet absolute left-1/2 top-1/2 rounded-full bg-[#431769]"
+            className="seal-droplet absolute left-1/2 top-1/2 rounded-full bg-[#1B7837]"
             style={
               {
                 width: size,
@@ -50,7 +50,7 @@ export function ConfirmedSeal() {
             }
           />
         ))}
-        <span className="seal-core absolute left-1/2 top-1/2 -ml-10 -mt-10 h-20 w-20 rounded-full bg-[#431769]" />
+        <span className="seal-core absolute left-1/2 top-1/2 -ml-10 -mt-10 h-20 w-20 rounded-full bg-[#1B7837]" />
       </div>
 
       <svg viewBox="0 0 24 24" className="absolute left-1/2 top-1/2 -ml-[18px] -mt-[18px] h-9 w-9" fill="none">
@@ -72,7 +72,7 @@ export function ConfirmedSeal() {
 export function StatusSeal({ icon, tone }: { icon: string; tone: 'waiting' | 'stopped' }) {
   return (
     <div aria-hidden="true" className="flex h-24 w-24 items-center justify-center">
-      <span className={`glass-veil flex h-20 w-20 items-center justify-center rounded-full shadow-[0_6px_10px_rgba(67,23,105,0.14),inset_0_2px_0_rgba(255,255,255,0.7)] ${tone === 'stopped' ? 'text-[#8F1610]' : 'text-[#431769]'}`}>
+      <span className={`bg-white border border-[#E1E3DF] flex h-20 w-20 items-center justify-center rounded-full ${tone === 'stopped' ? 'text-[#8F1610]' : 'text-[#222222]'}`}>
         <i className={`${icon} text-[28px]`} />
       </span>
     </div>
