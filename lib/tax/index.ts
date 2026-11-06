@@ -20,9 +20,9 @@ export * from './config';
 export function calculateOrderTax(
   items: TaxItemInput[],
   address?: TaxAddressInput,
-  options: { isInclusive?: boolean; overrideCurrency?: 'INR' | 'AED' } = { isInclusive: false }
+  options: { isInclusive?: boolean; overrideCurrency?: 'INR' | 'AED' } = { isInclusive: true }
 ): OrderTaxBreakdown {
-  const isInclusive = options.isInclusive ?? false;
+  const isInclusive = options.isInclusive ?? true;
   const rawCountry = (address?.country || 'India').trim().toUpperCase();
 
   const isUAE =

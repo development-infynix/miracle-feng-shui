@@ -26,8 +26,8 @@
 - [ ] Guard the COD decrement in `order.repository.ts:81-91` with `stock: { gte: item.quantity }` inside the transaction, and re-check stock inside the tx.
 - [ ] Decide policy for the paid path (`checkout-session.repository.ts:94-104`): either reserve/hold stock at checkout-session creation, or fail/refund the second payment instead of clamping stock to 0 and still creating a PAID order.
 
-### 6. Invoice tax mismatch
-- [ ] Fix `calculateOrderTax` default (`lib/tax/index.ts:23-26`, `invoice.service.ts:211-227`): either store tax-inclusive totals at order time or add a tax line to cart/order. Invoice Grand Total (₹1,180) must equal amount charged (₹1,000).
+### 6. Invoice tax mismatch ✅ DONE
+- [x] Retail prices include GST. Default `calculateOrderTax` switched to tax-inclusive (`lib/tax/index.ts`), and invoice now passes `isInclusive: true`. Invoice Grand Total uses the charged `order.totalAmount` so it always matches what the customer paid. Tax base + GST/VAT rows still split out separately for transparency.
 
 ## 🟠 Medium
 
