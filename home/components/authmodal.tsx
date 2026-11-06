@@ -3,7 +3,6 @@
 import React, { useRef, useState } from 'react';
 import Link from 'next/link';
 import { signIn } from 'next-auth/react';
-import GooNavShell from '@/components/GooNavShell';
 import { useLocale } from '@/context/CurrencyContext';
 import { useGlassModal } from './useGlassModal';
 
@@ -115,6 +114,7 @@ export default function AuthModal({ open, mode, onModeChange, onClose, onSignedI
     <div
       className="fixed inset-0 z-[9999] overflow-y-auto no-scrollbar bg-[#2B154C]/25 px-3 pt-2.5 pb-6 backdrop-blur-md animate-in fade-in duration-200 motion-reduce:animate-none md:pt-[9vh]"
       onMouseDown={(e) => {
+        if (submitting && panelRef.current && !panelRef.current.contains(e.target as Node)) close();
         if (!submitting && !panelRef.current?.contains(e.target as Node)) close();
       }}
     >
@@ -123,19 +123,43 @@ export default function AuthModal({ open, mode, onModeChange, onClose, onSignedI
         role="dialog"
         aria-modal="true"
         aria-label={isRegister ? t('auth.create_account', 'Create account') : t('nav.signin', 'Sign in')}
-        className="mx-auto w-full max-w-[460px] font-outfit"
+        className="glass-veil mx-auto w-full max-w-[460px] rounded-[28px] px-1 font-outfit shadow-[0_18px_60px_rgba(43,21,76,0.28)] transition-opacity duration-200 motion-reduce:transition-none"
+        style={{ opacity: poured ? 1 : 0 }}
       >
-        <GooNavShell
-          open={poured}
-          triggerRef={activeTabRef}
-          threadKey={mode}
-          dropId="auth-panel"
-          fitMain
-          dropRadius={28}
-          dropClassName="w-full"
-          dropWrapperClassName="px-2"
-          drop={
-            <div className="max-h-[calc(100dvh-112px)] overflow-y-auto no-scrollbar px-5 pb-5 pt-5 md:max-h-[72vh]">
+        <div className="flex h-14 items-center justify-between gap-2 pl-3 pr-2">
+          <div className="flex items-center gap-0.5">
+            {tabs.map((tab) => {
+              const selected = tab.mode === mode;
+              return (
+                <button
+                  key={tab.mode}
+                  ref={selected ? activeTabRef : undefined}
+                  type="button"
+                  aria-pressed={selected}
+                  onClick={() => switchMode(tab.mode)}
+                  className={`group h-10 cursor-pointer rounded-full px-3 ${focusRing}`}
+                >
+                  <span
+                    className={`whitespace-nowrap font-outfit text-[14px] font-medium tracking-[0.01em] transition-colors group-hover:text-[#7A2FC0] ${selected ? 'text-[#7A2FC0]' : 'text-[#111111]'}`}
+                  >
+                    {tab.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          <button
+            type="button"
+            aria-label={t('auth.close', 'Close')}
+            onClick={close}
+            className={`group flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full ${focusRing}`}
+          >
+            <i aria-hidden="true" className="fa-solid fa-xmark text-[17px] text-[#111111] transition-colors group-hover:text-[#7A2FC0]" />
+          </button>
+        </div>
+
+        <div className="max-h-[calc(100dvh-112px)] overflow-y-auto no-scrollbar px-5 pb-5 pt-5 md:max-h-[72vh]">
               <h2>
                 <span className="block font-serif text-[24px] font-bold leading-tight tracking-tight text-[#111111]">
                   {isRegister
@@ -251,8 +275,8 @@ export default function AuthModal({ open, mode, onModeChange, onClose, onSignedI
                   <span className="font-outfit text-[15px] font-semibold text-white">
                     {submitting
                       ? isRegister
-                        ? t('auth.creating', 'Creating your account…')
-                        : t('auth.signing_in', 'Signing in…')
+                        ? t('auth.creating', 'Creating your accountâ€¦')
+                        : t('auth.signing_in', 'Signing inâ€¦')
                       : isRegister
                         ? t('auth.create_account', 'Create account')
                         : t('nav.signin', 'Sign in')}
@@ -272,42 +296,8 @@ export default function AuthModal({ open, mode, onModeChange, onClose, onSignedI
                 .
               </p>
             </div>
-          }
-        >
-          <div className="flex h-14 items-center gap-0.5 pl-2 pr-2">
-            <div className="flex items-center gap-0.5">
-              {tabs.map((tab) => {
-                const selected = tab.mode === mode;
-                return (
-                  <button
-                    key={tab.mode}
-                    ref={selected ? activeTabRef : undefined}
-                    type="button"
-                    aria-pressed={selected}
-                    onClick={() => switchMode(tab.mode)}
-                    className={`group h-10 cursor-pointer rounded-full px-3 ${focusRing}`}
-                  >
-                    <span
-                      className={`whitespace-nowrap font-outfit text-[14px] font-medium tracking-[0.01em] transition-colors group-hover:text-[#7A2FC0] ${selected ? 'text-[#7A2FC0]' : 'text-[#111111]'}`}
-                    >
-                      {tab.label}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-
-            <button
-              type="button"
-              aria-label={t('auth.close', 'Close')}
-              onClick={close}
-              className={`group flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full ${focusRing}`}
-            >
-              <i aria-hidden="true" className="fa-solid fa-xmark text-[17px] text-[#111111] transition-colors group-hover:text-[#7A2FC0]" />
-            </button>
-          </div>
-        </GooNavShell>
       </div>
     </div>
   );
 }
+
