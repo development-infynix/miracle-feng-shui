@@ -11,7 +11,6 @@ const ALLOWED_MIME_TYPES: Record<string, string> = {
   'image/jpg': 'jpg',
   'image/webp': 'webp',
   'image/gif': 'gif',
-  'image/svg+xml': 'svg',
   'image/avif': 'avif',
 };
 
@@ -32,7 +31,7 @@ export const uploadController = {
     const extension = ALLOWED_MIME_TYPES[mimeType];
     if (!extension) {
       throw ApiError.badRequest(
-        `Invalid file format (${mimeType}). Only PNG, JPEG, WEBP, GIF, SVG, and AVIF images are supported.`
+        `Invalid file format (${mimeType}). Only PNG, JPEG, WEBP, GIF, and AVIF images are supported.`
       );
     }
 
