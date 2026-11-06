@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" fill="none">
+  <rect width="400" height="400" fill="#E5E1D7"/>
+  <g stroke="#171615" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <!-- display frame -->
+    <path d="M91 302V115Q91 105 101 105H299Q309 105 309 115V302"/>
+    <path d="M91 206H309M200 105V302"/>
+    <path d="M80 302H320"/>
+    <!-- crystals -->
+    <path d="M119 177L132 134L146 155L159 125L175 177Z"/>
+    <path d="M132 134L139 177M159 125L160 177"/>
+    <!-- candle -->
+    <path d="M225 172V143H255V172"/>
+    <path d="M240 142C226 126 239 113 240 101C253 118 255 131 240 142Z" fill="#E9B33F" stroke="#171615"/>
+    <path d="M219 177H261"/>
+    <!-- books -->
+    <path d="M219 229L219 270L239 265V226Z"/>
+    <path d="M243 225V270L261 265V229Z"/>
+    <path d="M265 231V270L282 266V235Z"/>
+    <!-- bracelet / beads -->
+    <circle cx="143" cy="253" r="29"/>
+    <circle cx="143" cy="253" r="17" stroke="#E9B33F" stroke-width="8"/>
+    <circle cx="143" cy="218" r="3" fill="#171615"/>
+    <circle cx="167" cy="228" r="3" fill="#171615"/>
+    <circle cx="178" cy="253" r="3" fill="#171615"/>
+    <circle cx="167" cy="278" r="3" fill="#171615"/>
+    <circle cx="143" cy="288" r="3" fill="#171615"/>
+    <circle cx="119" cy="278" r="3" fill="#171615"/>
+    <circle cx="108" cy="253" r="3" fill="#171615"/>
+    <circle cx="119" cy="228" r="3" fill="#171615"/>
+  </g>
+  <!-- restrained golden accents -->
+  <g fill="#E9B33F" stroke="#171615" stroke-width="4" stroke-linejoin="round">
+    <path d="M200 183L210 193L200 203L190 193Z"/>
+    <circle cx="290" cy="91" r="7"/>
+  </g>
+  <g stroke="#E9B33F" stroke-width="5" stroke-linecap="round">
+    <path d="M72 91V107M64 99H80"/>
+    <path d="M328 278V294M320 286H336"/>
+  </g>
+</svg>

@@ -23,6 +23,8 @@ interface ShopViewProps {
   categories: ShopCategory[];
   products: ProductSummary[];
   total: number;
+  /** Open the filters drawer on arrival, as the homepage's All categories card asks. */
+  browseCategories?: boolean;
 }
 
 /** The shop page's client side: holds the drawer and the pending state while filters load. */
@@ -31,10 +33,11 @@ export default function ShopView({
   categories,
   products,
   total,
+  browseCategories = false,
 }: ShopViewProps) {
   const router = useRouter();
   const { language, t } = useLocale();
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(browseCategories);
   const [pending, startTransition] = useTransition();
   const headerHeight = useSiteHeaderHeight();
   const [query, setQuery] = useState(filters.q);

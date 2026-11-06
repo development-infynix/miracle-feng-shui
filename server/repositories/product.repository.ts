@@ -70,6 +70,11 @@ export const productRepository = {
       where.comparePrice = { gt: 0 };
     }
 
+    // Miracle picks: products an admin ticked as a Miracle Pick.
+    if (query.picks) {
+      where.etsyPick = true;
+    }
+
     // Sort order
     let orderBy: Prisma.ProductOrderByWithRelationInput = { createdAt: 'desc' };
     if (query.sort === 'price_asc') orderBy = { price: 'asc' };

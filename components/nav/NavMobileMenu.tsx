@@ -7,6 +7,7 @@ import { useLocale } from "@/context/CurrencyContext";
 import { translateCategory } from "@/lib/translations";
 import { FACEBOOK_URL, INSTAGRAM_URL } from "@/lib/social-links";
 import RegionOptions from "./RegionOptions";
+import SignOutRow from "./SignOutRow";
 import { navBadge, navFocus, panelRow, panelRowLabel } from "./navUi";
 
 interface NavMobileMenuProps {
@@ -19,7 +20,8 @@ interface NavMobileMenuProps {
   /** Opens the search modal. Left out on pages with their own search, such as the shop. */
   onSearch?: () => void;
   onSignIn: () => void;
-  onSignOut: () => void;
+  /** Resolves true once the server has ended the session. */
+  onSignOut: () => Promise<boolean>;
 }
 
 /** Phones: a stone sheet under the bar with categories, links, account and socials. */
@@ -159,22 +161,7 @@ export default function NavMobileMenu({
                   {t("profile.title", "Your profile")}
                 </span>
               </Link>
-              <button
-                type="button"
-                onClick={() => {
-                  onClose();
-                  onSignOut();
-                }}
-                className={panelRow}
-              >
-                <i
-                  aria-hidden="true"
-                  className="fa-solid fa-arrow-right-from-bracket w-5 text-center text-[15px] text-ink-muted"
-                />
-                <span className={panelRowLabel}>
-                  {t("nav.sign_out", "Sign out")}
-                </span>
-              </button>
+              <SignOutRow onSignOut={onSignOut} iconClass="w-5 text-[15px]" />
             </>
           ) : (
             <button

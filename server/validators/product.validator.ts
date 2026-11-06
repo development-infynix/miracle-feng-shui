@@ -8,6 +8,7 @@ export const productQuerySchema = z.object({
   minRating: z.coerce.number().optional(),
   freeShipping: z.preprocess((val) => val === 'true' || val === true, z.boolean()).optional(),
   onSale: z.preprocess((val) => val === 'true' || val === true, z.boolean()).optional(),
+  picks: z.preprocess((val) => val === 'true' || val === true, z.boolean()).optional(),
   sort: z.enum(['relevancy', 'price_asc', 'price_desc', 'rating', 'newest']).default('relevancy'),
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(100).default(24),

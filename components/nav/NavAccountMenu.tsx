@@ -5,10 +5,11 @@ import Link from 'next/link';
 import { useLocale } from '@/context/CurrencyContext';
 import { initialsOf } from '@/lib/initials';
 import RegionOptions from './RegionOptions';
+import SignOutRow from './SignOutRow';
 import { navFocus, navPanel, navPanelClosed, navPanelOpen, panelRow, panelRowLabel, useDismiss } from './navUi';
 
 /** The signed-in customer's avatar, which drops a panel with their name, orders, profile, region & currency and Sign out. */
-export default function NavAccountMenu({ name, email, onSignOut }: { name: string; email: string; onSignOut: () => void }) {
+export default function NavAccountMenu({ name, email, onSignOut }: { name: string; email: string; onSignOut: () => Promise<boolean> }) {
   const { t } = useLocale();
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -58,17 +59,7 @@ export default function NavAccountMenu({ name, email, onSignOut }: { name: strin
           <RegionOptions onPicked={close} />
         </div>
         <div className="border-t border-ink/10 pt-1.5">
-          <button
-            type="button"
-            onClick={() => {
-              close();
-              onSignOut();
-            }}
-            className={panelRow}
-          >
-            <i aria-hidden="true" className="fa-solid fa-arrow-right-from-bracket w-4 text-center text-[14px] text-ink-muted" />
-            <span className={panelRowLabel}>{t('nav.sign_out', 'Sign out')}</span>
-          </button>
+          <SignOutRow onSignOut={onSignOut} iconClass="w-4 text-[14px]" />
         </div>
       </div>
     </div>

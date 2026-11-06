@@ -14,6 +14,8 @@ export interface ShopFilters {
   price: ShopPrice;
   freeShipping: boolean;
   onSale: boolean;
+  /** Only Miracle picks: products an admin ticked as a Miracle Pick. */
+  picks: boolean;
 }
 
 export interface ShopCategory {
@@ -56,6 +58,7 @@ export function parseShopFilters(params: RawParams): ShopFilters {
     price: PRICES.includes(price) ? price : 'all',
     freeShipping: first(params.freeShipping) === 'true',
     onSale: first(params.onSale) === 'true',
+    picks: first(params.picks) === 'true',
   };
 }
 
@@ -66,6 +69,7 @@ export function toProductQuery(filters: ShopFilters, page: number): Record<strin
     ...(filters.q && { q: filters.q }),
     ...(filters.freeShipping && { freeShipping: 'true' }),
     ...(filters.onSale && { onSale: 'true' }),
+    ...(filters.picks && { picks: 'true' }),
     ...PRICE_RANGE[filters.price],
     sort: API_SORT[filters.sort],
     page: String(page),
@@ -82,6 +86,7 @@ export function shopUrl(filters: ShopFilters): string {
   if (filters.price !== 'all') params.set('price', filters.price);
   if (filters.freeShipping) params.set('freeShipping', 'true');
   if (filters.onSale) params.set('onSale', 'true');
+  if (filters.picks) params.set('picks', 'true');
   const query = params.toString();
   return query ? `/shop?${query}` : '/shop';
 }
@@ -93,11 +98,12 @@ export const NO_FILTERS: ShopFilters = {
   price: 'all',
   freeShipping: false,
   onSale: false,
+  picks: false,
 };
 
 /** Filters that narrow the list. Sort only reorders it. */
 export function hasNarrowingFilters(filters: ShopFilters): boolean {
-  return Boolean(filters.category || filters.q || filters.price !== 'all' || filters.freeShipping || filters.onSale);
+  return Boolean(filters.category || filters.q || filters.price !== 'all' || filters.freeShipping || filters.onSale || filters.picks);
 }
 
 export function hasActiveFilters(filters: ShopFilters): boolean {
@@ -111,6 +117,7 @@ export function countActiveFilters(filters: ShopFilters): number {
     filters.price !== 'all',
     filters.freeShipping,
     filters.onSale,
+    filters.picks,
     filters.sort !== DEFAULT_SORT,
   ].filter(Boolean).length;
 }

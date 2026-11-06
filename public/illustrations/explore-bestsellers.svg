@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 220" fill="none" stroke="#EEEBE3" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Best sellers: a prize rosette with a gold coin heart and two ribbon tails, stone line on charcoal. -->
+  <path d="M100 132 L 78 200 L 98 188 L 108 208 L 124 146" fill="#3A3632" />
+  <path d="M140 132 L 162 200 L 142 188 L 132 208 L 116 146" fill="#3A3632" />
+  <path d="M120 22 l 12 10 l 16 -4 l 6 15 l 15 6 l -4 16 l 10 12 l -10 12 l 4 16 l -15 6 l -6 15 l -16 -4 l -12 10 l -12 -10 l -16 4 l -6 -15 l -15 -6 l 4 -16 l -10 -12 l 10 -12 l -4 -16 l 15 -6 l 6 -15 l 16 4 z" fill="#3A3632" />
+  <circle cx="120" cy="84" r="34" fill="#E7A93B" />
+  <rect x="110" y="74" width="20" height="20" fill="#3A3632" stroke-width="4" />
+  <path d="M96 66 q -4 8 -2 16 M144 102 q 4 -8 2 -16" stroke-width="3" />
+  <path d="M30 60 l 0 14 M23 67 l 14 0 M206 40 l 0 12 M200 46 l 12 0 M200 150 l 0 10 M195 155 l 10 0" stroke-width="3.5" stroke="#E7A93B" />
+</svg>

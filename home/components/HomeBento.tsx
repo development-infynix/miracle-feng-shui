@@ -10,13 +10,15 @@ import CartTile from './bento/CartTile';
 import BestSellersTile from './bento/BestSellersTile';
 import FavoritesTile from './bento/FavoritesTile';
 import SocialsTile from './bento/SocialsTile';
+import ExploreTile from './bento/ExploreTile';
 
 /**
  * The close of the page.
  * Signed in: best sellers as a full-width shelf on top (from tablets), then account, cart, favorites
  * and socials in one row (two by two on tablets). Phones: one column, account first.
- * Guests (and while the session loads): only best sellers and socials, side by side from desktop.
- * Best sellers is left out on phones.
+ * Best sellers is left out on phones for signed-in customers.
+ * Guests (and while the session loads): four drawn ways into the shop (best sellers, Miracle picks,
+ * new arrivals, all categories), on every screen size, with socials beside it from desktop.
  */
 export default function HomeBento({ bestsellers }: { bestsellers: ProductSummary[] }) {
   const { t } = useLocale();
@@ -37,7 +39,7 @@ export default function HomeBento({ bestsellers }: { bestsellers: ProductSummary
         </div>
       ) : (
         <div className="mt-6 grid grid-cols-1 gap-4 sm:mt-8 lg:grid-cols-4">
-          <BestSellersTile products={bestsellers} className="max-sm:hidden lg:col-span-3" />
+          <ExploreTile className="lg:col-span-3" />
           <SocialsTile />
         </div>
       )}

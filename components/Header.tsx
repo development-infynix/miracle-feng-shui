@@ -27,6 +27,9 @@ const mobileIcon = `relative flex h-10 w-10 items-center justify-center rounded-
  * The site navbar: an open bar on the stone page. It takes a stone backing once the page scrolls
  * or a menu opens, so content never shows through behind it.
  */
+/** Pages the middleware keeps for signed-in customers; signing out on one goes to the homepage. */
+const SIGNED_IN_ONLY_PATHS = ["/profile", "/order-confirmation", "/my-orders", "/orders"];
+
 export function Header({ navCategories }: { navCategories: NavCategory[] }) {
   const pathname = usePathname();
   if (pathname?.startsWith("/admin")) return null;
@@ -112,9 +115,24 @@ function SiteHeader({
     setIsRegisterMode(false);
     setShowAuthModal(true);
   };
-  const handleSignOut = async () => {
-    await signOut({ redirect: false });
+  // Sign out is not optimistic. Nothing on the page changes until the server has ended the session
+  // and a fresh check confirms it; then the browser's copies are cleared and the page reloads, so no
+  // signed-in data or cached page is left behind. Pages only for signed-in customers go to the homepage.
+  const handleSignOut = async (): Promise<boolean> => {
+    try {
+      await signOut({ redirect: false });
+      const res = await fetch("/api/auth/session", { cache: "no-store" });
+      const current = res.ok ? await res.json() : null;
+      if (!current || current.user) return false;
+    } catch {
+      return false;
+    }
     setUserLoggedIn(false);
+    const signedInOnly = SIGNED_IN_ONLY_PATHS.some(
+      (path) => pathname === path || pathname.startsWith(`${path}/`),
+    );
+    window.location.replace(signedInOnly ? "/" : window.location.href);
+    return true;
   };
 
   const onShopPage = pathname === "/shop";

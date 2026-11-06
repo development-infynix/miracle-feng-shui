@@ -30,6 +30,7 @@ export default function ShopAppliedFilters({ filters, onChange }: ShopAppliedFil
       ? [{ key: 'freeShipping', label: t('shop.free_delivery_short', 'Free delivery'), clear: { freeShipping: false } }]
       : []),
     ...(filters.onSale ? [{ key: 'onSale', label: t('shop.on_sale', 'On sale'), clear: { onSale: false } }] : []),
+    ...(filters.picks ? [{ key: 'picks', label: t('shop.miracle_picks', 'Miracle picks'), clear: { picks: false } }] : []),
   ];
 
   if (applied.length === 0) return null;

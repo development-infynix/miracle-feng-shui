@@ -14,7 +14,8 @@ export default async function ShopPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const filters = parseShopFilters(await searchParams);
+  const params = await searchParams;
+  const filters = parseShopFilters(params);
 
   const [{ items, total }, categories] = await Promise.all([
     productService.list(productQuerySchema.parse(toProductQuery(filters, 1))),
@@ -27,5 +28,5 @@ export default async function ShopPage({
     productCount: category.productCount ?? 0,
   }));
 
-  return <ShopView filters={filters} categories={shopCategories} products={items} total={total} />;
+  return <ShopView filters={filters} categories={shopCategories} products={items} total={total} browseCategories={params.browse === 'categories'} />;
 }

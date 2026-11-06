@@ -180,6 +180,11 @@ export default function ShopFilterDrawer({
               selected={filters.onSale}
               onClick={() => update({ onSale: !filters.onSale })}
             />
+            <OptionRow
+              label={t('shop.miracle_picks', 'Miracle picks')}
+              selected={filters.picks}
+              onClick={() => update({ picks: !filters.picks })}
+            />
           </Section>
 
           <Section title={t('shop.sort', 'Sort')}>
