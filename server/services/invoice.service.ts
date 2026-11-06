@@ -101,11 +101,19 @@ export class InvoiceService {
           .fillColor('#222222')
           .fontSize(9)
           .font('Helvetica-Bold')
-          .text(TAX_CONFIG.seller.legalName, 45, colTop + 12)
-          .font('Helvetica')
-          .text(TAX_CONFIG.seller.address, 45, colTop + 24, { width: 250 })
-          .text(`Email: ${TAX_CONFIG.seller.email}`, 45, colTop + 48)
-          .text(`GSTIN: ${TAX_CONFIG.seller.gstin}`, 45, colTop + 60);
+          .text(TAX_CONFIG.seller.legalName || TAX_CONFIG.seller.brandName, 45, colTop + 12)
+          .font('Helvetica');
+        // Only details set in .env are printed, each on the next free line.
+        let sellerY = colTop + 24;
+        if (TAX_CONFIG.seller.address) {
+          doc.text(TAX_CONFIG.seller.address, 45, sellerY, { width: 250 });
+          sellerY += 24;
+        }
+        if (TAX_CONFIG.seller.email) {
+          doc.text(`Email: ${TAX_CONFIG.seller.email}`, 45, sellerY);
+          sellerY += 12;
+        }
+        if (TAX_CONFIG.seller.gstin) doc.text(`GSTIN: ${TAX_CONFIG.seller.gstin}`, 45, sellerY);
 
         // Buyer Block
         doc

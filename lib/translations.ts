@@ -6,7 +6,7 @@ export const translations: Record<Language, Record<string, string>> = {
   en: {
     // Header & Navigation
     'nav.categories': 'Categories',
-    'nav.search_placeholder': 'Search product, categories...',
+    'nav.search_placeholder': 'Search items...',
     'nav.signin': 'Sign in',
     'nav.signin_or_register': 'Sign in or Register',
     'nav.my_account': 'My Account',
@@ -530,7 +530,7 @@ export const translations: Record<Language, Record<string, string>> = {
   ar: {
     // Header & Navigation
     'nav.categories': 'الفئات',
-    'nav.search_placeholder': 'ابحث عن المنتجات والفئات...',
+    'nav.search_placeholder': 'ابحث عن المنتجات...',
     'nav.signin': 'تسجيل الدخول',
     'nav.signin_or_register': 'تسجيل الدخول أو إنشاء حساب',
     'nav.my_account': 'حسابي',

@@ -179,7 +179,9 @@ export function calculateOrderTax(
       ? `GST (CGST ${standardRate / 2}% + SGST ${standardRate / 2}%)`
       : `IGST (${standardRate}%)`,
     sellerGstin: TAX_CONFIG.seller.gstin,
-    sellerState: `${TAX_CONFIG.seller.state} (Code: ${TAX_CONFIG.seller.stateCode})`,
+    sellerState: TAX_CONFIG.seller.state
+      ? `${TAX_CONFIG.seller.state}${TAX_CONFIG.seller.stateCode ? ` (Code: ${TAX_CONFIG.seller.stateCode})` : ''}`
+      : '',
     isInclusive,
     totalGrossAmount: calculatedTaxable,
     totalTaxableAmount: calculatedTaxable,

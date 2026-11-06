@@ -110,7 +110,7 @@ export default function NavSearch({ className = '' }: { className?: string }) {
         className="flex h-12 items-center rounded-full border-2 border-[#222222] bg-white pl-5 pr-1 transition-shadow focus-within:shadow-[0_0_0_4px_rgba(34,34,34,0.12)]"
       >
         <label htmlFor="header-search" className="sr-only">
-          {t('nav.search_label', 'Search for anything')}
+          {t('nav.search_label', 'Search items')}
         </label>
         <input
           ref={inputRef}
@@ -130,7 +130,7 @@ export default function NavSearch({ className = '' }: { className?: string }) {
           }}
           onFocus={() => setOpen(true)}
           onKeyDown={onKeyDown}
-          placeholder={t('nav.search_placeholder', 'Search for anything')}
+          placeholder={t('nav.search_placeholder', 'Search items...')}
           style={{ outline: 'none' }}
           className="h-full min-w-0 flex-1 bg-transparent text-[16px] text-[#222222] placeholder:text-[#595959] [&::-webkit-search-cancel-button]:hidden"
         />

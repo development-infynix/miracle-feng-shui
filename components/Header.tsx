@@ -13,6 +13,7 @@ import NavSearch from '@/components/nav/NavSearch';
 import NavCategoriesMenu from '@/components/nav/NavCategoriesMenu';
 import NavAccountMenu from '@/components/nav/NavAccountMenu';
 import NavMobileMenu from '@/components/nav/NavMobileMenu';
+import RegionSwitcher from '@/components/nav/RegionSwitcher';
 import { headerBadge, headerFocus, headerIconButton, headerTextButton } from '@/components/nav/useDismiss';
 
 /**
@@ -122,10 +123,11 @@ function SiteHeader({ navCategories, pathname }: { navCategories: NavCategory[];
             {brand}
             <NavCategoriesMenu />
             <NavSearch className="min-w-0 flex-1" />
+            <RegionSwitcher />
             {actions}
           </div>
 
-          {/* Phones: brand and actions, then the menu button and search */}
+          {/* Phones: brand and actions, then the menu button, search and region */}
           <div className="md:hidden">
             <div className="flex h-14 items-center justify-between gap-2">
               {brand}
@@ -143,6 +145,7 @@ function SiteHeader({ navCategories, pathname }: { navCategories: NavCategory[];
                 <i aria-hidden="true" className="fa-solid fa-bars text-[20px]" />
               </button>
               <NavSearch className="min-w-0 flex-1" />
+              <RegionSwitcher />
             </div>
           </div>
         </div>
