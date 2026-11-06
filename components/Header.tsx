@@ -21,6 +21,9 @@ import { headerBadge, headerFocus, headerIconButton, headerTextButton } from '@/
  * results drop down under it, and Sign in, or Favorites, Cart and the account menu once signed in.
  * Below it, the newest categories as quick links. Phones put the menu button and search on a second row.
  */
+/** Pages the middleware keeps for signed-in customers; signing out on one goes to the homepage. */
+const SIGNED_IN_ONLY_PATHS = ['/profile', '/order-confirmation', '/my-orders', '/orders'];
+
 export function Header({ navCategories }: { navCategories: NavCategory[] }) {
   const pathname = usePathname();
   if (pathname?.startsWith('/admin')) return null;
@@ -76,9 +79,22 @@ function SiteHeader({ navCategories, pathname }: { navCategories: NavCategory[];
     setIsRegisterMode(false);
     setShowAuthModal(true);
   };
-  const handleSignOut = async () => {
-    await signOut({ redirect: false });
+  // Sign out is not optimistic. Nothing on the page changes until the server has ended the session
+  // and a fresh check confirms it; then the browser's copies are cleared and the page reloads, so no
+  // signed-in data or cached page is left behind. Pages only for signed-in customers go to the homepage.
+  const handleSignOut = async (): Promise<boolean> => {
+    try {
+      await signOut({ redirect: false });
+      const res = await fetch('/api/auth/session', { cache: 'no-store' });
+      const current = res.ok ? await res.json() : null;
+      if (!current || current.user) return false;
+    } catch {
+      return false;
+    }
     setUserLoggedIn(false);
+    const signedInOnly = SIGNED_IN_ONLY_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
+    window.location.replace(signedInOnly ? '/' : window.location.href);
+    return true;
   };
 
   const brand = (

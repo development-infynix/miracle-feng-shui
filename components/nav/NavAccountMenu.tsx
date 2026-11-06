@@ -3,12 +3,13 @@
 import React, { useCallback, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useLocale } from '@/context/CurrencyContext';
+import SignOutRow from './SignOutRow';
 import { headerFocus, headerIconButton, useDismiss } from './useDismiss';
 
 const row = `flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[15px] text-[#222222] hover:bg-[#F5F5F1] cursor-pointer ${headerFocus}`;
 
 /** The signed-in customer's avatar: a dropdown with their name, orders, profile and Sign out. */
-export default function NavAccountMenu({ name, email, onSignOut }: { name: string; email: string; onSignOut: () => void }) {
+export default function NavAccountMenu({ name, email, onSignOut }: { name: string; email: string; onSignOut: () => Promise<boolean> }) {
   const { t } = useLocale();
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -53,17 +54,7 @@ export default function NavAccountMenu({ name, email, onSignOut }: { name: strin
             </Link>
           </div>
           <div className="border-t border-[#E1E3DF] pt-1">
-            <button
-              type="button"
-              onClick={() => {
-                close();
-                onSignOut();
-              }}
-              className={row}
-            >
-              <i aria-hidden="true" className="fa-solid fa-arrow-right-from-bracket w-4 text-center text-[#595959]" />
-              {t('nav.sign_out', 'Sign out')}
-            </button>
+            <SignOutRow onSignOut={onSignOut} rowClass={row} withIcon />
           </div>
         </div>
       )}

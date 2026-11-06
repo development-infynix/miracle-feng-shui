@@ -69,7 +69,8 @@ const STATUS: Record<string, { key: string; label: string; icon: string }> = {
   SHIPPED: { key: 'profile.status_shipped', label: 'On its way', icon: 'fa-solid fa-truck-fast' },
   DELIVERED: { key: 'profile.status_delivered', label: 'Delivered', icon: 'fa-solid fa-circle-check' },
   CANCELLATION_REQUESTED: { key: 'profile.status_cancel_requested', label: 'Cancellation requested', icon: 'fa-regular fa-clock' },
-  CANCELLATION_APPROVED: { key: 'profile.status_cancel_approved', label: 'Cancellation approved', icon: 'fa-solid fa-circle-xmark' },
+  // Customers see an approved cancellation simply as Cancelled.
+  CANCELLATION_APPROVED: { key: 'profile.status_cancelled', label: 'Cancelled', icon: 'fa-solid fa-circle-xmark' },
   CANCELLED: { key: 'profile.status_cancelled', label: 'Cancelled', icon: 'fa-solid fa-circle-xmark' },
 };
 
@@ -178,16 +179,7 @@ function OrderCard({
               </span>
             </button>
           )}
-          {order.status === 'CANCELLATION_REQUESTED' && (
-            <button
-              type="button"
-              disabled
-              className="inline-flex h-10 min-w-[96px] shrink-0 cursor-not-allowed items-center justify-center gap-2 rounded-lg border border-[#222222]/25 bg-[#F7F4EC] px-4"
-            >
-              <i aria-hidden="true" className="fa-regular fa-clock text-[13px] text-[#595959]" />
-              <span className="text-[14px] font-semibold text-[#595959]">{t('profile.cancel_pending', 'Pending')}</span>
-            </button>
-          )}
+          {/* A requested cancellation shows only its red status; once approved, a paid order offers Refund (canRequestRefund). */}
         </div>
         {order.refund && (
           <p aria-live="polite" className="flex items-center gap-2 text-[14px] font-medium text-[#5C4300]">

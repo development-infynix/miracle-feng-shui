@@ -4,6 +4,7 @@ import React, { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useStore } from '@/context/StoreContext';
 import { useLocale } from '@/context/CurrencyContext';
+import SignOutRow from './SignOutRow';
 import { translateCategory } from '@/lib/translations';
 import { headerFocus } from './useDismiss';
 
@@ -14,7 +15,8 @@ interface NavMobileMenuProps {
   signedIn: boolean;
   onClose: () => void;
   onSignIn: () => void;
-  onSignOut: () => void;
+  /** Resolves true once the server has ended the session. */
+  onSignOut: () => Promise<boolean>;
 }
 
 /** Phones: a panel from the left with every category, then the account links. */
@@ -85,16 +87,7 @@ export default function NavMobileMenu({ open, signedIn, onClose, onSignIn, onSig
               <Link href="/profile" onClick={onClose} className={row}>
                 {t('profile.title', 'Your profile')}
               </Link>
-              <button
-                type="button"
-                onClick={() => {
-                  onClose();
-                  onSignOut();
-                }}
-                className={row}
-              >
-                {t('nav.sign_out', 'Sign out')}
-              </button>
+              <SignOutRow onSignOut={onSignOut} rowClass={row} />
             </>
           ) : (
             <button
