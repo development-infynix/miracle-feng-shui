@@ -23,11 +23,21 @@ function signatureMatches(expected: string, received: string) {
  */
 async function paymentAmountMatches(razorpayOrderId: string, paymentId: string) {
   const session = await checkoutSessionRepository.findSession(razorpayOrderId);
-  if (!session) return false;
+  if (!session) {
+    console.error('[PaymentService] amount mismatch: no session/order total', { razorpayOrderId });
+    return false;
+  }
   const payment = await razorpay.payments.fetch(paymentId);
-  return (payment.status === 'captured' || payment.status === 'authorized')
+  const ok = (payment.status === 'captured' || payment.status === 'authorized')
     ? payment.amount === Math.round(session.total * 100) && payment.currency === 'INR'
     : false;
+  if (!ok) {
+    console.error('[PaymentService] amount mismatch', {
+      razorpayOrderId, paymentId, paymentStatus: payment.status, paymentAmount: payment.amount,
+      currency: payment.currency, sessionTotal: session.total, expectedPaise: Math.round(session.total*100),
+    });
+  }
+  return ok;
 }
 
 async function sendPaidOrderEmail(orderId: string) {
