@@ -220,11 +220,12 @@ export class InvoiceService {
             city: order.city,
             pincode: order.pincode,
             address: order.address,
-          }
+          },
+          { isInclusive: true }
         );
 
         const currSym = taxBreakdown.currencySymbol || 'INR';
-        const totalAmountVal = taxBreakdown.totalAmountWithTax || Number(order.totalAmount) || 0;
+        const totalAmountVal = Number(order.totalAmount) || taxBreakdown.totalAmountWithTax || 0;
         let totalsY = Math.max(currentY + 10, 320);
 
         // Subtotal (Taxable Base Amount)
