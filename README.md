@@ -50,7 +50,7 @@ Point your `.env` to the Docker container:
 ```env
 DATABASE_URL="postgres://postgres:postgres@localhost:5432/miracle_feng_shui?sslmode=disable"
 NEXTAUTH_URL="http://localhost:3000"
-NEXTAUTH_SECRET="miracle_feng_shui_super_secure_secret_key_32chars_long!"
+NEXTAUTH_SECRET="<generate with: openssl rand -base64 32>"
 RAZORPAY_KEY_ID="rzp_test_placeholder_key"
 RAZORPAY_KEY_SECRET="rzp_test_placeholder_secret"
 RAZORPAY_WEBHOOK_SECRET="rzp_test_webhook_secret"
@@ -101,7 +101,7 @@ DATABASE_URL="postgresql://alex:AbC123dEf@ep-cool-cloud-123456.us-east-2.aws.neo
 
 # Production Domain for NextAuth
 NEXTAUTH_URL="https://your-custom-domain.com"
-NEXTAUTH_SECRET="a_strong_random_32_character_secret_key"
+NEXTAUTH_SECRET="<generate with: openssl rand -base64 32>"
 
 # Live Razorpay Credentials
 RAZORPAY_KEY_ID="rzp_live_your_actual_key"
