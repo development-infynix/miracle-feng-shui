@@ -147,9 +147,9 @@ function ReceiptPanel({ order, outcome }: { order: CustomerOrder; outcome: Order
       </div>
 
       <div className="mt-4 flex items-center justify-center">
-        <a href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(`Order ${order.orderNumber}`)}`} className={textLink}>
-          <span className={textLabel}>{t('profile.order_help', 'Get help with this order')}</span>
-        </a>
+        <Link href="/profile?tab=orders" className={textLink}>
+          <span className={textLabel}>{t('confirmation.view_orders', 'View my orders')}</span>
+        </Link>
       </div>
     </div>
   );
