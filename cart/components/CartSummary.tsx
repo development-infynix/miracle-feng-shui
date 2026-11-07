@@ -3,10 +3,11 @@
 import React from 'react';
 import Link from 'next/link';
 import { useLocale } from '@/context/CurrencyContext';
+import { primaryButton, primaryLabel } from '@/profile/components/profileUi';
 
 const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#3A1F62]';
 const glass = 'rounded-lg glass-veil shadow-[0_6px_10px_rgba(67,23,105,0.14),inset_0_-3px_5px_rgba(67,23,105,0.1)]';
-const primaryButton = `cursor-pointer rounded-md bg-[#431769] transition-colors hover:bg-[#3A1F62] disabled:cursor-not-allowed disabled:opacity-50 ${focusRing}`;
+
 
 interface CartSummaryProps {
   count: number;
@@ -45,7 +46,7 @@ export function CartSummary({ count, subtotal, blocked, onCheckout }: CartSummar
       </dl>
 
       <button type="button" disabled={blocked} onClick={onCheckout} className={`${primaryButton} mt-5 h-12 w-full`}>
-        <span className="font-outfit text-[15px] font-semibold text-white">
+        <span className={primaryLabel}>
           {t('cart.proceed_to_checkout', 'Proceed to Checkout')}
         </span>
       </button>
@@ -90,7 +91,7 @@ export function CartCheckoutBar({ count, subtotal, blocked, onCheckout }: CartSu
           </span>
         </p>
         <button type="button" disabled={blocked} onClick={onCheckout} className={`${primaryButton} h-12 shrink-0 px-6`}>
-          <span className="font-outfit text-[15px] font-semibold text-white">{t('cart.checkout_short', 'Checkout')}</span>
+          <span className={primaryLabel}>{t('cart.checkout_short', 'Checkout')}</span>
         </button>
       </div>
     </div>

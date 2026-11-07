@@ -123,7 +123,7 @@ export default function CancelOrderModal({ orderId, orderNumber, onClose, onRequ
       <div
         aria-hidden="true"
         onClick={close}
-        className={`absolute inset-0 bg-[#2B154C]/25 backdrop-blur-md transition-opacity duration-300 motion-reduce:transition-none ${poured ? 'opacity-100' : 'opacity-0'}`}
+        className={`absolute inset-0 bg-[#141210]/25 backdrop-blur-md transition-opacity duration-300 motion-reduce:transition-none ${poured ? 'opacity-100' : 'opacity-0'}`}
       />
 
       <div
@@ -131,7 +131,7 @@ export default function CancelOrderModal({ orderId, orderNumber, onClose, onRequ
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`glass-veil relative max-h-full w-full max-w-[480px] overflow-y-auto no-scrollbar rounded-[28px] p-5 shadow-[0_6px_10px_rgba(67,23,105,0.14),inset_0_2px_0_rgba(255,255,255,0.7),inset_0_-3px_5px_rgba(67,23,105,0.16)] transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none sm:p-6 ${poured ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0'}`}
+        className={`glass-veil relative max-h-full w-full max-w-[480px] overflow-y-auto no-scrollbar border border-ink/10 p-5 shadow-[0_18px_40px_rgba(20,18,16,0.18)] transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none sm:p-6 ${poured ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0'}`}
       >
         <div className="flex items-center justify-between gap-3">
           <Stepper step={step} />

@@ -4,10 +4,10 @@ import React, { useEffect, useRef, useState } from 'react';
 import type { ProductSummary } from '@/lib/placeholder-data';
 import { useLocale } from '@/context/CurrencyContext';
 import ShopProductCard from './ShopProductCard';
+import { primaryButton, primaryLabel } from '@/profile/components/profileUi';
 import { hasNarrowingFilters, NO_FILTERS, toProductQuery, type ShopFilters } from './shopFilters';
 
-const buttonClass =
-  'group inline-flex h-11 cursor-pointer items-center justify-center rounded-md bg-[#431769] px-6 transition-colors hover:bg-[#3A1F62] disabled:cursor-wait disabled:opacity-70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3A1F62]';
+const buttonClass = primaryButton;
 
 interface ShopProductGridProps {
   filters: ShopFilters;
@@ -72,7 +72,7 @@ export default function ShopProductGrid({ filters, initialProducts, total, pendi
               {t('shop.no_matches_hint', 'Try removing a filter or checking the spelling.')}
             </p>
             <button type="button" onClick={() => onClearFilters(NO_FILTERS)} className={`${buttonClass} mt-5`}>
-              <span className="font-outfit text-[14px] font-semibold text-white">
+              <span className={primaryLabel}>
                 {t('shop.clear_filters', 'Clear all filters')}
               </span>
             </button>
@@ -106,7 +106,7 @@ export default function ShopProductGrid({ filters, initialProducts, total, pendi
             </p>
           )}
           <button type="button" onClick={loadMore} disabled={loading} className={buttonClass}>
-            <span className="font-outfit text-[14px] font-semibold text-white">
+            <span className={primaryLabel}>
               {loading ? t('shop.loading_more', 'Loading…') : t('shop.load_more', 'Load more')}
             </span>
           </button>

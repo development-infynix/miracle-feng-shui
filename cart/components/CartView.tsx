@@ -11,12 +11,13 @@ import CartItemRow from './CartItemRow';
 import CheckoutDrawer from './CheckoutDrawer';
 import { CartCheckoutBar, CartSummary } from './CartSummary';
 import { isCartItemBlocked } from './cartStock';
+import { primaryButton, primaryLabel } from '@/profile/components/profileUi';
 
 const NOTICE_MS = 6000;
 // Keep the delete spinner up this long so quick removes don't just flash.
 const MIN_REMOVE_MS = 400;
 const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#3A1F62]';
-const primaryLink = `inline-flex h-12 cursor-pointer items-center justify-center rounded-md bg-[#431769] px-6 transition-colors hover:bg-[#3A1F62] ${focusRing}`;
+const primaryLink = primaryButton;
 
 type Notice = { title: string; item: CartItem; error?: string };
 
@@ -151,11 +152,11 @@ export default function CartView() {
                 onClick={() => window.dispatchEvent(new CustomEvent('open-auth-modal', { detail: { mode: 'signin' } }))}
                 className={primaryLink}
               >
-                <span className="font-outfit text-[15px] font-semibold text-white">{t('cart.login', 'Log in')}</span>
+                <span className={primaryLabel}>{t('cart.login', 'Log in')}</span>
               </button>
             ) : (
               <Link href="/shop" className={primaryLink}>
-                <span className="font-outfit text-[15px] font-semibold text-white">{t('product.browse', 'Browse products')}</span>
+                <span className={primaryLabel}>{t('product.browse', 'Browse products')}</span>
               </Link>
             )}
           </div>
