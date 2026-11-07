@@ -161,6 +161,9 @@ function SiteHeader({
     </Link>
   );
 
+  // Phones: the open menu lists Search, Favorites and Cart, so the bar's own icons fade out (keeping their space so nothing shifts).
+  const hideOnMenu = `transition-opacity duration-200 motion-reduce:transition-none ${mobileMenuOpen ? "max-md:invisible max-md:opacity-0" : ""}`;
+
   return (
     <>
       <header
@@ -206,7 +209,7 @@ function SiteHeader({
 
           <div className="ml-auto flex items-center justify-end gap-0.5 md:ml-0 md:flex-1 md:gap-1.5">
             {/* The shop page has its own search bar, so the cart takes the search's place, before Favorites. */}
-            {onShopPage && userLoggedIn && cartLink("flex")}
+            {onShopPage && userLoggedIn && cartLink(`flex ${hideOnMenu}`)}
             {/* The shop page has its own search bar, so the navbar's search stays out of the way there. */}
             {!onShopPage && (
               <button
@@ -255,7 +258,7 @@ function SiteHeader({
                 type="button"
                 onClick={() => setSearchOpen(true)}
                 aria-label={t("nav.search", "Search")}
-                className={`${mobileIcon} md:hidden`}
+                className={`${mobileIcon} md:hidden ${hideOnMenu}`}
               >
                 <i
                   aria-hidden="true"
@@ -267,7 +270,7 @@ function SiteHeader({
               <Link
                 href="/profile?tab=favorites"
                 aria-label={t("nav.favorites", "Favorites")}
-                className={`${mobileIcon} md:hidden`}
+                className={`${mobileIcon} md:hidden ${hideOnMenu}`}
               >
                 <i
                   aria-hidden="true"
@@ -284,7 +287,7 @@ function SiteHeader({
                 type="button"
                 onClick={openSignIn}
                 aria-label={t("nav.favorites", "Favorites")}
-                className={`${mobileIcon} md:hidden`}
+                className={`${mobileIcon} md:hidden ${hideOnMenu}`}
               >
                 <i
                   aria-hidden="true"

@@ -4,11 +4,10 @@ import React from "react";
 import Link from "next/link";
 import type { NavCategory } from "@/lib/nav-categories";
 import { useLocale } from "@/context/CurrencyContext";
-import { translateCategory } from "@/lib/translations";
 import { FACEBOOK_URL, INSTAGRAM_URL } from "@/lib/social-links";
 import RegionOptions from "./RegionOptions";
 import SignOutRow from "./SignOutRow";
-import { navBadge, navFocus, panelRow, panelRowLabel } from "./navUi";
+import { indexLabel, indexRow, navBadge, navFocus } from "./navUi";
 
 interface NavMobileMenuProps {
   open: boolean;
@@ -24,7 +23,12 @@ interface NavMobileMenuProps {
   onSignOut: () => Promise<boolean>;
 }
 
-/** Phones: a stone sheet under the bar with categories, links, account and socials. */
+const SOCIALS = [
+  { name: "Instagram", url: INSTAGRAM_URL, icon: "/images/instagram-badge.svg" },
+  { name: "Facebook", url: FACEBOOK_URL, icon: "/images/facebook.svg" },
+];
+
+/** Phones: a stone sheet under the bar, set as a serif index of the shop and the account, with socials and region at its foot. */
 export default function NavMobileMenu({
   open,
   categories,
@@ -36,61 +40,44 @@ export default function NavMobileMenu({
   onSignIn,
   onSignOut,
 }: NavMobileMenuProps) {
-  const { language, t } = useLocale();
+  const { t } = useLocale();
 
   return (
     <div
       id="nav-mobile-menu"
-      className={`fixed inset-x-0 bottom-0 top-16 z-40 overflow-y-auto overscroll-contain bg-stone transition-[opacity,visibility] duration-200 ease-out motion-reduce:transition-none md:hidden ${open ? "visible opacity-100" : "invisible pointer-events-none opacity-0"}`}
+      className={`fixed inset-x-0 bottom-0 top-16 z-[60] flex flex-col overflow-hidden bg-stone transition-[transform,opacity,visibility] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none md:hidden ${open ? "visible translate-y-0 opacity-100" : "invisible pointer-events-none -translate-y-3 opacity-0"}`}
     >
-      <nav aria-label={t("nav.menu", "Menu")} className="px-4 pb-10 pt-4">
-        <h2>
-          <span className="font-display text-[22px] font-bold text-ink">
-            {t("nav.categories", "Categories")}
-          </span>
-        </h2>
-        <ul className="mt-3 grid list-none grid-cols-2 gap-3">
-          {categories.map((category) => {
-            const name = translateCategory(category.name, language);
-            return (
-              <li key={category.id}>
-                <Link
-                  href={`/shop?category=${encodeURIComponent(category.name)}`}
-                  onClick={onClose}
-                  className={`flex items-center gap-2.5 rounded-[10px] bg-white p-2 ${navFocus}`}
-                >
-                  <span className="h-11 w-11 shrink-0 overflow-hidden rounded-[6px] bg-[#DDD8CC]">
-                    {category.image && (
-                      <img
-                        src={category.image}
-                        alt=""
-                        loading="lazy"
-                        className="h-full w-full object-cover"
-                      />
-                    )}
-                  </span>
-                  <span className="min-w-0 font-geist text-[14px] font-medium leading-snug text-ink">
-                    {name}
-                  </span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-
-        <div className="mt-2 border-b border-ink/15 pb-3">
-          <Link href="/shop" onClick={onClose} className={panelRow}>
-            <span className={`${panelRowLabel} flex-1`}>
-              {t("nav.all_products", "All products")}
-            </span>
+      <div className="flex-1 overflow-y-auto overscroll-contain px-4 pb-6 pt-3">
+        <nav aria-label={t("nav.menu", "Menu")} className="w-full">
+          {/* Shop */}
+          <Link href="/shop" onClick={onClose} className={indexRow}>
+            <span className={indexLabel}>{t("shop.all_products", "All products")}</span>
             <i
               aria-hidden="true"
-              className="fa-solid fa-arrow-right text-[13px] text-ink"
+              className="fa-solid fa-arrow-right text-[17px] text-ink transition-[color,transform] duration-200 group-hover:translate-x-0.5 group-hover:text-logo-purple motion-reduce:transition-none"
             />
           </Link>
-        </div>
+          {categories.length > 0 && (
+            <ul
+              aria-label={t("nav.categories", "Categories")}
+              className="-mt-1 flex flex-wrap gap-x-5 pb-3"
+            >
+              {categories.map((category) => (
+                <li key={category.id}>
+                  <Link
+                    href={`/shop?category=${encodeURIComponent(category.name)}`}
+                    onClick={onClose}
+                    className={`group inline-flex min-h-11 items-center ${navFocus}`}
+                  >
+                    <span className="font-display text-[17px] leading-tight text-ink-muted transition-colors group-hover:text-logo-purple">
+                      {category.name}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
 
-        <div className="mt-3 flex flex-col">
           {onSearch && (
             <button
               type="button"
@@ -98,125 +85,85 @@ export default function NavMobileMenu({
                 onClose();
                 onSearch();
               }}
-              className={panelRow}
+              className={indexRow}
             >
+              <span className={indexLabel}>{t("nav.search", "Search")}</span>
               <i
                 aria-hidden="true"
-                className="fa-solid fa-magnifying-glass w-5 text-center text-[15px] text-ink-muted"
+                className="fa-solid fa-magnifying-glass text-[17px] text-ink transition-colors group-hover:text-logo-purple"
               />
-              <span className={panelRowLabel}>{t("nav.search", "Search")}</span>
             </button>
           )}
 
-          {signedIn && (
-            <Link href="/cart" onClick={onClose} className={panelRow}>
-              <i
-                aria-hidden="true"
-                className="fa-solid fa-cart-shopping w-5 text-center text-[15px] text-ink-muted"
-              />
-              <span className={`${panelRowLabel} flex-1`}>
-                {t("nav.cart", "Cart")}
-              </span>
-              {cartCount > 0 && <span className={navBadge}>{cartCount}</span>}
-            </Link>
-          )}
-
+          {/* Account */}
           {signedIn ? (
             <>
-              <Link
-                href="/profile?tab=favorites"
-                onClick={onClose}
-                className={panelRow}
-              >
-                <i
-                  aria-hidden="true"
-                  className="fa-regular fa-heart w-5 text-center text-[15px] text-ink-muted"
-                />
-                <span className={`${panelRowLabel} flex-1`}>
-                  {t("nav.favorites", "Favorites")}
-                </span>
-                {favoritesCount > 0 && (
-                  <span className={navBadge}>{favoritesCount}</span>
-                )}
+              <Link href="/cart" onClick={onClose} className={indexRow}>
+                <span className={indexLabel}>{t("nav.cart", "Cart")}</span>
+                {cartCount > 0 && <span className={navBadge}>{cartCount}</span>}
               </Link>
-              <Link
-                href="/profile?tab=orders"
-                onClick={onClose}
-                className={panelRow}
-              >
-                <i
-                  aria-hidden="true"
-                  className="fa-regular fa-calendar-check w-5 text-center text-[15px] text-ink-muted"
-                />
-                <span className={panelRowLabel}>
-                  {t("nav.my_orders", "My orders")}
-                </span>
+              <Link href="/profile?tab=favorites" onClick={onClose} className={indexRow}>
+                <span className={indexLabel}>{t("nav.favorites", "Favorites")}</span>
+                {favoritesCount > 0 && <span className={navBadge}>{favoritesCount}</span>}
               </Link>
-              <Link href="/profile" onClick={onClose} className={panelRow}>
-                <i
-                  aria-hidden="true"
-                  className="fa-regular fa-user w-5 text-center text-[15px] text-ink-muted"
-                />
-                <span className={panelRowLabel}>
-                  {t("profile.title", "Your profile")}
-                </span>
+              <Link href="/profile?tab=orders" onClick={onClose} className={indexRow}>
+                <span className={indexLabel}>{t("nav.my_orders", "My orders")}</span>
               </Link>
-              <SignOutRow onSignOut={onSignOut} iconClass="w-5 text-[15px]" />
+              <Link href="/profile" onClick={onClose} className={indexRow}>
+                <span className={indexLabel}>{t("profile.title", "Your profile")}</span>
+              </Link>
+              <SignOutRow onSignOut={onSignOut} iconClass="text-[17px]" index />
+              <div className="border-t border-ink/15" />
             </>
           ) : (
-            <button
-              type="button"
-              onClick={() => {
-                onClose();
-                onSignIn();
-              }}
-              className={panelRow}
-            >
-              <i
-                aria-hidden="true"
-                className="fa-regular fa-user w-5 text-center text-[15px] text-ink-muted"
-              />
-              <span className={panelRowLabel}>
-                {t("nav.signin", "Sign in")}
-              </span>
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onSignIn();
+                }}
+                className={indexRow}
+              >
+                <span className={indexLabel}>{t("nav.signin", "Sign in")}</span>
+                <i
+                  aria-hidden="true"
+                  className="fa-regular fa-user text-[17px] text-ink transition-colors group-hover:text-logo-purple"
+                />
+              </button>
+              <div className="border-t border-ink/15" />
+            </>
           )}
-        </div>
+        </nav>
+      </div>
 
-        {/* Region & currency, for guests too. */}
-        <div className="mt-3 border-t border-ink/15 pt-3">
-          <RegionOptions onPicked={onClose} />
+      {/* Pinned foot: socials, then region and currency. */}
+      <div className="shrink-0 border-t border-ink/15 bg-stone px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-3">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex gap-2">
+            {SOCIALS.map((social) => (
+              <a
+                key={social.name}
+                href={social.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={onClose}
+                aria-label={social.name}
+                className={`flex h-11 w-11 items-center justify-center rounded-[10px] border border-ink/10 bg-white transition-colors hover:border-ink/25 ${navFocus}`}
+              >
+                <img src={social.icon} alt="" className="h-6 w-6" />
+              </a>
+            ))}
+          </div>
+          <RegionOptions onPicked={onClose} compact />
         </div>
-
-        <div className="mt-3 grid grid-cols-2 gap-3 border-t border-ink/15 pt-4">
-          {[
-            {
-              name: "Instagram",
-              url: INSTAGRAM_URL,
-              icon: "/images/instagram-badge.svg",
-            },
-            {
-              name: "Facebook",
-              url: FACEBOOK_URL,
-              icon: "/images/facebook.svg",
-            },
-          ].map((social) => (
-            <a
-              key={social.name}
-              href={social.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={onClose}
-              className={`flex items-center gap-2.5 rounded-[10px] bg-white p-3 ${navFocus}`}
-            >
-              <img src={social.icon} alt="" className="h-6 w-6 shrink-0" />
-              <span className="font-geist text-[14px] font-medium text-ink">
-                {social.name}
-              </span>
-            </a>
-          ))}
-        </div>
-      </nav>
+        <p className="pt-2.5 font-geist text-[13px] leading-relaxed text-ink-muted">
+          {t(
+            "nav.region_note",
+            "AED prices are shown for your convenience. Orders are charged in Indian rupees (INR).",
+          )}
+        </p>
+      </div>
     </div>
   );
 }

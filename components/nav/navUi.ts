@@ -19,13 +19,18 @@ export const navBadge =
 
 /** A white panel that drops from the bar (categories, account). */
 export const navPanel =
-  'rounded-[14px] border border-ink/10 bg-white shadow-[0_18px_40px_rgba(20,18,16,0.12)] origin-top transition-[opacity,transform,visibility] duration-200 ease-out motion-reduce:transition-none';
+  'border border-ink/10 glass-veil shadow-[0_18px_40px_rgba(20,18,16,0.18)] origin-top transition-[opacity,transform,visibility] duration-200 ease-out motion-reduce:transition-none';
 export const navPanelOpen = 'visible translate-y-0 opacity-100';
 export const navPanelClosed = 'invisible -translate-y-1 opacity-0 pointer-events-none';
 
 /** A row inside a panel or the phone menu. */
 export const panelRow = `group flex w-full items-center gap-3 rounded-[10px] px-3 h-11 text-left cursor-pointer transition-colors hover:bg-stone ${navFocus}`;
 export const panelRowLabel = 'font-geist text-[15px] font-medium text-ink';
+
+/** A line of the phone menu's serif index: the whole row is the hit area, hairline above. */
+export const indexRow = `group flex h-14 w-full items-center justify-between gap-4 border-t border-ink/15 first:border-t-0 text-left cursor-pointer ${navFocus}`;
+export const indexLabel =
+  'font-display text-[24px] font-normal leading-none tracking-[-0.01em] text-ink transition-colors group-hover:text-logo-purple';
 
 /** Closes a menu on Escape (returning focus to its trigger) or on a press outside it and its trigger. */
 export function useDismiss(

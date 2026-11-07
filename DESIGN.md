@@ -243,7 +243,7 @@ Warm neutral stone and black ink, with one small purple mark and one warm gold t
 ### Hierarchy
 - **Display** (700, `clamp(40px, 6.8vw, 96px)`, 0.96, -0.03em, balanced wrap): the homepage headline only, full width, capped at 96px.
 - **Headline** (700, 28px on phones / 36px from 640px, tight, -0.02em): section headings ("New arrivals", "Shop by category", "Your corner").
-- **Title** (700, 21px / 24px, -0.01em): bento tile titles; category tile names use the same serif at 17px / 21px. The phone menu's "Categories" heading is 22px.
+- **Title** (700, 21px / 24px, -0.01em): bento tile titles; category tile names use the same serif at 17px / 21px. The phone menu's index rows use the title size (24px).
 - **Wordmark** (700, 19px / 21px, 1, tight): "Miracle feng shui" beside the logo. The footer repeats it as a giant decorative band at 7% Ink.
 - **Body** (400, 15px, 1.625): tile copy and empty states, in Ink Muted.
 - **Nav label** (500, 15px): navbar links and panel rows.
@@ -335,7 +335,7 @@ Rules are hairlines: 1px Ink at 15% above section headings, card price rows and 
 - **Desktop (768px up):** three zones. Left: the round logo and the serif wordmark. Centre: Categories (with a chevron that turns over) and Products. Right: Search (icon, with label from 1024px), then Sign in for guests or a Favorites heart with a purple count, then the cart as a trolley icon with a purple count badge, then the Logo Purple avatar for signed-in customers.
 - **Items:** nav label type in Ink, 40px tall pill hit areas; hover and the active page turn the label Logo Purple. No filled hover backgrounds.
 - **Dropdowns:** white 14px panels with the panel drop, fading and sliding 4px over 200ms. Categories shows the 4 newest categories as photo tiles (8px) with an underlined All products link; the account panel shows name and email, My orders, Your profile and Sign out as rows that take a Stone hover. Escape or a press outside closes them.
-- **Phones:** the bar holds the brand, a search icon, a favorites heart and a two-line menu button that crosses into an X. The menu is a full Stone sheet under the bar: white category tiles in two columns, All products, then Search, Cart (with count), the account rows or Sign in, and Instagram and Facebook tiles. The page stops scrolling behind it.
+- **Phones:** the bar holds the brand, a search icon, a favorites heart and a two-line menu button that crosses into an X. The menu is a full Stone sheet under the bar, set as a serif index: 56px rows in the brand serif at regular weight and 24px (the user found bold here heavy), divided by Ink-at-15% hairlines, the whole row tappable, turning Logo Purple on hover. All products (arrow on the right) with the newest categories under it as 17px Ink Muted serif links, then Search, then Cart and Favorites (count badges on the right), My orders, Your profile and Sign out, or Sign in for guests. A pinned foot holds Instagram and Facebook as 44px white icon tiles beside a sharp INR / AED switch (selected half in Ink Fill), with the AED note under them. While it is open the bar keeps only the brand and the X: its Search, Favorites and (on the shop page) Cart icons fade out in place, since the menu lists them. The sheet sits at z-60, above the z-50 bottom bars (profile tabs, cart bar) and below drawers and pop-ups. The page stops scrolling behind it.
 - **Count badges:** an 18px Logo Purple pill with white tabular text.
 
 ### Footer

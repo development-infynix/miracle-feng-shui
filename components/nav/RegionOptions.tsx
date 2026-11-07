@@ -44,8 +44,38 @@ const REGIONS: { country: Country; label: string; currency: string }[] = [
  * India / UAE as two side-by-side choices with their flags, for the account menu and the phone menu.
  * UAE shows prices in AED for convenience; every order is still charged in rupees.
  */
-export default function RegionOptions({ onPicked }: { onPicked?: () => void }) {
+export default function RegionOptions({ onPicked, compact = false }: { onPicked?: () => void; compact?: boolean }) {
   const { country, setCountry, t } = useLocale();
+
+  // Compact: a two-part switch with no heading or note, for the phone menu's foot (which shows the note itself).
+  if (compact) {
+    return (
+      <div role="group" aria-label={t('nav.region_settings', 'Region & currency')} className="flex h-11 border border-ink/20">
+        {REGIONS.map((region) => {
+          const selected = region.country === country;
+          return (
+            <button
+              key={region.country}
+              type="button"
+              aria-pressed={selected}
+              onClick={() => {
+                setCountry(region.country);
+                onPicked?.();
+              }}
+              className={`flex cursor-pointer items-center gap-1.5 px-3 transition-colors ${
+                selected ? 'bg-ink-fill' : 'hover:bg-white'
+              } ${navFocus}`}
+            >
+              <RegionFlag country={region.country} size={16} />
+              <span className={`font-geist text-[15px] font-semibold tabular-nums ${selected ? 'text-stone' : 'text-ink'}`}>
+                {region.label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -67,7 +97,7 @@ export default function RegionOptions({ onPicked }: { onPicked?: () => void }) {
               } ${navFocus}`}
             >
               <RegionFlag country={region.country} />
-              <span className={`font-geist text-[14px] font-semibold tabular-nums ${selected ? 'text-stone' : 'text-ink'}`}>
+              <span className={`font-geist text-[20px] font-semibold tabular-nums ${selected ? 'text-stone' : 'text-ink'}`}>
                 {region.label} <span className="font-normal opacity-80">{region.currency}</span>
               </span>
             </button>
