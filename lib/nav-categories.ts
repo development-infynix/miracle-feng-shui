@@ -12,6 +12,7 @@ const NAV_CATEGORY_LIMIT = 5;
 const findLatestCategories = unstable_cache(
   (): Promise<NavCategory[]> =>
     prisma.category.findMany({
+      where: { products: { some: {} } },
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: NAV_CATEGORY_LIMIT,
       select: { id: true, name: true },
@@ -21,7 +22,7 @@ const findLatestCategories = unstable_cache(
   { tags: [NAV_CATEGORIES_TAG], revalidate: 300 }
 );
 
-/** The newest categories, newest first. Empty if the database can't be reached, so the site still renders. */
+/** The newest categories that have at least one product, newest first. Empty if the database can't be reached, so the site still renders. */
 export async function getNavCategories(): Promise<NavCategory[]> {
   try {
     return await findLatestCategories();

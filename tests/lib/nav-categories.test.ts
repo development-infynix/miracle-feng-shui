@@ -26,6 +26,7 @@ describe('navbar categories', () => {
     await expect(getNavCategories()).resolves.toEqual(rows);
 
     expect(findMany).toHaveBeenCalledWith({
+      where: { products: { some: {} } },
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: 5,
       select: { id: true, name: true },
