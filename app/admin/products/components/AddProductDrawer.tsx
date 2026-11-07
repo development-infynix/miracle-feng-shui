@@ -1,9 +1,9 @@
 'use client';
 
-import React from 'react';
-import ImageUploadField from '@/components/admin/ImageUploadField';
+import React, { useState } from 'react';
 import { LuX } from 'react-icons/lu';
 import ItemDetailsField from './ItemDetailsField';
+import ProductImagesEditor from './ProductImagesEditor';
 import { Product } from '@/lib/placeholder-data';
 
 interface AddProductModalProps {
@@ -12,8 +12,6 @@ interface AddProductModalProps {
   formData: Omit<Product, 'id'>;
   setFormData: (updater: React.SetStateAction<Omit<Product, 'id'>>) => void;
   availableCategories: string[] | readonly string[];
-  isUploading: boolean;
-  onImageFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onClose: () => void;
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
   isSubmitting?: boolean;
@@ -30,12 +28,11 @@ export default function AddProductModal({
   formData,
   setFormData,
   availableCategories,
-  isUploading,
-  onImageFileUpload,
   onClose,
   onSubmit,
   isSubmitting,
 }: AddProductModalProps) {
+  const [imagesUploading, setImagesUploading] = useState(false);
   if (!open) return null;
 
   return (
@@ -64,16 +61,11 @@ export default function AddProductModal({
         <form onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col">
           <div className="min-h-0 flex-1 space-y-6 overflow-y-auto p-5">
             <section>
-              <ImageUploadField
-                label="Product Image"
-                value={formData.images[0] || ''}
-                onChange={(url) => setFormData({ ...formData, images: url ? [url] : [] })}
-                helpText="Upload product image file (PNG, JPG, or WEBP)."
+              <ProductImagesEditor
+                images={formData.images || []}
+                onChange={(next) => setFormData((prev) => ({ ...prev, images: next }))}
+                onUploadingChange={setImagesUploading}
               />
-              <input type="file" className="hidden" onChange={onImageFileUpload} />
-              {isUploading && (
-                <p className="text-xs text-stone-500 mt-1">Uploading…</p>
-              )}
             </section>
 
             <section className="space-y-4">
@@ -259,7 +251,7 @@ export default function AddProductModal({
             </button>
             <button
               type="submit"
-              disabled={isSubmitting || !formData.category || !formData.name.trim() || !formData.price || formData.price <= 0 || formData.discount == null || String(formData.discount).trim() === '' || formData.stock == null || String(formData.maker || '').trim() === ''}
+              disabled={isSubmitting || imagesUploading || !formData.category || !formData.name.trim() || !formData.price || formData.price <= 0 || formData.discount == null || String(formData.discount).trim() === '' || formData.stock == null || String(formData.maker || '').trim() === ''}
               className="inline-flex h-10 items-center justify-center rounded-md bg-stone-900 px-5 text-sm font-medium text-white transition-colors hover:bg-stone-700 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {isSubmitting ? (editingProduct ? 'Saving...' : 'Adding...') : (editingProduct ? 'Save Changes' : 'Add to Catalog')}
