@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { productService } from '@/server/services/product.service';
-import { productQuerySchema } from '@/server/validators/product.validator';
 import HomeIntro from '@/home/components/HomeIntro';
 import NewArrivals from '@/home/components/NewArrivals';
 import LatestCategories from '@/home/components/LatestCategories';
@@ -15,7 +14,7 @@ const NEW_ARRIVALS = 8;
 
 export default async function HomePage() {
   const [newArrivals, categories, bestsellers] = await Promise.all([
-    productService.list(productQuerySchema.parse({ sort: 'newest', pageSize: NEW_ARRIVALS })),
+    productService.listNewest(NEW_ARRIVALS),
     productService.listLatestCategories(4),
     productService.listBestsellers(4),
   ]);
@@ -24,7 +23,7 @@ export default async function HomePage() {
     <div className="pb-8">
       <HomeIntro />
       <div className="flex flex-col gap-16 sm:gap-24">
-        <NewArrivals products={newArrivals.items} />
+        <NewArrivals products={newArrivals} />
         <LatestCategories categories={categories} />
         <HomeBento bestsellers={bestsellers} />
       </div>

@@ -434,7 +434,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Active Products (Very Light Pastel Lavender) */}
-        <div className="bg-white p-4 sm:p-4.5 rounded-2xl border border-gray-200/70 shadow-2xs hover:shadow-sm transition-all flex flex-col justify-between">
+        <div className="col-span-2 lg:col-span-1 bg-white p-4 sm:p-4.5 rounded-2xl border border-gray-200/70 shadow-2xs hover:shadow-sm transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-xl bg-gray-100 text-gray-500 flex items-center justify-center text-sm shrink-0 shadow-2xs border border-gray-200/50">

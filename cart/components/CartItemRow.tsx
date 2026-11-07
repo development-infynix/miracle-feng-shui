@@ -5,7 +5,7 @@ import type { CartItem } from '@/context/CartContext';
 import { useLocale } from '@/context/CurrencyContext';
 import { translateCategory, translateProductTitle } from '@/lib/translations';
 import { ProductLink } from '@/shop/components/ProductDrawerProvider';
-import { isCartItemBlocked, isCartItemUnavailable } from './cartStock';
+import { isCartItemBlocked, isCartItemPaused, isCartItemUnavailable } from './cartStock';
 
 const FALLBACK_IMAGE = '/images/miracle.jpeg';
 const LOW_STOCK = 10;
@@ -31,7 +31,8 @@ export default function CartItemRow({ item, removing = false, onQuantityChange, 
   const title = translateProductTitle(product.name, language, product.id);
   const stock = product.stock;
   const unavailable = isCartItemUnavailable(item);
-  const outOfStock = stock === 0;
+  const paused = isCartItemPaused(item);
+  const outOfStock = paused || stock === 0;
   const blocked = isCartItemBlocked(item);
   const lowStock = !blocked && stock !== undefined && stock < LOW_STOCK;
   const originalPrice = product.originalPrice && product.originalPrice > product.price ? product.originalPrice : null;
@@ -99,6 +100,10 @@ export default function CartItemRow({ item, removing = false, onQuantityChange, 
           {unavailable ? (
             <p className="mt-1 font-outfit text-[13px] font-medium text-[#8F1610]">
               {t('cart.unavailable_note', 'No longer available. Remove it to continue to checkout.')}
+            </p>
+          ) : paused ? (
+            <p className="mt-1 font-outfit text-[13px] font-medium text-[#8F1610]">
+              {t('cart.paused_note', 'Currently unavailable. Remove it to continue to checkout.')}
             </p>
           ) : outOfStock ? (
             <p className="mt-1 font-outfit text-[13px] font-medium text-[#8F1610]">

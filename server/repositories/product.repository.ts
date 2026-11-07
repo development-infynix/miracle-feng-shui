@@ -17,6 +17,7 @@ const productCardSelect = {
   comparePrice: true,
   images: true,
   stock: true,
+  isPaused: true,
   bestseller: true,
   ratingAvg: true,
   maker: true,

@@ -58,10 +58,11 @@ function useProductDetails(productId: string) {
   return { product, status, retry };
 }
 
-function Gallery({ images, title, outOfStock, bestseller, heart }: {
+function Gallery({ images, title, outOfStock, unavailableLabel, bestseller, heart }: {
   images: string[];
   title: string;
   outOfStock: boolean;
+  unavailableLabel: string;
   bestseller: boolean;
   heart: React.ReactNode;
 }) {
@@ -83,7 +84,7 @@ function Gallery({ images, title, outOfStock, bestseller, heart }: {
           }}
         />
         <div className="absolute left-2.5 top-2.5 flex flex-col items-start gap-1">
-          {outOfStock && <span className={`${imagePill} bg-ink text-white`}>{t('shop.out_of_stock', 'Out of stock')}</span>}
+          {outOfStock && <span className={`${imagePill} bg-ink text-white`}>{unavailableLabel}</span>}
           {bestseller && <span className={`${imagePill} bg-[#E2DDD1] text-ink`}>{t('badge.bestseller', 'Bestseller')}</span>}
         </div>
         {heart}
@@ -151,9 +152,12 @@ function DrawerContent({ productId, seed, onClose, titleId }: {
   const shown: ProductSummary | null = details ?? seed ?? null;
   const title = shown ? translateProductTitle(shown.name, language, shown.id) : '';
   const stock = shown?.stock;
-  const outOfStock = stock === 0;
+  // A paused product is shown but can't be bought, like one that's out of stock.
+  const paused = shown?.isPaused === true;
+  const outOfStock = paused || stock === 0;
+  const unavailableLabel = paused ? t('shop.currently_unavailable', 'Currently unavailable') : t('shop.out_of_stock', 'Out of stock');
   if (stock !== undefined && stock > 0 && quantity > stock) setQuantity(stock);
-  const lowStock = stock !== undefined && stock > 0 && stock < LOW_STOCK;
+  const lowStock = !paused && stock !== undefined && stock > 0 && stock < LOW_STOCK;
   const originalPrice = shown?.originalPrice && shown.originalPrice > shown.price ? shown.originalPrice : null;
   const rating = shown?.rating ?? 0;
   const variations = Array.isArray(details?.variations) ? details.variations : [];
@@ -309,6 +313,7 @@ function DrawerContent({ productId, seed, onClose, titleId }: {
                 images={shown.images}
                 title={title}
                 outOfStock={outOfStock}
+                unavailableLabel={unavailableLabel}
                 bestseller={Boolean(shown.bestseller)}
                 heart={
                   <button
@@ -535,7 +540,7 @@ function DrawerContent({ productId, seed, onClose, titleId }: {
           </p>
           {outOfStock ? (
             <button type="button" disabled className="h-12 w-full cursor-not-allowed bg-ink-fill opacity-50">
-              <span className="font-geist text-[15px] font-semibold text-white">{t('shop.out_of_stock', 'Out of stock')}</span>
+              <span className="font-geist text-[15px] font-semibold text-white">{unavailableLabel}</span>
             </button>
           ) : guest ? (
             <button

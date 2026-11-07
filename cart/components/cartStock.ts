@@ -5,8 +5,13 @@ export function isCartItemUnavailable(item: CartItem) {
   return item.product.isActive === false;
 }
 
+/** The product was paused after it was added: it's still in the store but can't be ordered for now. */
+export function isCartItemPaused(item: CartItem) {
+  return item.product.isPaused === true;
+}
+
 /** The order is refused if an item is no longer sold or has too little stock, so the cart says so before checkout. */
 export function isCartItemBlocked(item: CartItem) {
   const { stock } = item.product;
-  return isCartItemUnavailable(item) || (stock !== undefined && item.quantity > stock);
+  return isCartItemUnavailable(item) || isCartItemPaused(item) || (stock !== undefined && item.quantity > stock);
 }

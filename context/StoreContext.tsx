@@ -45,7 +45,6 @@ interface StoreContextType {
   products: Product[];
   addProduct: (product: Omit<Product, 'id'> & { id?: string }) => Promise<boolean>;
   updateProduct: (id: string, updated: Partial<Product>) => Promise<boolean>;
-  deleteProduct: (id: string) => void;
   getProductById: (id: string) => Product | undefined;
   resetProducts: () => void;
 
@@ -271,6 +270,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           itemDetails: updated.itemDetails,
           materials: updated.materials,
           isActive: updated.isActive,
+          isPaused: updated.isPaused,
           maker: updated.maker || undefined,
           freeShipping: updated.freeShipping,
         }),
@@ -287,18 +287,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     } catch (err) {
       console.error('API update product failed:', err);
       return false;
-    }
-  };
-
-  const deleteProduct = async (id: string) => {
-    setProducts((prev) => prev.filter((p) => p.id !== id));
-
-    try {
-      await fetch(`/api/admin/products/${id}`, {
-        method: 'DELETE',
-      });
-    } catch (err) {
-      console.warn('API delete product failed, removed from memory:', err);
     }
   };
 
@@ -381,7 +369,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         products,
         addProduct,
         updateProduct,
-        deleteProduct,
         getProductById,
         resetProducts,
         // Orders & Fulfillment

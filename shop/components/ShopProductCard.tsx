@@ -22,8 +22,10 @@ export default function ShopProductCard({ product }: { product: ProductSummary }
   const { formatPrice, language, t } = useLocale();
   const favorited = isFavorite(product.id);
   const title = translateProductTitle(product.name, language, product.id);
-  const outOfStock = product.stock === 0;
-  const lowStock = product.stock !== undefined && product.stock > 0 && product.stock < LOW_STOCK;
+  // A paused product is shown but can't be bought, like one that's out of stock.
+  const paused = product.isPaused === true;
+  const outOfStock = paused || product.stock === 0;
+  const lowStock = !paused && product.stock !== undefined && product.stock > 0 && product.stock < LOW_STOCK;
   const originalPrice = product.originalPrice && product.originalPrice > product.price ? product.originalPrice : null;
   const rating = product.rating ?? 0;
 
@@ -45,7 +47,11 @@ export default function ShopProductCard({ product }: { product: ProductSummary }
             }}
           />
 
-          {outOfStock && <span className={`${photoLabel} left-2 top-2 sm:left-3 sm:top-3`}>{t('shop.out_of_stock', 'Out of stock')}</span>}
+          {outOfStock && (
+            <span className={`${photoLabel} left-2 top-2 sm:left-3 sm:top-3`}>
+              {paused ? t('shop.currently_unavailable', 'Currently unavailable') : t('shop.out_of_stock', 'Out of stock')}
+            </span>
+          )}
 
           {/* The rating an admin entered. Customer reviews don't affect it. */}
           {rating > 0 && (

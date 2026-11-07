@@ -45,7 +45,6 @@ export default function ProductsClient({
   const {
     addProduct,
     updateProduct,
-    deleteProduct,
     refreshProducts,
     categories: storeCategories,
   } = useStore();
@@ -428,14 +427,6 @@ export default function ProductsClient({
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const handleDelete = (id: string) => {
-    setIsNavigating(true);
-    deleteProduct(id);
-    showToast('Product deleted from catalog.');
-    router.refresh();
-    setTimeout(() => setIsNavigating(false), 600);
   };
 
   // Filter products by category, search query, and stock level

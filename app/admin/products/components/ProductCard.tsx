@@ -31,9 +31,11 @@ export default function ProductCard({ product, onView }: ProductCardProps) {
           className={`object-cover ${prod.isActive === false ? 'opacity-50 grayscale' : ''}`}
           onError={() => setImageFailed(true)}
         />
-        {prod.isActive === false && (
+        {prod.isActive === false ? (
           <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[9px] font-bold bg-[#040404] text-white">Inactive</span>
-        )}
+        ) : prod.isPaused ? (
+          <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-50 text-amber-800 border border-amber-200">Paused</span>
+        ) : null}
         {prod.stock === 0 ? (
           <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full text-[9px] font-bold bg-rose-50 text-rose-700 border border-rose-200">Out</span>
         ) : (prod.stock ?? 50) < 10 ? (
