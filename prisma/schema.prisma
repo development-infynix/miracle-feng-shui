@@ -43,7 +43,10 @@ model User {
   id           String     @id @default(cuid())
   name         String
   email        String     @unique
-  passwordHash String
+  /// Null for accounts made with Google sign-in, which have no password.
+  passwordHash String?
+  /// Google's account id ("sub"), set once the customer signs in with Google.
+  googleId     String?    @unique
   role         Role       @default(CUSTOMER)
   phone        String?
   createdAt    DateTime   @default(now())

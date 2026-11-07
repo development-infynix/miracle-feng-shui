@@ -1,7 +1,11 @@
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
+import GoogleProvider from 'next-auth/providers/google';
 import { authService } from '@/server/services/auth.service';
 import { userRepository } from '@/server/repositories/user.repository';
+
+/** Google sign-in is on only when its keys are set; until then the button stays hidden. */
+export const googleSignInEnabled = Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
 
 export const authOptions: NextAuthOptions = {
   session: {
@@ -33,8 +37,36 @@ export const authOptions: NextAuthOptions = {
       },
 
     }),
+    ...(googleSignInEnabled
+      ? [
+          GoogleProvider({
+            clientId: process.env.GOOGLE_CLIENT_ID!,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+            // Always offer the account chooser, so a shared computer doesn't sign in the last person silently.
+            authorization: { params: { prompt: 'select_account' } },
+          }),
+        ]
+      : []),
   ],
   callbacks: {
+    async signIn({ account, profile, user }) {
+      if (account?.provider !== 'google') return true;
+      const google = profile as { sub?: string; email?: string; email_verified?: boolean; name?: string } | undefined;
+      try {
+        const customer = await authService.signInWithGoogle({
+          googleId: google?.sub || account.providerAccountId,
+          email: google?.email,
+          emailVerified: google?.email_verified,
+          name: google?.name,
+        });
+        // From here on the session uses our account, not Google's profile.
+        Object.assign(user, { id: customer.id, name: customer.name, email: customer.email, role: customer.role, phone: customer.phone });
+        return true;
+      } catch (error) {
+        console.error('[auth] Google sign-in failed:', error instanceof Error ? error.message : error);
+        return '/login?error=GoogleSignIn';
+      }
+    },
     async jwt({ token, user, trigger }) {
       // Refreshes from the database, never from what the browser sent, after the customer edits their profile.
       if (trigger === 'update' && token.id) {
@@ -46,6 +78,7 @@ export const authOptions: NextAuthOptions = {
       }
       if (user) {
         token.id = user.id;
+        token.name = user.name;
         token.role = (user as any).role || 'CUSTOMER';
         token.phone = (user as any).phone || null;
       }

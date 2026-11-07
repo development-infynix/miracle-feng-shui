@@ -7,6 +7,7 @@ import { useSiteHeaderHeight } from '@/lib/useSiteHeaderHeight';
 import AccountDetailsCard from './AccountDetailsCard';
 import AddressBookCard from './AddressBookCard';
 import ChangePasswordCard from './ChangePasswordCard';
+import GoogleAccountCard from './GoogleAccountCard';
 import ProfileFavorites from './ProfileFavorites';
 import ProfileOrders from './ProfileOrders';
 import { card, focusRing, skeleton, textButton, textLabel } from './profileUi';
@@ -18,6 +19,9 @@ export interface CustomerProfile {
   email: string;
   phone: string | null;
   createdAt: string;
+  /** False for accounts made with Google, which have no password. */
+  hasPassword: boolean;
+  googleLinked: boolean;
 }
 
 const TABS: ProfileTab[] = ['settings', 'favorites', 'orders'];
@@ -154,7 +158,7 @@ export default function ProfileView() {
               <>
                 <AccountDetailsCard profile={profile} onSaved={(changes) => setProfile({ ...profile, ...changes })} />
                 <AddressBookCard profile={profile} />
-                <ChangePasswordCard />
+                {profile.hasPassword ? <ChangePasswordCard /> : <GoogleAccountCard email={profile.email} />}
               </>
             )}
             {!profile && !failed && (

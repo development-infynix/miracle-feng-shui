@@ -22,11 +22,23 @@ export const userRepository = {
     });
   },
 
+  async findByGoogleId(googleId: string, tx?: Prisma.TransactionClient) {
+    const client = tx || prisma;
+    return client.user.findUnique({ where: { googleId } });
+  },
+
+  async linkGoogle(id: string, googleId: string, tx?: Prisma.TransactionClient) {
+    const client = tx || prisma;
+    return client.user.update({ where: { id }, data: { googleId } });
+  },
+
   async create(
     data: {
       name: string;
       email: string;
-      passwordHash: string;
+      /** Left out for Google accounts, which have no password. */
+      passwordHash?: string | null;
+      googleId?: string;
       role?: 'CUSTOMER' | 'ADMIN';
       phone?: string;
     },
@@ -37,7 +49,8 @@ export const userRepository = {
       data: {
         name: data.name,
         email: data.email.toLowerCase().trim(),
-        passwordHash: data.passwordHash,
+        passwordHash: data.passwordHash ?? null,
+        googleId: data.googleId,
         role: data.role || 'CUSTOMER',
         phone: data.phone,
       },
