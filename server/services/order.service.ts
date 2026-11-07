@@ -168,6 +168,10 @@ export const orderService = {
         throw ApiError.badRequest(`Product "${item.product.title}" is no longer available`);
       }
 
+      if (product.isPaused) {
+        throw ApiError.badRequest(`"${product.title}" is currently unavailable. Remove it from your cart to continue.`);
+      }
+
       if (product.stock < item.quantity) {
         throw ApiError.badRequest(
           `Insufficient stock for "${product.title}". Available: ${product.stock}, requested: ${item.quantity}`

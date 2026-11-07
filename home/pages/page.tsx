@@ -1,5 +1,4 @@
 import { productService } from '@/server/services/product.service';
-import { productQuerySchema } from '@/server/validators/product.validator';
 import HomeHero from '@/home/components/HomeHero';
 import LatestCategories from '@/home/components/LatestCategories';
 import NewArrivals from '@/home/components/NewArrivals';
@@ -14,14 +13,14 @@ const NEW_ARRIVALS = 8;
 export default async function HomePage() {
   const [categories, newArrivals] = await Promise.all([
     productService.listLatestCategories(4),
-    productService.list(productQuerySchema.parse({ sort: 'newest', pageSize: NEW_ARRIVALS })),
+    productService.listNewest(NEW_ARRIVALS),
   ]);
 
   return (
     <div className="pb-12">
       <HomeHero />
       <LatestCategories categories={categories} />
-      <NewArrivals products={newArrivals.items} />
+      <NewArrivals products={newArrivals} />
       <AccountShortcuts />
     </div>
   );

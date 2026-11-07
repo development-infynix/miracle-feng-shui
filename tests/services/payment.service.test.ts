@@ -140,6 +140,15 @@ describe('PaymentService', () => {
       await expect(paymentService.createRazorpayOrder('user-1', input)).rejects.toThrow('no longer available');
       expect(createRazorpayOrder).not.toHaveBeenCalled();
     });
+
+    it('refuses a paused product, which is still shown but cannot be bought', async () => {
+      vi.spyOn(productRepository, 'findById').mockResolvedValue({
+        id: 'p1', title: 'Bell', price: 100, stock: 5, isActive: true, isPaused: true, images: [],
+      } as any);
+
+      await expect(paymentService.createRazorpayOrder('user-1', input)).rejects.toThrow('currently unavailable');
+      expect(createRazorpayOrder).not.toHaveBeenCalled();
+    });
   });
 
   describe('the webhook', () => {

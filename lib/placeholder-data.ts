@@ -12,6 +12,8 @@ export type ProductReview = {
 export type Product = {
   id: string;
   isActive?: boolean;
+  /** Shown in the store as currently unavailable and can't be bought. */
+  isPaused?: boolean;
   name: string;
   maker: string; // Shop name
   makerAvatar?: string;
@@ -43,7 +45,7 @@ export type Product = {
 /** The fields a product card needs. Everything else loads when the product is opened. */
 export type ProductSummary = Pick<
   Product,
-  'id' | 'name' | 'price' | 'originalPrice' | 'images' | 'stock' | 'bestseller' | 'category' | 'rating' | 'maker'
+  'id' | 'name' | 'price' | 'originalPrice' | 'images' | 'stock' | 'isPaused' | 'bestseller' | 'category' | 'rating' | 'maker'
 >;
 
 export const categories = [

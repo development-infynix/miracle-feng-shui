@@ -8,8 +8,8 @@ describe('adminService.deleteProduct', () => {
     vi.restoreAllMocks();
   });
 
-  const withOrders = (openOrders: number, orderItems: number) => {
-    vi.spyOn(productRepository, 'findById').mockResolvedValueOnce({ id: 'prod-1' } as any);
+  const withOrders = (openOrders: number, orderItems: number, stock = 0) => {
+    vi.spyOn(productRepository, 'findById').mockResolvedValueOnce({ id: 'prod-1', stock } as any);
     vi.spyOn(adminRepository, 'countProductOrders').mockResolvedValueOnce({ openOrders, orderItems });
     return vi.spyOn(adminRepository, 'deleteProduct').mockResolvedValue({} as any);
   };
@@ -33,7 +33,37 @@ describe('adminService.deleteProduct', () => {
     expect(deleteSpy).toHaveBeenCalledWith('prod-1', false);
   });
 
-  it('deletes a product that is in no order for good', async () => {
+  it('archives a product in finished orders whatever its stock', async () => {
+    const deleteSpy = withOrders(0, 1, 12);
+
+    await expect(adminService.deleteProduct('prod-1')).resolves.toMatchObject({ result: 'archived' });
+
+    expect(deleteSpy).toHaveBeenCalledWith('prod-1', false);
+  });
+
+  it('refuses to delete a product in no order that still has stock, and changes nothing', async () => {
+    const deleteSpy = withOrders(0, 0, 5);
+
+    await expect(adminService.deleteProduct('prod-1')).rejects.toMatchObject({
+      statusCode: 409,
+      message: expect.stringContaining('5 in stock'),
+    });
+
+    expect(deleteSpy).not.toHaveBeenCalled();
+  });
+
+  it('refuses a product with stock while it is in an open order, naming the order', async () => {
+    const deleteSpy = withOrders(1, 1, 5);
+
+    await expect(adminService.deleteProduct('prod-1')).rejects.toMatchObject({
+      statusCode: 409,
+      message: expect.stringContaining('1 open order'),
+    });
+
+    expect(deleteSpy).not.toHaveBeenCalled();
+  });
+
+  it('deletes a sold-out product that is in no order for good', async () => {
     const deleteSpy = withOrders(0, 0);
 
     await expect(adminService.deleteProduct('prod-1')).resolves.toMatchObject({ result: 'deleted' });
@@ -50,7 +80,7 @@ describe('open orders, for product removal', () => {
   it('asks the repository with the open-order rule', async () => {
     const countSpy = vi.spyOn(adminRepository, 'countProductOrders').mockResolvedValueOnce({ openOrders: 0, orderItems: 0 });
 
-    await adminService.getProductRemoval('prod-1');
+    await adminService.getProductRemoval('prod-1', 0);
 
     expect(countSpy).toHaveBeenCalledWith('prod-1', OPEN_ORDER_WHERE);
   });

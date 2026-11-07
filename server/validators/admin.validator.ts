@@ -54,6 +54,7 @@ const productFields = z.object({
   inDemandCount: z.coerce.number().int().optional(),
   rating: z.coerce.number().min(0).max(5).optional(),
   isActive: z.boolean().optional(),
+  isPaused: z.boolean().optional(),
   isFeatured: z.boolean().optional(),
 });
 
@@ -74,6 +75,7 @@ export const createProductSchema = productFields.extend({
   inDemandCount: z.coerce.number().int().optional().default(0),
   rating: z.coerce.number().min(0).max(5).optional().default(0),
   isActive: z.boolean().optional().default(true),
+  isPaused: z.boolean().optional().default(false),
   isFeatured: z.boolean().optional().default(false),
 });
 
@@ -90,21 +92,3 @@ export const updateOrderStatusSchema = z.object({
 
 export type UpdateOrderStatusInput = z.infer<typeof updateOrderStatusSchema>;
 
-export const updateHomepageSectionSchema = z.object({
-  sections: z.array(
-    z.object({
-      id: z.string(),
-      sectionKey: z.string().optional(),
-      name: z.string().optional(),
-      title: z.string().optional(),
-      subtitle: z.string().nullable().optional(),
-      ctaText: z.string().nullable().optional(),
-      ctaLink: z.string().nullable().optional(),
-      badge: z.string().nullable().optional(),
-      order: z.number().int().optional(),
-      enabled: z.boolean().optional(),
-    })
-  ),
-});
-
-export type UpdateHomepageSectionInput = z.infer<typeof updateHomepageSectionSchema>;

@@ -2,13 +2,13 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useStore, defaultSections, type HomeSectionConfig } from '@/context/StoreContext';
+import { useStore, defaultHeroBanner } from '@/context/StoreContext';
 import { useLocale } from '@/context/CurrencyContext';
 
 /** The homepage's opening banner: a headline with its call to action, rotating photos and a side card. */
 export default function HomeHero() {
   const { language, t } = useLocale();
-  const { sections, heroBanner } = useStore();
+  const { heroBanner } = useStore();
   const [activeSlide, setActiveSlide] = useState(0);
 
   // Auto rotate banner image every 5 seconds with smooth crossfade
@@ -21,7 +21,7 @@ export default function HomeHero() {
   }, [heroBanner?.slides?.length]);
 
   // 1. HERO SECTION
-  const renderHero = (section: HomeSectionConfig) => {
+  const renderHero = () => {
     const slides =
       heroBanner?.slides && heroBanner.slides.length > 0
         ? heroBanner.slides
@@ -51,14 +51,14 @@ export default function HomeHero() {
                 style={{ color: '#ffffff', marginBottom: '24px' }}
                 className="text-[17px] xs:text-[20px] sm:text-[28px] md:text-[36px] lg:text-[40px] font-serif font-normal text-white leading-[1.18] tracking-tight"
               >
-                {language === 'ar' ? t('home.hero_title') : (heroBanner?.title || section.title)}
+                {language === 'ar' ? t('home.hero_title') : (heroBanner?.title || defaultHeroBanner.title)}
               </h1>
               <Link
-                href={heroBanner?.ctaLink || section.ctaLink || '/shop?q=feng+shui'}
+                href={heroBanner?.ctaLink || defaultHeroBanner.ctaLink}
                 style={{ backgroundColor: '#ffffff', color: '#222222' }}
                 className="bg-white hover:bg-gray-100 text-[#222222] font-bold text-[12px] sm:text-[14px] md:text-[15px] px-4 sm:px-7 md:px-8 py-2 sm:py-2.5 md:py-3 rounded-full shadow-sm transition-transform hover:scale-102 active:scale-98 inline-block no-underline shrink-0"
               >
-                {language === 'ar' ? t('home.hero_cta') : (heroBanner?.ctaText || section.ctaText || 'Shop Feng Shui')}
+                {language === 'ar' ? t('home.hero_cta') : (heroBanner?.ctaText || defaultHeroBanner.ctaText)}
               </Link>
             </div>
 
@@ -144,6 +144,5 @@ export default function HomeHero() {
     );
   };
 
-  const section = sections.find((s) => s.id === 'hero') ?? defaultSections[0];
-  return renderHero(section);
+  return renderHero();
 }

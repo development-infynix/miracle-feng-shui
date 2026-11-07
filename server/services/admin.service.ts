@@ -6,7 +6,6 @@ import {
   CreateProductInput,
   UpdateProductInput,
   UpdateOrderStatusInput,
-  UpdateHomepageSectionInput,
 } from '../validators/admin.validator';
 import { ApiError } from '../utils/ApiError';
 import { OrderStatus, Prisma } from '@/app/generated/prisma/client';
@@ -43,9 +42,10 @@ export const OPEN_ORDER_WHERE: Prisma.OrderWhereInput = {
  * What removing a product does:
  * - blocked: it's in an open order, so it stays until that order is delivered or cancelled;
  * - archive: it's only in finished orders, so it's hidden from the store but kept for their history and invoices;
- * - delete: it's in no order, so it's removed for good (with it, any cart lines and favorites).
+ * - in_stock: it's in no order but still has stock, so it has to be sold out (stock 0) before it can be deleted;
+ * - delete: it's in no order and sold out, so it's removed for good (with it, any cart lines and favorites).
  */
-export type ProductRemoval = { mode: 'blocked' | 'archive' | 'delete'; openOrders: number };
+export type ProductRemoval = { mode: 'blocked' | 'archive' | 'in_stock' | 'delete'; openOrders: number };
 
 const customerListRange = (page: number) => ({
   skip: (page - 1) * CUSTOMER_LIST_PAGE_SIZE,
@@ -115,6 +115,7 @@ export const adminService = {
       personalizationPrompt: p.personalizationPrompt,
       inDemandCount: p.inDemandCount,
       isActive: p.isActive,
+      isPaused: p.isPaused,
       isFeatured: p.isFeatured,
       createdAt: p.createdAt,
       updatedAt: p.updatedAt,
@@ -133,6 +134,7 @@ export const adminService = {
       category: p.category?.name || p.category,
       stock: p.stock,
       isActive: p.isActive,
+      isPaused: p.isPaused,
     };
   },
 
@@ -156,13 +158,14 @@ export const adminService = {
     if (!product) {
       throw ApiError.notFound('Product not found');
     }
-    return { ...this.formatAdminProduct(product), removal: await this.getProductRemoval(id) };
+    return { ...this.formatAdminProduct(product), removal: await this.getProductRemoval(id, product.stock) };
   },
 
-  async getProductRemoval(id: string): Promise<ProductRemoval> {
+  async getProductRemoval(id: string, stock: number): Promise<ProductRemoval> {
     const { openOrders, orderItems } = await adminRepository.countProductOrders(id, OPEN_ORDER_WHERE);
     if (openOrders > 0) return { mode: 'blocked', openOrders };
-    return { mode: orderItems > 0 ? 'archive' : 'delete', openOrders: 0 };
+    if (orderItems > 0) return { mode: 'archive', openOrders: 0 };
+    return { mode: stock > 0 ? 'in_stock' : 'delete', openOrders: 0 };
   },
 
   async createProduct(input: CreateProductInput) {
@@ -187,11 +190,17 @@ export const adminService = {
       throw ApiError.notFound('Product not found');
     }
 
-    const removal = await this.getProductRemoval(id);
+    const removal = await this.getProductRemoval(id, existing.stock);
     if (removal.mode === 'blocked') {
       const orders = removal.openOrders === 1 ? '1 open order' : `${removal.openOrders} open orders`;
       throw ApiError.conflict(
         `This product is in ${orders}. It can be removed once they're delivered, or cancelled with any refund processed.`
+      );
+    }
+
+    if (removal.mode === 'in_stock') {
+      throw ApiError.conflict(
+        `This product still has ${existing.stock} in stock. Set its stock to 0 (sold out) before deleting it.`
       );
     }
 
@@ -334,26 +343,5 @@ export const adminService = {
       ...customerListPage(customer.orders, customer._count.orders, page),
       totalAmount: await adminRepository.sumCustomerOrders(id),
     };
-  },
-
-  async getHomepageSections() {
-    const sections = await adminRepository.getHomepageSections();
-    return sections.map((sec) => ({
-      id: sec.sectionKey as any,
-      sectionKey: sec.sectionKey,
-      name: sec.name,
-      enabled: sec.enabled,
-      title: sec.title,
-      subtitle: sec.subtitle || undefined,
-      ctaText: sec.ctaText || undefined,
-      ctaLink: sec.ctaLink || undefined,
-      badge: sec.badge || undefined,
-      order: sec.order,
-    }));
-  },
-
-  async updateHomepageSections(input: UpdateHomepageSectionInput) {
-    await adminRepository.updateHomepageSections(input.sections);
-    return this.getHomepageSections();
   },
 };

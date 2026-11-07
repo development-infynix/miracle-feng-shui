@@ -222,6 +222,7 @@ export const adminRepository = {
         personalizationPrompt: data.personalizationPrompt ?? data.personalizationInstruction ?? null,
         inDemandCount: data.inDemandCount ?? 0,
         isActive: data.isActive ?? true,
+        isPaused: data.isPaused ?? false,
         isFeatured: data.isFeatured ?? false,
         ratingAvg: data.rating ?? 0,
         categoryId: resolvedCategoryId,
@@ -264,6 +265,7 @@ export const adminRepository = {
         personalizationPrompt: data.personalizationPrompt ?? data.personalizationInstruction,
         inDemandCount: data.inDemandCount,
         isActive: data.isActive,
+        isPaused: data.isPaused,
         isFeatured: data.isFeatured,
         ratingAvg: data.rating,
         categoryId: resolvedCategoryId,
@@ -444,58 +446,5 @@ export const adminRepository = {
         },
       },
     });
-  },
-
-  async getHomepageSections() {
-    return prisma.homepageSection.findMany({
-      orderBy: { order: 'asc' },
-    });
-  },
-
-  async updateHomepageSections(
-    sections: {
-      id: string;
-      sectionKey?: string;
-      name?: string;
-      title?: string;
-      subtitle?: string | null;
-      ctaText?: string | null;
-      ctaLink?: string | null;
-      badge?: string | null;
-      order?: number;
-      enabled?: boolean;
-    }[]
-  ) {
-    return prisma.$transaction(
-      sections.map((sec, idx) => {
-        const order = sec.order !== undefined ? sec.order : idx;
-        return prisma.homepageSection.upsert({
-          where: {
-            sectionKey: sec.sectionKey || sec.id,
-          },
-          update: {
-            name: sec.name,
-            title: sec.title,
-            subtitle: sec.subtitle,
-            ctaText: sec.ctaText,
-            ctaLink: sec.ctaLink,
-            badge: sec.badge,
-            order,
-            enabled: sec.enabled !== undefined ? sec.enabled : true,
-          },
-          create: {
-            sectionKey: sec.sectionKey || sec.id,
-            name: sec.name || sec.title || sec.id,
-            title: sec.title || sec.id,
-            subtitle: sec.subtitle,
-            ctaText: sec.ctaText,
-            ctaLink: sec.ctaLink,
-            badge: sec.badge,
-            order,
-            enabled: sec.enabled !== undefined ? sec.enabled : true,
-          },
-        });
-      })
-    );
   },
 };

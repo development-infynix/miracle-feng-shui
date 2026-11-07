@@ -47,6 +47,10 @@ export const cartService = {
       throw ApiError.notFound('Product not found or currently unavailable');
     }
 
+    if (product.isPaused) {
+      throw ApiError.badRequest('This product is currently unavailable');
+    }
+
     if (product.stock < input.quantity) {
       throw ApiError.badRequest(`Only ${product.stock} items available in stock`);
     }
@@ -61,6 +65,10 @@ export const cartService = {
     const item = cart.items.find((i) => i.id === itemId);
     if (!item) {
       throw ApiError.notFound('Cart item not found');
+    }
+
+    if (item.product.isPaused) {
+      throw ApiError.badRequest('This product is currently unavailable. Remove it to continue to checkout.');
     }
 
     if (item.product.stock < quantity) {

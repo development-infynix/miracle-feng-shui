@@ -1,5 +1,5 @@
 import { productRepository } from '../repositories/product.repository';
-import { ProductQueryInput } from '../validators/product.validator';
+import { ProductQueryInput, productQuerySchema } from '../validators/product.validator';
 import { ApiError } from '../utils/ApiError';
 import { products as fallbackProducts, categories as fallbackCategories } from '@/lib/placeholder-data';
 
@@ -27,6 +27,7 @@ export const productService = {
       originalPrice: p.comparePrice ?? p.originalPrice,
       images: (p.images ?? []).slice(0, 1),
       stock: p.stock,
+      isPaused: p.isPaused ?? false,
       bestseller: p.bestseller,
       category: p.category?.name || p.category,
       rating: p.ratingAvg ?? p.rating ?? 0,
@@ -82,6 +83,22 @@ export const productService = {
       throw ApiError.notFound('Product not found');
     }
     return this.formatProduct(product);
+  },
+
+  /**
+   * The newest products for the homepage, from the database only. If it can't be reached the list is
+   * empty and the section is left out, rather than showing the placeholder catalog.
+   */
+  async listNewest(limit: number) {
+    try {
+      const { items } = await productRepository.findMany(
+        productQuerySchema.parse({ sort: 'newest', pageSize: limit })
+      );
+      return items.map(this.formatProductCard);
+    } catch {
+      console.warn('[productService] DB unreachable, no homepage new arrivals.');
+      return [];
+    }
   },
 
   /** The newest categories for the homepage. A category without its own image uses its newest product's photo. */

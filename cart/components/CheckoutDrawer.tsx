@@ -11,7 +11,7 @@ import { createAddress, listAddresses, updateAddress, type AddressInput, type Sa
 import { COD_ENABLED } from '@/lib/payment-options';
 import { translateProductTitle } from '@/lib/translations';
 import AddressDetailsDrawer from '@/profile/components/AddressDetailsDrawer';
-import { isCartItemBlocked } from './cartStock';
+import { isCartItemBlocked, isCartItemPaused, isCartItemUnavailable } from './cartStock';
 import { openRazorpay, type RazorpaySuccess } from './razorpayCheckout';
 
 const FALLBACK_IMAGE = '/images/miracle.jpeg';
@@ -388,7 +388,9 @@ export default function CheckoutDrawer({ open, onClose }: CheckoutDrawerProps) {
                       <p className="text-[13px] tabular-nums text-[#595959]">{t('profile.qty', 'Qty')} {item.quantity}</p>
                       {isCartItemBlocked(item) && (
                         <p className="text-[13px] font-medium text-[#8F1610]">
-                          {item.product.stock === 0
+                          {isCartItemUnavailable(item) || isCartItemPaused(item)
+                            ? t('shop.currently_unavailable', 'Currently unavailable')
+                            : item.product.stock === 0
                             ? t('shop.out_of_stock', 'Out of stock')
                             : t('shop.only_left', 'Only {count} left').replace('{count}', String(item.product.stock))}
                         </p>

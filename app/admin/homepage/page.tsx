@@ -4,8 +4,6 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import {
   useStore,
-  HomeSectionConfig,
-  HomeSectionId,
   HeroSlideItem,
   HeroRightCard,
   ProsperityHeroCard,
@@ -17,7 +15,6 @@ import ImageUploadField from '@/components/admin/ImageUploadField';
 
 
 type ActiveTab =
-  | 'layout'
   | 'hero'
   | 'prosperity'
   | 'special_gifts'
@@ -26,11 +23,6 @@ type ActiveTab =
 
 export default function AdminHomepageManager() {
   const {
-    sections,
-    moveSection,
-    toggleSection,
-    updateSection,
-    resetSections,
     // Dynamic Homepage Data & Actions
     heroBanner,
     updateHeroBanner,
@@ -63,9 +55,6 @@ export default function AdminHomepageManager() {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
   };
-
-  // Section Layout Edit State
-  const [editingSection, setEditingSection] = useState<HomeSectionConfig | null>(null);
 
   // 1. Hero Banner State
   const [heroForm, setHeroForm] = useState({
@@ -120,36 +109,7 @@ export default function AdminHomepageManager() {
         image: heroForm.rightImage,
       },
     });
-    // Also sync section title
-    updateSection('hero', {
-      title: heroForm.title,
-      ctaText: heroForm.ctaText,
-      ctaLink: heroForm.ctaLink,
-    });
     showToast('Hero Banner details updated successfully!');
-  };
-
-  const getSectionIcon = (id: HomeSectionId) => {
-    switch (id) {
-      case 'hero':
-        return { icon: 'fa-star', bg: 'bg-[#FEF7EE]', text: 'text-[#B45309]', border: 'border-[#FED7AA]/40' };
-      case 'featured_interests':
-        return { icon: 'fa-circle-nodes', bg: 'bg-[#F0F5FA]', text: 'text-[#475569]', border: 'border-slate-200/50' };
-      case 'auspicious_collections':
-        return { icon: 'fa-gem', bg: 'bg-[#F6F2FC]', text: 'text-[#6B21A8]', border: 'border-purple-200/40' };
-      case 'prosperity_gifts':
-        return { icon: 'fa-gift', bg: 'bg-[#FDF4F0]', text: 'text-[#9A3412]', border: 'border-[#FDBA74]/40' };
-      case 'special_gifts':
-        return { icon: 'fa-hand-holding-heart', bg: 'bg-[#FAF0F4]', text: 'text-[#9D174D]', border: 'border-rose-200/40' };
-      case 'todays_deals':
-        return { icon: 'fa-bolt', bg: 'bg-[#FEF7EE]', text: 'text-[#B45309]', border: 'border-[#FED7AA]/40' };
-      case 'fashion_guide':
-        return { icon: 'fa-video', bg: 'bg-[#F0F7F5]', text: 'text-[#115E59]', border: 'border-teal-200/40' };
-      case 'sacred_knowledge':
-        return { icon: 'fa-book-open', bg: 'bg-[#F3F4F9]', text: 'text-[#4338CA]', border: 'border-indigo-200/40' };
-      default:
-        return { icon: 'fa-layer-group', bg: 'bg-gray-100', text: 'text-gray-600', border: 'border-gray-200/50' };
-    }
   };
 
   return (
@@ -214,9 +174,8 @@ export default function AdminHomepageManager() {
           <button
             type="button"
             onClick={() => {
-              if (confirm('Reset all homepage sections, images, slides, and cards to original defaults?')) {
+              if (confirm('Reset all homepage images, slides, and cards to original defaults?')) {
                 resetHomepageContent();
-                resetSections();
                 showToast('All homepage content reset to original defaults.');
               }
             }}
@@ -245,7 +204,6 @@ export default function AdminHomepageManager() {
           { id: 'special_gifts', label: '3. Gifts As Special As They Are', icon: 'fa-hand-holding-heart' },
           { id: 'guide', label: '4. Curated Style & Chi Guide', icon: 'fa-compass' },
           { id: 'blog', label: '5. Blog & Sacred Knowledge', icon: 'fa-book-open' },
-          { id: 'layout', label: 'Layout & Ordering', icon: 'fa-arrows-up-down' },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -495,40 +453,6 @@ export default function AdminHomepageManager() {
               </button>
             </div>
 
-            {/* Edit Section Title */}
-            <div className="bg-[#FAF9F5] p-4 rounded-xl border border-gray-200 space-y-3">
-              <span className="text-xs font-bold text-gray-700 uppercase tracking-wider block">
-                Section Headline Settings
-              </span>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <input
-                  type="text"
-                  defaultValue={
-                    sections.find((s) => s.id === 'prosperity_gifts')?.title ||
-                    'Miracle feng shui-special gifts for prosperity'
-                  }
-                  onBlur={(e) => {
-                    updateSection('prosperity_gifts', { title: e.target.value });
-                    showToast('Section title updated!');
-                  }}
-                  className="flex-1 px-3.5 py-2 rounded-xl border border-gray-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#3A1F62]"
-                  placeholder="Section title"
-                />
-                <input
-                  type="text"
-                  defaultValue={
-                    sections.find((s) => s.id === 'prosperity_gifts')?.ctaText || 'Get inspired'
-                  }
-                  onBlur={(e) => {
-                    updateSection('prosperity_gifts', { ctaText: e.target.value });
-                    showToast('CTA text updated!');
-                  }}
-                  className="w-full sm:w-48 px-3.5 py-2 rounded-xl border border-gray-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#3A1F62]"
-                  placeholder="CTA button text"
-                />
-              </div>
-            </div>
-
             {/* List of Category Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
               {prosperityCards.map((card) => (
@@ -611,26 +535,6 @@ export default function AdminHomepageManager() {
               </button>
             </div>
 
-            {/* Edit Section Title */}
-            <div className="bg-[#FAF9F5] p-4 rounded-xl border border-gray-200 space-y-2">
-              <label className="text-xs font-bold text-gray-700 uppercase tracking-wider block">
-                Section Title
-              </label>
-              <input
-                type="text"
-                defaultValue={
-                  sections.find((s) => s.id === 'special_gifts')?.title ||
-                  'Gifts as special as they are'
-                }
-                onBlur={(e) => {
-                  updateSection('special_gifts', { title: e.target.value });
-                  showToast('Section title updated!');
-                }}
-                className="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#3A1F62]"
-                placeholder="Section title"
-              />
-            </div>
-
             {/* List of Special Gift Items */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5 pt-2">
               {specialGifts.map((gift) => (
@@ -709,59 +613,6 @@ export default function AdminHomepageManager() {
                 <i className="fa-solid fa-plus text-white" />
                 <span>Add Guide Card</span>
               </button>
-            </div>
-
-            {/* Section Settings */}
-            <div className="bg-[#FAF9F5] p-4 rounded-xl border border-gray-200 space-y-3">
-              <span className="text-xs font-bold text-gray-700 uppercase tracking-wider block">
-                Section Headlines &amp; Badge
-              </span>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="text-[11px] font-semibold text-gray-600">Badge</label>
-                  <input
-                    type="text"
-                    defaultValue={
-                      sections.find((s) => s.id === 'fashion_guide')?.badge || 'Curated Style & Chi'
-                    }
-                    onBlur={(e) => {
-                      updateSection('fashion_guide', { badge: e.target.value });
-                      showToast('Badge updated!');
-                    }}
-                    className="w-full px-3 py-1.5 rounded-lg border border-gray-300 text-xs bg-white"
-                  />
-                </div>
-                <div className="sm:col-span-2">
-                  <label className="text-[11px] font-semibold text-gray-600">Title</label>
-                  <input
-                    type="text"
-                    defaultValue={
-                      sections.find((s) => s.id === 'fashion_guide')?.title ||
-                      "Miracle feng shui's Guide to Energy & Harmony"
-                    }
-                    onBlur={(e) => {
-                      updateSection('fashion_guide', { title: e.target.value });
-                      showToast('Title updated!');
-                    }}
-                    className="w-full px-3 py-1.5 rounded-lg border border-gray-300 text-xs bg-white"
-                  />
-                </div>
-                <div className="sm:col-span-3">
-                  <label className="text-[11px] font-semibold text-gray-600">Subtitle Description</label>
-                  <input
-                    type="text"
-                    defaultValue={
-                      sections.find((s) => s.id === 'fashion_guide')?.subtitle ||
-                      'From sacred brass talismans to handcrafted healing crystals, everything you need to balance your home and spirit.'
-                    }
-                    onBlur={(e) => {
-                      updateSection('fashion_guide', { subtitle: e.target.value });
-                      showToast('Subtitle updated!');
-                    }}
-                    className="w-full px-3 py-1.5 rounded-lg border border-gray-300 text-xs bg-white"
-                  />
-                </div>
-              </div>
             </div>
 
             {/* List of Guide Cards */}
@@ -869,26 +720,6 @@ export default function AdminHomepageManager() {
               </button>
             </div>
 
-            {/* Edit Section Title */}
-            <div className="bg-[#FAF9F5] p-4 rounded-xl border border-gray-200 space-y-2">
-              <label className="text-xs font-bold text-gray-700 uppercase tracking-wider block">
-                Blog Section Title
-              </label>
-              <input
-                type="text"
-                defaultValue={
-                  sections.find((s) => s.id === 'sacred_knowledge')?.title ||
-                  'From our Feng Shui Masters & Curators'
-                }
-                onBlur={(e) => {
-                  updateSection('sacred_knowledge', { title: e.target.value });
-                  showToast('Blog section title updated!');
-                }}
-                className="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#3A1F62]"
-                placeholder="Section title"
-              />
-            </div>
-
             {/* List of Blog Posts */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5 pt-2">
               {blogPosts.map((post) => (
@@ -948,107 +779,6 @@ export default function AdminHomepageManager() {
               ))}
             </div>
           </div>
-        </div>
-      )}
-
-      {/* ========================================================================= */}
-      {/* TAB 6: SECTION LAYOUT & ORDERING */}
-      {/* ========================================================================= */}
-      {activeTab === 'layout' && (
-        <div className="flex flex-col gap-3 animate-in fade-in duration-200">
-          {sections.map((section, idx) => {
-            const isFirst = idx === 0;
-            const isLast = idx === sections.length - 1;
-            const secStyle = getSectionIcon(section.id);
-
-            return (
-              <div
-                key={section.id}
-                className={`bg-white rounded-2xl p-4 sm:p-5 border transition-all shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
-                  section.enabled
-                    ? 'border-gray-200 hover:border-gray-300'
-                    : 'border-dashed border-gray-300 bg-gray-50/70 opacity-60'
-                }`}
-              >
-                {/* Left Info with Position Badge */}
-                <div className="flex items-start sm:items-center gap-3.5">
-                  <div className="flex flex-col items-center justify-center w-10 h-10 rounded-xl bg-gray-100 text-gray-700 font-bold text-sm shrink-0 border border-gray-200">
-                    <span className="text-[9px] text-gray-400 font-normal leading-none uppercase">Pos</span>
-                    <span>#{idx + 1}</span>
-                  </div>
-
-                  <div className={`w-10 h-10 rounded-xl ${secStyle.bg} ${secStyle.text} flex items-center justify-center text-base shrink-0 border ${secStyle.border} shadow-2xs`}>
-                    <i className={`fa-solid ${secStyle.icon}`} />
-                  </div>
-
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-bold text-sm sm:text-base text-gray-900">{section.name}</h3>
-                      <span className="text-[10px] font-mono text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">
-                        {section.id}
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-0.5 line-clamp-1 italic">
-                      &ldquo;{section.title}&rdquo;
-                    </p>
-                  </div>
-                </div>
-
-                {/* Right Actions */}
-                <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => moveSection(idx, 'up')}
-                    disabled={isFirst}
-                    className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs transition-all ${
-                      isFirst
-                        ? 'text-gray-300 bg-gray-100 cursor-not-allowed'
-                        : 'text-gray-700 bg-gray-100 hover:bg-gray-200 active:scale-95 cursor-pointer shadow-2xs'
-                    }`}
-                    title="Move Up"
-                  >
-                    <i className="fa-solid fa-arrow-up" />
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => moveSection(idx, 'down')}
-                    disabled={isLast}
-                    className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs transition-all ${
-                      isLast
-                        ? 'text-gray-300 bg-gray-100 cursor-not-allowed'
-                        : 'text-gray-700 bg-gray-100 hover:bg-gray-200 active:scale-95 cursor-pointer shadow-2xs'
-                    }`}
-                    title="Move Down"
-                  >
-                    <i className="fa-solid fa-arrow-down" />
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setEditingSection(section)}
-                    className="px-3 py-1.5 text-xs font-semibold text-gray-700 hover:text-black bg-gray-100 hover:bg-gray-200 rounded-xl transition-all cursor-pointer shadow-2xs flex items-center gap-1.5"
-                  >
-                    <i className="fa-solid fa-pen text-[10px]" />
-                    <span>Edit</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => toggleSection(section.id)}
-                    className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
-                      section.enabled
-                        ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
-                        : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-                    }`}
-                  >
-                    <i className={`fa-solid ${section.enabled ? 'fa-eye' : 'fa-eye-slash'}`} />
-                    <span>{section.enabled ? 'Visible' : 'Hidden'}</span>
-                  </button>
-                </div>
-              </div>
-            );
-          })}
         </div>
       )}
 
@@ -1601,106 +1331,6 @@ export default function AdminHomepageManager() {
         </div>
       )}
 
-      {/* ========================================================================= */}
-      {/* MODAL 6: EDIT SECTION LAYOUT TITLES */}
-      {/* ========================================================================= */}
-      {editingSection && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-start justify-center p-4 sm:p-6 overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 my-8 sm:my-10 animate-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
-              <h3 className="font-bold text-lg text-gray-900">
-                Edit Section &bull; {editingSection.name}
-              </h3>
-              <button
-                type="button"
-                onClick={() => setEditingSection(null)}
-                className="text-gray-400 hover:text-gray-600 cursor-pointer"
-              >
-                <i className="fa-solid fa-xmark text-lg" />
-              </button>
-            </div>
-
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                updateSection(editingSection.id, editingSection);
-                setEditingSection(null);
-                showToast('Section settings updated!');
-              }}
-              className="space-y-4"
-            >
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-700">Display Title</label>
-                <input
-                  type="text"
-                  value={editingSection.title}
-                  onChange={(e) =>
-                    setEditingSection({ ...editingSection, title: e.target.value })
-                  }
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#3A1F62]"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-700">Subtitle / Description</label>
-                <input
-                  type="text"
-                  value={editingSection.subtitle || ''}
-                  onChange={(e) =>
-                    setEditingSection({ ...editingSection, subtitle: e.target.value })
-                  }
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#3A1F62]"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-gray-700">CTA Text</label>
-                  <input
-                    type="text"
-                    value={editingSection.ctaText || ''}
-                    onChange={(e) =>
-                      setEditingSection({ ...editingSection, ctaText: e.target.value })
-                    }
-                    placeholder="e.g. Shop Now"
-                    className="w-full px-3 py-2 rounded-xl border border-gray-300 text-xs focus:outline-none focus:ring-2 focus:ring-[#3A1F62]"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-gray-700">CTA Link</label>
-                  <input
-                    type="text"
-                    value={editingSection.ctaLink || ''}
-                    onChange={(e) =>
-                      setEditingSection({ ...editingSection, ctaLink: e.target.value })
-                    }
-                    placeholder="e.g. /shop"
-                    className="w-full px-3 py-2 rounded-xl border border-gray-300 text-xs focus:outline-none focus:ring-2 focus:ring-[#3A1F62]"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-gray-100">
-                <button
-                  type="button"
-                  onClick={() => setEditingSection(null)}
-                  className="px-4 py-2 text-xs font-semibold text-gray-600 hover:text-gray-900 bg-gray-100 rounded-xl cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  style={{ backgroundColor: '#111111', color: '#ffffff' }}
-                  className="px-6 py-2.5 text-xs font-semibold text-white bg-[#111111] hover:bg-black rounded-full shadow-xs cursor-pointer"
-                >
-                  Save Section
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

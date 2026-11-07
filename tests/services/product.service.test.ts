@@ -90,6 +90,25 @@ describe('ProductService', () => {
     expect(result.items[0].name).toBe('Citrine Money Tree');
   });
 
+  it('lists homepage new arrivals newest first, from the database', async () => {
+    const findSpy = vi.spyOn(productRepository, 'findMany').mockResolvedValueOnce({
+      items: [{ id: 'p1', title: 'Citrine Money Tree', price: 10, images: [], stock: 3 } as any],
+      total: 1,
+    });
+
+    const items = await productService.listNewest(8);
+
+    expect(findSpy).toHaveBeenCalledWith(expect.objectContaining({ sort: 'newest', pageSize: 8, page: 1 }));
+    expect(items.map((p) => p.name)).toEqual(['Citrine Money Tree']);
+  });
+
+  it('shows no homepage new arrivals, not the sample catalog, when the database is down', async () => {
+    vi.spyOn(productRepository, 'findMany').mockRejectedValueOnce(new Error('db down'));
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    await expect(productService.listNewest(8)).resolves.toEqual([]);
+  });
+
   it('should throw ApiError if product not found by slug', async () => {
     vi.spyOn(productRepository, 'findBySlugOrId').mockResolvedValueOnce(null);
 

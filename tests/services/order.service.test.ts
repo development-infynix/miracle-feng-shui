@@ -126,4 +126,27 @@ describe('OrderService', () => {
     expect(order.totalAmount).toBe(3000); // 1500 * 2
     expect(order.paymentMethod).toBe('Cash on Delivery');
   });
+
+  it('refuses to place an order for a paused product, and writes nothing', async () => {
+    vi.spyOn(cartRepository, 'findOrCreateCart').mockResolvedValueOnce({
+      id: 'cart-1',
+      userId: 'user-1',
+      items: [{ id: 'item-1', productId: 'prod-1', quantity: 1, product: { id: 'prod-1', title: 'Bell' } }],
+    } as any);
+    vi.spyOn(productRepository, 'findBySlugOrId').mockResolvedValueOnce({
+      id: 'prod-1', title: 'Bell', price: 100, stock: 5, isActive: true, isPaused: true, images: [],
+    } as any);
+    const createSpy = vi.spyOn(orderRepository, 'create');
+
+    await expect(
+      orderService.createFromCart('user-1', {
+        shippingAddress: {
+          name: 'Pooja', phone: '+91 99999 88888', line1: '123 Peace St',
+          city: 'Delhi', state: 'Delhi', pincode: '110001', country: 'India',
+        },
+        paymentMethod: 'COD',
+      })
+    ).rejects.toThrow('currently unavailable');
+    expect(createSpy).not.toHaveBeenCalled();
+  });
 });

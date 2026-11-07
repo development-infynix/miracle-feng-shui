@@ -361,6 +361,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'shop.load_more_failed': "Couldn't load more products. Please try again.",
 
     'shop.out_of_stock': "Out of stock",
+    'shop.currently_unavailable': "Currently unavailable",
 
     'shop.free_delivery_short': "Free delivery",
 
@@ -447,6 +448,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'cart.personalization': "Personalization",
     'cart.each': "{price} each",
     'cart.out_of_stock_note': "Out of stock. Remove it to continue to checkout.",
+    'cart.paused_note': "Currently unavailable. Remove it to continue to checkout.",
     'cart.too_many_note': "Only {count} left. Lower the quantity to continue to checkout.",
     'cart.guest_title': "Log in to see your cart",
     'cart.guest_hint': "Your cart is saved to your account, so it stays with you on any device.",
@@ -886,6 +888,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'shop.load_more_failed': "تعذر تحميل المزيد من المنتجات. يرجى المحاولة مرة أخرى.",
 
     'shop.out_of_stock': "غير متوفر",
+    'shop.currently_unavailable': "غير متاح حاليًا",
 
     'shop.free_delivery_short': "توصيل مجاني",
 
@@ -972,6 +975,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'cart.personalization': "التخصيص",
     'cart.each': "{price} للقطعة",
     'cart.out_of_stock_note': "غير متوفر. أزله للمتابعة إلى الدفع.",
+    'cart.paused_note': "غير متاح حاليًا. أزله للمتابعة إلى الدفع.",
     'cart.too_many_note': "متبقٍ {count} فقط. قلل الكمية للمتابعة إلى الدفع.",
     'cart.guest_title': "سجّل الدخول لرؤية سلتك",
     'cart.guest_hint': "تُحفظ سلتك في حسابك، فتبقى معك على أي جهاز.",

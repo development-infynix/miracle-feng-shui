@@ -8,27 +8,6 @@ import {
   categories,
 } from '@/lib/placeholder-data';
 
-export type HomeSectionId =
-  | 'hero'
-  | 'featured_interests'
-  | 'auspicious_collections'
-  | 'prosperity_gifts'
-  | 'special_gifts'
-  | 'todays_deals'
-  | 'fashion_guide'
-  | 'sacred_knowledge';
-
-export interface HomeSectionConfig {
-  id: HomeSectionId;
-  name: string;
-  enabled: boolean;
-  title: string;
-  subtitle?: string;
-  ctaText?: string;
-  ctaLink?: string;
-  badge?: string;
-}
-
 // 1. HERO SLIDES & RIGHT CARD
 export interface HeroSlideItem {
   id: string;
@@ -120,73 +99,6 @@ export interface StoreOrder {
   paymentMethod: string;
   status: OrderStatus;
 }
-
-export const defaultSections: HomeSectionConfig[] = [
-  {
-    id: 'hero',
-    name: 'Hero Promotional Banner',
-    enabled: true,
-    title: 'Invite wealth, peace & positive energy home',
-    subtitle: 'Taoist master-blessed authentic talismans, consecrated jewelry, and handcrafted Feng Shui cures.',
-    ctaText: 'Shop Feng Shui',
-    ctaLink: '/shop?q=feng+shui',
-    badge: 'Conscious Craftsmanship',
-  },
-  {
-    id: 'featured_interests',
-    name: 'Jump into Featured Interests',
-    enabled: true,
-    title: 'Jump into featured interests',
-    subtitle: 'Explore authentic Feng Shui cures, jewelry, candles, and meditation crystals.',
-  },
-  {
-    id: 'auspicious_collections',
-    name: 'Auspicious Collections',
-    enabled: true,
-    title: 'Discover our most auspicious collections',
-    subtitle: 'Hand-picked talismans aligned with Bagua energy sectors.',
-  },
-  {
-    id: 'prosperity_gifts',
-    name: 'Prosperity Gifts & Thumbnail Picks',
-    enabled: true,
-    title: 'Miracle feng shui-special gifts for prosperity',
-    subtitle: 'Consciously crafted prosperity essentials and customer favorites.',
-    ctaText: 'Get inspired',
-    ctaLink: '/shop?category=Feng%20Shui%20Decor',
-  },
-  {
-    id: 'special_gifts',
-    name: 'Gifts As Special As They Are',
-    enabled: true,
-    title: 'Gifts as special as they are',
-    subtitle: 'Curated sets for new beginnings, housewarming, and protection.',
-  },
-  {
-    id: 'todays_deals',
-    name: "Today's Auspicious Deals",
-    enabled: true,
-    title: "Today's auspicious deals",
-    subtitle: 'Special prices on selected pieces.',
-  },
-  {
-    id: 'fashion_guide',
-    name: 'Energy & Harmony Visual Guide',
-    enabled: true,
-    title: "Miracle feng shui's Guide to Energy & Harmony",
-    subtitle: 'From sacred brass talismans to handcrafted healing crystals, everything you need to balance your home and spirit.',
-    badge: 'Curated Style & Chi',
-    ctaText: 'Shop these sacred finds',
-    ctaLink: '/shop?category=Feng%20Shui%20Decor',
-  },
-  {
-    id: 'sacred_knowledge',
-    name: 'Sacred Knowledge & Articles',
-    enabled: true,
-    title: 'From our Feng Shui Masters & Curators',
-    subtitle: 'Ancient wisdom and modern placement tips for high Chi living.',
-  },
-];
 
 export const defaultHeroBanner: HeroBannerData = {
   title: 'Invite wealth, peace & positive energy home',
@@ -439,16 +351,8 @@ interface StoreContextType {
   products: Product[];
   addProduct: (product: Omit<Product, 'id'> & { id?: string }) => Promise<boolean>;
   updateProduct: (id: string, updated: Partial<Product>) => Promise<boolean>;
-  deleteProduct: (id: string) => void;
   getProductById: (id: string) => Product | undefined;
   resetProducts: () => void;
-
-  // Sections (Layout & Titles)
-  sections: HomeSectionConfig[];
-  moveSection: (index: number, direction: 'up' | 'down') => void;
-  toggleSection: (id: HomeSectionId) => void;
-  updateSection: (id: HomeSectionId, data: Partial<HomeSectionConfig>) => void;
-  resetSections: () => void;
 
   // 1. Hero Banner Content
   heroBanner: HeroBannerData;
@@ -524,11 +428,9 @@ const PROSPERITY_KEY = 'mfs_prosperity_cards_v2';
 const SPECIAL_GIFTS_KEY = 'mfs_special_gifts_v2';
 const GUIDE_CARDS_KEY = 'mfs_guide_cards_v2';
 const BLOG_POSTS_KEY = 'mfs_blog_posts_v2';
-const SECTIONS_KEY = 'mfs_sections_v2';
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [products, setProducts] = useState<Product[]>(initialProducts);
-  const [sections, setSections] = useState<HomeSectionConfig[]>(defaultSections);
   const [orders, setOrders] = useState<StoreOrder[]>([]);
   const [categoriesList, setCategoriesList] = useState<
     Array<{
@@ -624,9 +526,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
         const savedBlog = localStorage.getItem(BLOG_POSTS_KEY);
         if (savedBlog) setBlogPosts(JSON.parse(savedBlog));
-
-        const savedSections = localStorage.getItem(SECTIONS_KEY);
-        if (savedSections) setSections(JSON.parse(savedSections));
       } catch (e) {
         console.warn('Error reading from local storage:', e);
       }
@@ -637,18 +536,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       try {
         // Only fetch protected admin endpoints if browsing the /admin portal
         if (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')) {
-          try {
-            const res = await fetch('/api/admin/homepage');
-            if (res.ok) {
-              const data = await res.json();
-              if (data.success && Array.isArray(data.data) && data.data.length > 0) {
-                if (isMounted) setSections(data.data);
-              }
-            }
-          } catch (e) {
-            // ignore admin unauthorized on guest pages
-          }
-
           try {
             const res = await fetch('/api/admin/orders');
             if (res.ok) {
@@ -878,7 +765,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setSpecialGifts(defaultSpecialGifts);
     setGuideCards(defaultGuideCards);
     setBlogPosts(defaultBlogPosts);
-    setSections(defaultSections);
 
     if (typeof window !== 'undefined') {
       localStorage.removeItem(HERO_KEY);
@@ -886,7 +772,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem(SPECIAL_GIFTS_KEY);
       localStorage.removeItem(GUIDE_CARDS_KEY);
       localStorage.removeItem(BLOG_POSTS_KEY);
-      localStorage.removeItem(SECTIONS_KEY);
     }
   };
 
@@ -970,6 +855,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           itemDetails: updated.itemDetails,
           materials: updated.materials,
           isActive: updated.isActive,
+          isPaused: updated.isPaused,
           maker: updated.maker || undefined,
           freeShipping: updated.freeShipping,
         }),
@@ -989,66 +875,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const deleteProduct = async (id: string) => {
-    setProducts((prev) => prev.filter((p) => p.id !== id));
-
-    try {
-      await fetch(`/api/admin/products/${id}`, {
-        method: 'DELETE',
-      });
-    } catch (err) {
-      console.warn('API delete product failed, removed from memory:', err);
-    }
-  };
-
   const getProductById = (id: string) => {
     return products.find((p) => p.id === id);
   };
 
   const resetProducts = () => {
     setProducts(initialProducts);
-  };
-
-  // Section Layout Actions
-  const moveSection = (index: number, direction: 'up' | 'down') => {
-    if (
-      (direction === 'up' && index === 0) ||
-      (direction === 'down' && index === sections.length - 1)
-    ) {
-      return;
-    }
-    const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    setSections((prev) => {
-      const next = [...prev];
-      const temp = next[index];
-      next[index] = next[targetIndex];
-      next[targetIndex] = temp;
-      saveToStorage(SECTIONS_KEY, next);
-      return next;
-    });
-  };
-
-  const toggleSection = (id: HomeSectionId) => {
-    setSections((prev) => {
-      const next = prev.map((sec) => (sec.id === id ? { ...sec, enabled: !sec.enabled } : sec));
-      saveToStorage(SECTIONS_KEY, next);
-      return next;
-    });
-  };
-
-  const updateSection = (id: HomeSectionId, data: Partial<HomeSectionConfig>) => {
-    setSections((prev) => {
-      const next = prev.map((sec) => (sec.id === id ? { ...sec, ...data } : sec));
-      saveToStorage(SECTIONS_KEY, next);
-      return next;
-    });
-  };
-
-  const resetSections = () => {
-    setSections(defaultSections);
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem(SECTIONS_KEY);
-    }
   };
 
   // Order Actions
@@ -1122,14 +954,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         products,
         addProduct,
         updateProduct,
-        deleteProduct,
         getProductById,
         resetProducts,
-        sections,
-        moveSection,
-        toggleSection,
-        updateSection,
-        resetSections,
         // Homepage Section Content
         heroBanner,
         updateHeroBanner,

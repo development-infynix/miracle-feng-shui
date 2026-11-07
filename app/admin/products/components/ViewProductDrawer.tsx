@@ -36,13 +36,15 @@ export default function ViewProductDrawer({ open, product, categories, loading, 
   if (!open || !product) return null;
 
   const name = product.name || product.title || 'Untitled Product';
+  // Active: sold normally. Paused: shown in the store as unavailable, can't be bought, stock kept. Inactive: hidden.
+  const statusLabel = product.isActive === false ? 'Inactive' : product.isPaused ? 'Paused' : 'Active';
   const images: string[] = Array.isArray(product.images) && product.images.length > 0 ? product.images : [];
   const badges = [
     product.bestseller ? 'Bestseller' : null,
     product.etsyPick ? 'Miracle Pick' : null,
     product.freeShipping ? 'Free Shipping' : null,
     product.isFeatured ? 'Featured' : null,
-    product.isActive === false ? 'Inactive' : 'Active',
+    statusLabel,
   ].filter(Boolean);
 
   const startEditing = () => {
@@ -60,7 +62,7 @@ export default function ViewProductDrawer({ open, product, categories, loading, 
       etsyPick: !!product.etsyPick,
       freeShipping: !!product.freeShipping,
       itemDetails: product.itemDetails || [],
-      isActive: product.isActive !== false,
+      status: product.isActive === false ? 'inactive' : product.isPaused ? 'paused' : 'active',
     });
     setEditing(true);
   };
@@ -83,7 +85,8 @@ export default function ViewProductDrawer({ open, product, categories, loading, 
         category: form.category,
         itemDetails: (form.itemDetails || []).map((v: string) => v.trim()).filter(Boolean),
         materials: product.materials,
-        isActive: !!form.isActive,
+        isActive: form.status !== 'inactive',
+        isPaused: form.status === 'paused',
         maker: String(form.maker || '').trim(),
         rating: form.rating,
         bestseller: !!form.bestseller,
@@ -104,13 +107,15 @@ export default function ViewProductDrawer({ open, product, categories, loading, 
     }
   };
 
-  // The product's orders decide what removing it does (see adminService.deleteProduct).
-  const removal: { mode: 'blocked' | 'archive' | 'delete'; openOrders: number } | undefined = product?.removal;
+  // The product's orders and stock decide what removing it does (see adminService.deleteProduct).
+  const removal: { mode: 'blocked' | 'archive' | 'in_stock' | 'delete'; openOrders: number } | undefined = product?.removal;
   const archived = product?.isActive === false;
   const blockedReason =
     removal?.mode === 'blocked'
       ? `In ${removal.openOrders === 1 ? '1 open order' : `${removal.openOrders} open orders`}. It can be removed once they're delivered, or cancelled with any refund processed.`
-      : '';
+      : removal?.mode === 'in_stock'
+        ? 'Still in stock. Set stock to 0 (sold out) to delete it.'
+        : '';
 
   const handleDelete = async () => {
     if (!product?.id) return;
@@ -284,11 +289,32 @@ export default function ViewProductDrawer({ open, product, categories, loading, 
                       </div>
                       <div className="grid grid-cols-[7rem_1fr] items-center gap-3 py-3 text-sm">
                         <dt className="text-stone-500">Status</dt>
-                        <dd className="flex items-center gap-3">
-                          <button type="button" role="switch" aria-checked={!!form.isActive} aria-label="Product active" onClick={() => setForm({ ...form, isActive: !form.isActive })} className={`relative h-6 w-11 shrink-0 rounded-full transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900 ${form.isActive ? 'bg-stone-900' : 'bg-stone-300'}`}>
-                            <span className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${form.isActive ? 'translate-x-5' : 'translate-x-0'}`} />
-                          </button>
-                          <span className="text-xs text-stone-600">{form.isActive ? 'Active: visible in the store' : 'Inactive: hidden from the store'}</span>
+                        <dd className="flex flex-col gap-1.5">
+                          <div role="radiogroup" aria-label="Product status" className="inline-flex w-fit rounded-md border border-stone-300 p-0.5">
+                            {([
+                              ['active', 'Active'],
+                              ['paused', 'Paused'],
+                              ['inactive', 'Inactive'],
+                            ] as const).map(([value, label]) => (
+                              <button
+                                key={value}
+                                type="button"
+                                role="radio"
+                                aria-checked={form.status === value}
+                                onClick={() => setForm({ ...form, status: value })}
+                                className={`rounded px-3 py-1 text-xs font-medium transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-stone-900 ${form.status === value ? 'bg-stone-900 text-white' : 'text-stone-600 hover:bg-stone-100'}`}
+                              >
+                                {label}
+                              </button>
+                            ))}
+                          </div>
+                          <span className="text-xs text-stone-600">
+                            {form.status === 'paused'
+                              ? "Paused: shown in the store as currently unavailable and can't be bought. Stock is kept."
+                              : form.status === 'inactive'
+                                ? 'Inactive: hidden from the store.'
+                                : 'Active: visible in the store and can be bought.'}
+                          </span>
                         </dd>
                       </div>
                       <div className="flex flex-wrap gap-4 py-3">
@@ -312,7 +338,7 @@ export default function ViewProductDrawer({ open, product, categories, loading, 
                       ['Reviews', String(product.reviewCount ?? 0)],
                       ['Stock', `${product.stock ?? 50} in stock`],
                       ['Free shipping', product.freeShipping ? 'Yes' : 'No'],
-                      ['Status', product.isActive === false ? 'Inactive' : 'Active'],
+                      ['Status', statusLabel],
                     ].map(([label, value]) => (
                       <div key={label} className="grid grid-cols-[7rem_1fr] items-center gap-3 py-3 text-sm">
                         <dt className="text-stone-500">{label}</dt>
@@ -347,13 +373,21 @@ export default function ViewProductDrawer({ open, product, categories, loading, 
               <button type="button" aria-label={`Edit ${name}`} title="Edit product" onClick={startEditing} className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-stone-900 text-white transition-colors hover:bg-stone-700">
                 <LuPencil className="h-4 w-4" />
               </button>
-              {removal?.mode === 'blocked' ? (
-                <span className="flex items-center gap-3">
-                  <span className="max-w-[16rem] text-right text-xs text-stone-500">{blockedReason}</span>
-                  <button type="button" disabled aria-label={`Delete ${name}: ${blockedReason}`} title={blockedReason} className="inline-flex h-10 cursor-not-allowed items-center justify-center gap-2 rounded-md bg-stone-200 px-4 text-sm font-medium text-stone-500">
+              {removal?.mode === 'blocked' || removal?.mode === 'in_stock' ? (
+                // A disabled button gets no hover or focus, so the wrapper carries the tooltip.
+                <span tabIndex={0} aria-describedby="delete-blocked-reason" className="group relative inline-flex cursor-not-allowed rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-stone-400">
+                  <button type="button" disabled aria-label={`Delete ${name}`} className="pointer-events-none inline-flex h-10 items-center justify-center gap-2 rounded-md bg-stone-200 px-4 text-sm font-medium text-stone-500">
                     <LuTrash2 className="h-4 w-4" />
                     Delete
                   </button>
+                  <span
+                    id="delete-blocked-reason"
+                    role="tooltip"
+                    className="pointer-events-none invisible absolute bottom-full right-0 z-20 mb-2 w-64 rounded-md bg-stone-900 px-3 py-2 text-left text-xs leading-relaxed text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:visible group-hover:opacity-100 group-focus:visible group-focus:opacity-100"
+                  >
+                    {blockedReason}
+                    <span aria-hidden="true" className="absolute right-6 top-full h-0 w-0 border-x-[6px] border-t-[6px] border-x-transparent border-t-stone-900" />
+                  </span>
                 </span>
               ) : removal?.mode === 'archive' && archived ? (
                 <span className="text-xs text-stone-500">Archived: hidden from the store, kept in past orders.</span>

@@ -87,6 +87,10 @@ export const paymentService = {
         throw ApiError.badRequest(`"${item.product.title}" is no longer available. Remove it from your cart to continue.`);
       }
 
+      if (product.isPaused) {
+        throw ApiError.badRequest(`"${product.title}" is currently unavailable. Remove it from your cart to continue.`);
+      }
+
       if (product.stock < item.quantity) {
         throw ApiError.badRequest(
           `Insufficient stock for "${product.title}". Requested: ${item.quantity}, Available: ${product.stock}`

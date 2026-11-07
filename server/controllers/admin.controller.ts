@@ -6,7 +6,6 @@ import {
   createProductSchema,
   updateProductSchema,
   updateOrderStatusSchema,
-  updateHomepageSectionSchema,
 } from '../validators/admin.validator';
 import { apiResponse } from '../utils/apiResponse';
 
@@ -93,17 +92,5 @@ export const adminController = {
   async getCustomerOrders(req: NextRequest, params: { id: string }) {
     const { page } = parseCustomerListQuery(req);
     return apiResponse.ok(await adminService.getCustomerOrders(params.id, page));
-  },
-
-  async getHomepageSections() {
-    const sections = await adminService.getHomepageSections();
-    return apiResponse.ok(sections);
-  },
-
-  async updateHomepageSections(req: NextRequest) {
-    const body = await req.json();
-    const input = updateHomepageSectionSchema.parse(body);
-    const sections = await adminService.updateHomepageSections(input);
-    return apiResponse.ok(sections);
   },
 };
