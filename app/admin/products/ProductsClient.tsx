@@ -645,8 +645,6 @@ export default function ProductsClient({
           formData={formData}
           setFormData={setFormData}
           availableCategories={availableCategories}
-          isUploading={isUploading}
-          onImageFileUpload={handleImageFileUpload}
           onClose={() => setModalOpen(false)}
           onSubmit={handleFormSubmit}
           isSubmitting={isSubmitting}

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { LuChevronLeft, LuChevronRight, LuPencil, LuTrash2, LuX } from 'react-icons/lu';
 import { useStore } from '@/context/StoreContext';
 import ItemDetailsField from './ItemDetailsField';
+import ProductImagesEditor from './ProductImagesEditor';
 
 interface ViewProductDrawerProps {
   open: boolean;
@@ -26,6 +27,7 @@ export default function ViewProductDrawer({ open, product, categories, loading, 
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
+  const [imagesUploading, setImagesUploading] = useState(false);
 
   useEffect(() => {
     setEditing(false);
@@ -62,6 +64,7 @@ export default function ViewProductDrawer({ open, product, categories, loading, 
       etsyPick: !!product.etsyPick,
       freeShipping: !!product.freeShipping,
       itemDetails: product.itemDetails || [],
+      images: [...images],
       status: product.isActive === false ? 'inactive' : product.isPaused ? 'paused' : 'active',
     });
     setEditing(true);
@@ -72,6 +75,8 @@ export default function ViewProductDrawer({ open, product, categories, loading, 
     if (!title) { setError('Product title is required.'); return; }
     const price = Number(form.price);
     if (!price || price <= 0) { setError('Enter a valid selling price.'); return; }
+    if (imagesUploading) { setError('Wait for the photos to finish uploading.'); return; }
+    if (!form.images?.length) { setError('Add at least one photo.'); return; }
     setSaving(true);
     setError('');
     try {
@@ -85,6 +90,7 @@ export default function ViewProductDrawer({ open, product, categories, loading, 
         category: form.category,
         itemDetails: (form.itemDetails || []).map((v: string) => v.trim()).filter(Boolean),
         materials: product.materials,
+        images: form.images,
         isActive: form.status !== 'inactive',
         isPaused: form.status === 'paused',
         maker: String(form.maker || '').trim(),
@@ -167,7 +173,15 @@ export default function ViewProductDrawer({ open, product, categories, loading, 
             </div>
           ) : (
             <>
-              {images.length > 0 && (
+              {editing && (
+                <ProductImagesEditor
+                  images={form.images || []}
+                  onChange={(next) => setForm((f: any) => ({ ...f, images: next }))}
+                  onUploadingChange={setImagesUploading}
+                />
+              )}
+
+              {!editing && images.length > 0 && (
                 <div className="rounded-lg overflow-hidden border border-stone-200 bg-white">
                   <div className="relative group">
                     <div className="flex snap-x snap-mandatory overflow-x-auto [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
@@ -364,7 +378,7 @@ export default function ViewProductDrawer({ open, product, categories, loading, 
               <button type="button" onClick={() => setEditing(false)} disabled={saving} className="inline-flex h-10 items-center justify-center rounded-md border border-stone-300 px-4 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-100 disabled:opacity-50">
                 Cancel
               </button>
-              <button type="button" onClick={saveChanges} disabled={saving} className="inline-flex h-10 items-center justify-center rounded-md bg-stone-900 px-5 text-sm font-medium text-white transition-colors hover:bg-stone-700 disabled:opacity-60">
+              <button type="button" onClick={saveChanges} disabled={saving || imagesUploading} className="inline-flex h-10 items-center justify-center rounded-md bg-stone-900 px-5 text-sm font-medium text-white transition-colors hover:bg-stone-700 disabled:opacity-60">
                 {saving ? 'Saving...' : 'Save'}
               </button>
             </>
