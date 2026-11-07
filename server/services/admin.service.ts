@@ -75,9 +75,142 @@ function uiOrderStatus(status: OrderStatus) {
   return UI_ORDER_STATUS[status];
 }
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+const DASHBOARD_PERIOD_DAYS = 30;
+/** Below this many in stock, a product counts as low on stock (matches the admin product list). */
+const LOW_STOCK = 10;
+
+export type DashboardTopProduct = { productId: string; title: string; image: string; units: number; revenue: number };
+
+export type DashboardData = {
+  periodDays: number;
+  totalOrders: number;
+  action: {
+    toConfirm: number;
+    toPack: number;
+    inTransit: number;
+    cancellationRequests: number;
+    refundsDue: number;
+    refundsFailed: number;
+  };
+  sales: {
+    revenue: number;
+    previousRevenue: number;
+    revenueChange: number | null;
+    orders: number;
+    previousOrders: number;
+    averageOrder: number;
+    codDue: number;
+    codDueOrders: number;
+  };
+  topProducts: DashboardTopProduct[];
+  catalog: {
+    activeProducts: number;
+    pausedProducts: number;
+    inactiveProducts: number;
+    outOfStock: number;
+    lowStock: number;
+    lowStockThreshold: number;
+    alerts: { id: string; title: string; stock: number; image: string; isPaused: boolean }[];
+  };
+  recentOrders: {
+    id: string;
+    orderNumber: string;
+    customerName: string;
+    total: number;
+    status: (typeof UI_ORDER_STATUS)[OrderStatus];
+    paymentMethod: 'COD' | 'Online';
+    items: number;
+    createdAt: string;
+  }[];
+};
+
+/**
+ * The orders page filters by the status customers and admins see. Each covers these stored statuses:
+ * an online order arrives paid (PAID, shown as Processing) and a COD order arrives as COD_PENDING (shown as Pending).
+ */
+export const ORDER_STATUSES_FOR_FILTER: Partial<Record<OrderStatus, OrderStatus[]>> = {
+  PENDING: ['PENDING', 'COD_PENDING'],
+  PROCESSING: ['PAID', 'PROCESSING'],
+};
+
 export const adminService = {
-  async getDashboard() {
-    return adminRepository.getDashboardStats();
+  /**
+   * What the owner needs from the dashboard: what needs action now, how sales are going,
+   * what is selling, and whether the catalog is ready. Sales compare the last 30 days with the 30 before.
+   */
+  async getDashboard(now = new Date()): Promise<DashboardData> {
+    const since = new Date(now.getTime() - DASHBOARD_PERIOD_DAYS * DAY_MS);
+    const previousSince = new Date(since.getTime() - DASHBOARD_PERIOD_DAYS * DAY_MS);
+    const raw = await adminRepository.getDashboardData(since, previousSince, LOW_STOCK);
+
+    const countOf = (...statuses: OrderStatus[]) =>
+      raw.statusCounts.filter((row) => statuses.includes(row.status)).reduce((sum, row) => sum + row.count, 0);
+
+    const current = raw.periodOrders.filter((o) => o.createdAt >= since);
+    const previous = raw.periodOrders.filter((o) => o.createdAt < since);
+    const revenue = current.reduce((sum, o) => sum + o.total, 0);
+    const previousRevenue = previous.reduce((sum, o) => sum + o.total, 0);
+
+    const byProduct = new Map<string, DashboardTopProduct>();
+    for (const item of raw.soldItems) {
+      const row = byProduct.get(item.productId) ?? { productId: item.productId, title: item.title, image: item.image, units: 0, revenue: 0 };
+      row.units += item.quantity;
+      row.revenue += item.price * item.quantity;
+      byProduct.set(item.productId, row);
+    }
+    const topProducts = [...byProduct.values()]
+      .sort((a, b) => b.units - a.units || b.revenue - a.revenue)
+      .slice(0, 5);
+
+    return {
+      periodDays: DASHBOARD_PERIOD_DAYS,
+      totalOrders: raw.statusCounts.reduce((sum, row) => sum + row.count, 0),
+      action: {
+        toConfirm: countOf('PENDING', 'COD_PENDING'),
+        toPack: countOf('PAID', 'PROCESSING'),
+        inTransit: countOf('SHIPPED'),
+        cancellationRequests: countOf('CANCELLATION_REQUESTED'),
+        refundsDue: raw.refundsDue,
+        refundsFailed: raw.refundsFailed,
+      },
+      sales: {
+        revenue,
+        previousRevenue,
+        // No sales in the previous period means there's nothing to compare against.
+        revenueChange: previousRevenue > 0 ? (revenue - previousRevenue) / previousRevenue : null,
+        orders: current.length,
+        previousOrders: previous.length,
+        averageOrder: current.length > 0 ? revenue / current.length : 0,
+        codDue: raw.codDue.amount,
+        codDueOrders: raw.codDue.orders,
+      },
+      topProducts,
+      catalog: {
+        ...raw.catalog,
+        lowStockThreshold: LOW_STOCK,
+        alerts: raw.stockAlerts.map((p) => ({
+          id: p.id,
+          title: p.title,
+          stock: p.stock,
+          image: p.images[0] ?? '',
+          isPaused: p.isPaused,
+        })),
+      },
+      recentOrders: raw.recentOrders.map((o) => {
+        const addr = (o.shippingAddress as { name?: string } | null) ?? {};
+        return {
+          id: o.id,
+          orderNumber: o.orderNumber,
+          customerName: addr.name || o.user?.name || 'Customer',
+          total: o.total,
+          status: uiOrderStatus(o.status),
+          paymentMethod: o.paymentMethod === 'COD' ? 'COD' : 'Online',
+          items: o._count.items,
+          createdAt: o.createdAt.toISOString(),
+        };
+      }),
+    };
   },
 
   formatAdminProduct(p: any) {
@@ -217,13 +350,14 @@ export const adminService = {
   },
 
   async getOrders(filters?: { status?: string; search?: string }) {
-    let orderStatus: OrderStatus | undefined;
+    let statuses: OrderStatus[] | undefined;
     if (filters?.status && filters.status !== 'all') {
-      orderStatus = filters.status.toUpperCase().replace(/ /g, '_') as OrderStatus;
+      const status = filters.status.toUpperCase().replace(/ /g, '_') as OrderStatus;
+      statuses = ORDER_STATUSES_FOR_FILTER[status] ?? [status];
     }
 
     const orders = await adminRepository.findAllOrders({
-      status: orderStatus,
+      statuses,
       search: filters?.search,
     });
 

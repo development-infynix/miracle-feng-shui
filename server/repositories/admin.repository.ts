@@ -28,74 +28,103 @@ const CUSTOMER_PRODUCT_SELECT = {
 } satisfies Prisma.ProductSelect;
 
 export const adminRepository = {
-  async getDashboardStats() {
-    // Automatically purge old demo seed orders if present
-    try {
-      await prisma.order.deleteMany({
-        where: {
-          OR: [
-            { orderNumber: 'MFS-82914' },
-            { user: { email: 'admin@miraclefengshui.com' } },
-          ],
-        },
-      });
-    } catch {
-      // ignore if already deleted
-    }
+  /**
+   * The raw figures behind the admin dashboard, for customer orders only. Reads only: it never changes data.
+   * `since` starts the current period and `previousSince` the one before it, for comparing sales.
+   */
+  async getDashboardData(since: Date, previousSince: Date, lowStock: number) {
+    const customerOrder: Prisma.OrderWhereInput = {
+      orderNumber: { not: 'MFS-82914' },
+      user: { role: 'CUSTOMER' },
+    };
+    const notCancelled: Prisma.OrderWhereInput = { status: { notIn: ['CANCELLATION_APPROVED', 'CANCELLED'] } };
 
     const [
-      orders,
-      usersCount,
-      productsCount,
-      lowStockProducts,
+      statusCounts,
+      refundsDue,
+      refundsFailed,
+      periodOrders,
+      codDue,
+      soldItems,
+      activeProducts,
+      pausedProducts,
+      inactiveProducts,
+      outOfStock,
+      lowStockCount,
+      stockAlerts,
       recentOrders,
     ] = await Promise.all([
-      prisma.order.findMany({
+      prisma.order.groupBy({ by: ['status'], where: customerOrder, _count: { _all: true } }),
+      // Cancelled after the customer paid, and the money hasn't gone back yet.
+      prisma.order.count({
         where: {
-          status: { notIn: ['CANCELLED', 'CANCELLATION_APPROVED'] },
-          orderNumber: { not: 'MFS-82914' },
-          user: { role: 'CUSTOMER' },
+          ...customerOrder,
+          status: { in: ['CANCELLATION_APPROVED', 'CANCELLED'] },
+          paymentStatus: 'PAID',
+          refunds: { none: { status: { in: ['PROCESSING', 'PROCESSED'] } } },
         },
+      }),
+      prisma.order.count({
+        where: {
+          ...customerOrder,
+          refunds: { some: { status: 'FAILED' }, none: { status: { in: ['PROCESSING', 'PROCESSED'] } } },
+        },
+      }),
+      prisma.order.findMany({
+        where: { ...customerOrder, ...notCancelled, createdAt: { gte: previousSince } },
+        select: { total: true, createdAt: true },
+      }),
+      prisma.order.aggregate({
+        where: {
+          ...customerOrder,
+          paymentMethod: 'COD',
+          status: { notIn: ['DELIVERED', 'CANCELLATION_APPROVED', 'CANCELLED'] },
+        },
+        _sum: { total: true },
+        _count: { _all: true },
+      }),
+      prisma.orderItem.findMany({
+        where: { order: { ...customerOrder, ...notCancelled, createdAt: { gte: since } } },
+        select: { productId: true, title: true, image: true, price: true, quantity: true },
+      }),
+      prisma.product.count({ where: { isActive: true, isPaused: false } }),
+      prisma.product.count({ where: { isActive: true, isPaused: true } }),
+      prisma.product.count({ where: { isActive: false } }),
+      prisma.product.count({ where: { isActive: true, stock: 0 } }),
+      prisma.product.count({ where: { isActive: true, stock: { gt: 0, lt: lowStock } } }),
+      prisma.product.findMany({
+        where: { isActive: true, stock: { lt: lowStock } },
+        orderBy: [{ stock: 'asc' }, { title: 'asc' }],
+        take: 6,
+        select: { id: true, title: true, stock: true, images: true, isPaused: true },
+      }),
+      prisma.order.findMany({
+        where: customerOrder,
+        orderBy: { createdAt: 'desc' },
+        take: 6,
         select: {
+          id: true,
+          orderNumber: true,
           total: true,
           status: true,
-        },
-      }),
-      prisma.user.count({ where: { role: 'CUSTOMER' } }),
-      prisma.product.count({ where: { isActive: true } }),
-      prisma.product.findMany({
-        where: {
-          isActive: true,
-          stock: { lte: 5 },
-        },
-        take: 10,
-        orderBy: { stock: 'asc' },
-      }),
-      prisma.order.findMany({
-        where: {
-          orderNumber: { not: 'MFS-82914' },
-          user: { role: 'CUSTOMER' },
-        },
-        take: 5,
-        orderBy: { createdAt: 'desc' },
-        include: {
-          user: { select: { id: true, name: true, email: true } },
-          items: true,
+          paymentMethod: true,
+          createdAt: true,
+          shippingAddress: true,
+          user: { select: { name: true } },
+          _count: { select: { items: true } },
         },
       }),
     ]);
 
-    const totalRevenue = orders.reduce((sum, ord) => sum + ord.total, 0);
-    const pendingOrdersCount = orders.filter((o) => o.status === 'PENDING').length;
-
     return {
-      totalRevenue,
-      totalOrders: orders.length,
-      pendingOrdersCount,
-      usersCount,
-      productsCount,
-      lowStockCount: lowStockProducts.length,
-      lowStockProducts,
+      statusCounts: statusCounts.map((row) => ({ status: row.status, count: row._count._all })),
+      refundsDue,
+      refundsFailed,
+      periodOrders,
+      codDue: { amount: codDue._sum.total ?? 0, orders: codDue._count._all },
+      soldItems,
+      catalog: { activeProducts, pausedProducts, inactiveProducts, outOfStock, lowStock: lowStockCount },
+      stockAlerts,
       recentOrders,
     };
   },
@@ -288,14 +317,14 @@ export const adminRepository = {
     });
   },
 
-  async findAllOrders(filters?: { status?: OrderStatus; search?: string }) {
+  async findAllOrders(filters?: { statuses?: OrderStatus[]; search?: string }) {
     const where: Prisma.OrderWhereInput = {
       orderNumber: { not: 'MFS-82914' },
       user: { role: 'CUSTOMER' },
     };
 
-    if (filters?.status) {
-      where.status = filters.status;
+    if (filters?.statuses?.length) {
+      where.status = { in: filters.statuses };
     }
 
     if (filters?.search && filters.search.trim()) {

@@ -50,17 +50,6 @@ interface StoreContextType {
 
   // Orders & Fulfillment
   orders: StoreOrder[];
-  updateOrderStatus: (orderId: string, status: OrderStatus) => void;
-  confirmOrder: (orderId: string) => void;
-  deleteOrder: (orderId: string) => void;
-  addOrder: (order: Omit<StoreOrder, 'id'>) => void;
-  // Live Metrics & Counters
-  ordersLeftToConfirm: number;
-  ordersLeftToPack: number;
-  ordersInTransit: number;
-  settledBalance: number;
-  pendingBalance: number;
-  totalOrderRevenue: number;
 
   // Categories
   categories: string[];
@@ -298,71 +287,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setProducts(initialProducts);
   };
 
-  // Order Actions
-  const updateOrderStatus = async (orderId: string, status: OrderStatus) => {
-    setOrders((prev) =>
-      prev.map((o) => (o.id === orderId || o.orderNumber === orderId ? { ...o, status } : o))
-    );
-
-    try {
-      await fetch(`/api/admin/orders/${orderId}/status`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: status.toUpperCase() }),
-      });
-    } catch (err) {
-      console.warn('API order status update failed, memory updated:', err);
-    }
-  };
-
-  const confirmOrder = (orderId: string) => {
-    updateOrderStatus(orderId, 'Processing');
-  };
-
-  const deleteOrder = async (orderId: string) => {
-    setOrders((prev) => prev.filter((o) => o.id !== orderId));
-    try {
-      await fetch(`/api/admin/orders/${orderId}`, {
-        method: 'DELETE',
-      });
-    } catch (err) {
-      console.warn('API delete order failed, removed from local state:', err);
-    }
-  };
-
-  const addOrder = (order: Omit<StoreOrder, 'id'>) => {
-    const id = `ord-${Date.now()}`;
-    setOrders((prev) => [{ ...order, id }, ...prev]);
-  };
-
-  // Live Order Fulfillment & Cash Flow Calculations
-  const ordersLeftToConfirm = orders.filter((o) => o.status === 'Pending').length;
-  const ordersLeftToPack = orders.filter((o) => o.status === 'Processing').length;
-  const ordersInTransit = orders.filter((o) => o.status === 'Shipped').length;
-
-  const settledBalance = orders
-    .filter((o) => {
-      if (o.status === 'Cancelled' || o.status === 'Cancellation Approved') return false;
-      const m = (o.paymentMethod || '').toLowerCase();
-      const isOnline = m.includes('online') || m.includes('upi') || m.includes('razorpay');
-      const isDeliveredCOD = o.status === 'Delivered' && (m.includes('cash') || m.includes('cod'));
-      return isOnline || isDeliveredCOD;
-    })
-    .reduce((sum, o) => sum + o.totalAmount, 0);
-
-  const pendingBalance = orders
-    .filter((o) => {
-      if (o.status === 'Cancelled' || o.status === 'Cancellation Approved' || o.status === 'Delivered') return false;
-      const m = (o.paymentMethod || '').toLowerCase();
-      const isCOD = m.includes('cash') || m.includes('cod');
-      return isCOD;
-    })
-    .reduce((sum, o) => sum + o.totalAmount, 0);
-
-  const totalOrderRevenue = orders
-    .filter((o) => o.status !== 'Cancelled' && o.status !== 'Cancellation Approved')
-    .reduce((sum, o) => sum + o.totalAmount, 0);
-
   return (
     <StoreContext.Provider
       value={{
@@ -373,16 +297,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         resetProducts,
         // Orders & Fulfillment
         orders,
-        updateOrderStatus,
-        confirmOrder,
-        deleteOrder,
-        addOrder,
-        ordersLeftToConfirm,
-        ordersLeftToPack,
-        ordersInTransit,
-        settledBalance,
-        pendingBalance,
-        totalOrderRevenue,
         // Categories
         categories: categoriesState,
         categoriesList,
