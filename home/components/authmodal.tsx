@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { signIn } from 'next-auth/react';
+import { getProviders, signIn } from 'next-auth/react';
 import { useLocale } from '@/context/CurrencyContext';
+import GoogleMark from '@/components/GoogleMark';
 import { useGlassModal } from './useGlassModal';
 
 const MIN_PASSWORD_LENGTH = 6;
@@ -19,17 +20,27 @@ const fieldStyle: React.CSSProperties = { outline: 'none' };
 
 export type AuthMode = 'signin' | 'register';
 
+// Asked once per page load: the Google button shows only when the server has Google sign-in set up.
+let googleAvailable: Promise<boolean> | null = null;
+const checkGoogle = () =>
+  (googleAvailable ??= getProviders()
+    .then((providers) => Boolean(providers?.google))
+    .catch(() => false));
+
+
 interface AuthModalProps {
   open: boolean;
   mode: AuthMode;
   onModeChange: (mode: AuthMode) => void;
   onClose: () => void;
+  /** A message to show when the modal opens, such as why a Google sign-in didn't go through. */
+  initialError?: string;
   /** Called once the customer is signed in. */
   onSignedIn: (customer: { name: string; email: string }) => void;
 }
 
 /** Customer sign in and sign up: a glass pill with the form hanging below it on a liquid thread. */
-export default function AuthModal({ open, mode, onModeChange, onClose, onSignedIn }: AuthModalProps) {
+export default function AuthModal({ open, mode, onModeChange, onClose, initialError, onSignedIn }: AuthModalProps) {
   const { t } = useLocale();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -37,6 +48,33 @@ export default function AuthModal({ open, mode, onModeChange, onClose, onSignedI
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [google, setGoogle] = useState(false);
+  const [googleBusy, setGoogleBusy] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    let live = true;
+    checkGoogle().then((available) => live && setGoogle(available));
+    return () => {
+      live = false;
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (open && initialError) setError(initialError);
+  }, [open, initialError]);
+
+  /** Leaves for Google, and comes back to this page signed in. A new customer gets an account on the way. */
+  const continueWithGoogle = async () => {
+    setError('');
+    setGoogleBusy(true);
+    try {
+      await signIn('google', { callbackUrl: window.location.href });
+    } catch {
+      setGoogleBusy(false);
+      setError(t('auth.google_failed', "We couldn't sign you in with Google. Please try again."));
+    }
+  };
 
   const panelRef = useRef<HTMLDivElement>(null);
   const firstFieldRef = useRef<HTMLInputElement>(null);
@@ -179,6 +217,32 @@ export default function AuthModal({ open, mode, onModeChange, onClose, onSignedI
                 </p>
               )}
 
+              {google && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => void continueWithGoogle()}
+                    disabled={googleBusy || submitting}
+                    className={`mt-4 flex h-12 w-full cursor-pointer items-center justify-center gap-3 rounded-md border border-[#E1E3DF] bg-white transition-colors hover:border-[#222222] disabled:cursor-wait disabled:opacity-70 ${focusRing}`}
+                  >
+                    <GoogleMark />
+                    <span className="font-outfit text-[15px] font-semibold text-[#222222]">
+                      {googleBusy ? t('auth.google_redirecting', 'Opening Google…') : t('auth.continue_google', 'Continue with Google')}
+                    </span>
+                  </button>
+                  {isRegister && (
+                    <p className="mt-1.5 px-1 text-[12px] text-[#595959]">
+                      {t('auth.google_hint', 'No password needed. Your name comes from your Google account, and you can change it later.')}
+                    </p>
+                  )}
+                  <div className="mt-4 flex items-center gap-3" aria-hidden="true">
+                    <span className="h-px flex-1 bg-[#E1E3DF]" />
+                    <span className="text-[12px] font-medium uppercase tracking-[0.08em] text-[#595959]">{t('auth.or', 'or')}</span>
+                    <span className="h-px flex-1 bg-[#E1E3DF]" />
+                  </div>
+                </>
+              )}
+
               <form onSubmit={handleSubmit} className="mt-4 space-y-3.5">
                 {isRegister && (
                   <div>
@@ -275,8 +339,8 @@ export default function AuthModal({ open, mode, onModeChange, onClose, onSignedI
                   <span className="font-outfit text-[15px] font-semibold text-white">
                     {submitting
                       ? isRegister
-                        ? t('auth.creating', 'Creating your accountâ€¦')
-                        : t('auth.signing_in', 'Signing inâ€¦')
+                        ? t('auth.creating', 'Creating your account…')
+                        : t('auth.signing_in', 'Signing in…')
                       : isRegister
                         ? t('auth.create_account', 'Create account')
                         : t('nav.signin', 'Sign in')}

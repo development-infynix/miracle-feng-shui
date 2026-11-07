@@ -9,7 +9,10 @@ export default function LoginPage() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       window.dispatchEvent(
-        new CustomEvent('open-auth-modal', { detail: { mode: 'signin' } })
+        // A failed Google sign-in comes back here with ?error=..., which the modal explains.
+        new CustomEvent('open-auth-modal', {
+          detail: { mode: 'signin', error: new URLSearchParams(window.location.search).get('error') || undefined },
+        })
       );
     }
     router.replace('/');

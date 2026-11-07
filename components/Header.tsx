@@ -38,6 +38,7 @@ function SiteHeader({ navCategories, pathname }: { navCategories: NavCategory[];
   const [menuOpen, setMenuOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isRegisterMode, setIsRegisterMode] = useState(false);
+  const [authError, setAuthError] = useState('');
   const [userName, setUserName] = useState('');
   const [userEmail, setUserEmail] = useState('');
 
@@ -62,7 +63,10 @@ function SiteHeader({ navCategories, pathname }: { navCategories: NavCategory[];
   // Other parts of the site open the sign in modal with this event.
   useEffect(() => {
     const handleOpenAuth = (e: Event) => {
-      setIsRegisterMode((e as CustomEvent<{ mode?: 'signin' | 'register' }>).detail?.mode === 'register');
+      const detail = (e as CustomEvent<{ mode?: 'signin' | 'register'; error?: string }>).detail;
+      setIsRegisterMode(detail?.mode === 'register');
+      // Sign-in errors that come back from Google. Password errors are shown by the modal itself.
+      setAuthError(detail?.error && detail.error !== 'CredentialsSignin' ? detail.error : '');
       setShowAuthModal(true);
     };
     window.addEventListener('open-auth-modal', handleOpenAuth);
@@ -191,7 +195,11 @@ function SiteHeader({ navCategories, pathname }: { navCategories: NavCategory[];
         open={showAuthModal}
         mode={isRegisterMode ? 'register' : 'signin'}
         onModeChange={(mode) => setIsRegisterMode(mode === 'register')}
-        onClose={() => setShowAuthModal(false)}
+        onClose={() => {
+          setShowAuthModal(false);
+          setAuthError('');
+        }}
+        initialError={authError ? t('auth.google_failed', "We couldn't sign you in with Google. Please try again.") : undefined}
         onSignedIn={({ name, email }) => {
           setUserLoggedIn(true);
           setUserName(name);
