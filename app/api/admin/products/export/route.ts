@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRole } from '@/server/middlewares/withAuth';
 import { prisma } from '@/lib/prisma';
 import { products as defaultProducts } from '@/lib/placeholder-data';
 
@@ -11,7 +12,7 @@ function escapeCsvCell(val: any): string {
   return str;
 }
 
-export async function GET(req: NextRequest) {
+export const GET = withRole('ADMIN', async (req: NextRequest) => {
   try {
     let productItems: any[] = [];
     try {
@@ -105,4 +106,4 @@ export async function GET(req: NextRequest) {
       { status: 500 }
     );
   }
-}
+})

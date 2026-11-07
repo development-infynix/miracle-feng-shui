@@ -847,6 +847,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           isPaused: updated.isPaused,
           maker: updated.maker || undefined,
           freeShipping: updated.freeShipping,
+          showStockLeft: updated.showStockLeft,
         }),
       });
       if (!res.ok) {

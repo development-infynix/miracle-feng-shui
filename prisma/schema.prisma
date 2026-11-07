@@ -126,6 +126,7 @@ model Product {
   personalizationPrompt String?
   inDemandCount         Int         @default(0)
   isFeatured            Boolean     @default(false)
+  showStockLeft         Boolean     @default(false)
   isActive              Boolean     @default(true)
   /// Visible in the store but can't be bought, e.g. while it can't be made. Stock is kept.
   isPaused              Boolean     @default(false)
