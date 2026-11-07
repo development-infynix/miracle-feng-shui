@@ -250,6 +250,7 @@ export const adminService = {
       isActive: p.isActive,
       isPaused: p.isPaused,
       isFeatured: p.isFeatured,
+      showStockLeft: p.showStockLeft,
       createdAt: p.createdAt,
       updatedAt: p.updatedAt,
     };

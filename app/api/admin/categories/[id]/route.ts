@@ -1,12 +1,11 @@
 import { NextRequest } from 'next/server';
+import { withRole } from '@/server/middlewares/withAuth';
 import { productController } from '@/server/controllers/product.controller';
 
-export const PUT = (
-  req: NextRequest,
-  segmentData: { params: Promise<{ id: string }> }
-) => productController.updateCategory(req, segmentData);
+export const PUT = withRole('ADMIN', (req: NextRequest, { params }: any) =>
+  productController.updateCategory(req, { params: Promise.resolve(params) })
+);
 
-export const DELETE = (
-  req: NextRequest,
-  segmentData: { params: Promise<{ id: string }> }
-) => productController.deleteCategory(req, segmentData);
+export const DELETE = withRole('ADMIN', (req: NextRequest, { params }: any) =>
+  productController.deleteCategory(req, { params: Promise.resolve(params) })
+);

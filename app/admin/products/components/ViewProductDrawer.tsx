@@ -63,6 +63,7 @@ export default function ViewProductDrawer({ open, product, categories, loading, 
       bestseller: !!product.bestseller,
       etsyPick: !!product.etsyPick,
       freeShipping: !!product.freeShipping,
+      showStockLeft: !!product.showStockLeft,
       itemDetails: product.itemDetails || [],
       images: [...images],
       status: product.isActive === false ? 'inactive' : product.isPaused ? 'paused' : 'active',
@@ -98,6 +99,7 @@ export default function ViewProductDrawer({ open, product, categories, loading, 
         bestseller: !!form.bestseller,
         etsyPick: !!form.etsyPick,
         freeShipping: !!form.freeShipping,
+        showStockLeft: !!form.showStockLeft,
       });
       if (!ok) { setError('Failed to save changes.'); return; }
       try {
@@ -299,7 +301,13 @@ export default function ViewProductDrawer({ open, product, categories, loading, 
                       </div>
                       <div className="grid grid-cols-[7rem_1fr] items-center gap-3 py-3 text-sm">
                         <dt className="text-stone-500">Stock</dt>
-                        <dd><input aria-label="Stock level" type="number" min={0} className={inputClass} value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value === '' ? 0 : Math.max(0, parseInt(e.target.value) || 0) })} /></dd>
+                        <dd className="flex items-center gap-3">
+                          <input aria-label="Stock level" type="number" min={0} className={inputClass} value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value === '' ? 0 : Math.max(0, parseInt(e.target.value) || 0) })} />
+                          <label className="flex shrink-0 items-center gap-2 text-xs font-medium text-stone-700">
+                            <input type="checkbox" checked={!!form.showStockLeft} onChange={(e) => setForm({ ...form, showStockLeft: e.target.checked })} className="h-4 w-4 rounded-md border-stone-300 text-stone-900 focus:ring-stone-900" />
+                            <span>Show stock left</span>
+                          </label>
+                        </dd>
                       </div>
                       <div className="grid grid-cols-[7rem_1fr] items-center gap-3 py-3 text-sm">
                         <dt className="text-stone-500">Status</dt>
@@ -351,6 +359,7 @@ export default function ViewProductDrawer({ open, product, categories, loading, 
                       ['Rating', ratingValue > 0 ? ratingValue + ' stars' : 'No rating yet'],
                       ['Reviews', String(product.reviewCount ?? 0)],
                       ['Stock', `${product.stock ?? 50} in stock`],
+                      ['Show stock left', product.showStockLeft ? 'Yes' : 'No'],
                       ['Free shipping', product.freeShipping ? 'Yes' : 'No'],
                       ['Status', statusLabel],
                     ].map(([label, value]) => (

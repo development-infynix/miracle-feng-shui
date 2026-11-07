@@ -1,27 +1,20 @@
 import { NextRequest } from 'next/server';
+import { withRole } from '@/server/middlewares/withAuth';
 import { handleError } from '@/server/middlewares/handleError';
 import { adminController } from '@/server/controllers/admin.controller';
 
-export const PATCH = async (
-  req: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) => {
+export const PATCH = withRole('ADMIN', async (req: NextRequest, { params }: any) => {
   try {
-    const resolvedParams = await context.params;
-    return await adminController.updateProduct(req, resolvedParams);
+    return await adminController.updateProduct(req, params);
   } catch (error) {
     return handleError(error);
   }
-};
+});
 
-export const DELETE = async (
-  req: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) => {
+export const DELETE = withRole('ADMIN', async (req: NextRequest, { params }: any) => {
   try {
-    const resolvedParams = await context.params;
-    return await adminController.deleteProduct(req, resolvedParams);
+    return await adminController.deleteProduct(req, params);
   } catch (error) {
     return handleError(error);
   }
-};
+});

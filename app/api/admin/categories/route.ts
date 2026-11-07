@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
+import { withRole } from '@/server/middlewares/withAuth';
 import { productController } from '@/server/controllers/product.controller';
 
-export const GET = (req: NextRequest) => productController.categories(req);
-export const POST = (req: NextRequest) => productController.createCategory(req);
+export const GET = withRole('ADMIN', (req: NextRequest) => productController.categories(req));
+export const POST = withRole('ADMIN', (req: NextRequest) => productController.createCategory(req));

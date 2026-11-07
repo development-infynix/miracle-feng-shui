@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRole } from '@/server/middlewares/withAuth';
 import { prisma } from '@/lib/prisma';
 import { invalidateNavCategories } from '@/lib/nav-categories';
 
@@ -91,7 +92,7 @@ function slugify(text: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
-export async function POST(req: NextRequest) {
+export const POST = withRole('ADMIN', async (req: NextRequest) => {
   try {
     let csvText = '';
     let updateExisting = true;
@@ -313,4 +314,4 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
-}
+})

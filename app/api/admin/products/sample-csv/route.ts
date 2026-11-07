@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRole } from '@/server/middlewares/withAuth';
 
-export async function GET(req: NextRequest) {
+export const GET = withRole('ADMIN', async (req: NextRequest) => {
   const headers = [
     'id',
     'title',
@@ -79,4 +80,4 @@ export async function GET(req: NextRequest) {
       'Cache-Control': 'no-store',
     },
   });
-}
+})

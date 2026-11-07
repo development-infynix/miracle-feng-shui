@@ -359,6 +359,28 @@ function DrawerContent({ productId, seed, onClose, titleId }: {
                     {t('shop.only_left', 'Only {count} left').replace('{count}', String(stock))}
                   </p>
                 )}
+                {!lowStock && shown?.showStockLeft && stock !== undefined && stock > 0 && (
+                  <p className="mt-1 font-geist text-[13px] text-ink-muted">
+                    {t('shop.in_stock', '{count} in stock').replace('{count}', String(stock))}
+                  </p>
+                )}
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {shown?.etsyPick && (
+                    <span className="inline-flex items-center border border-ink/15 bg-[#E2DDD1]/70 px-3 py-1 font-geist text-[11px] font-semibold text-ink">
+                      {t('product.miracle_pick', 'Miracle Pick')}
+                    </span>
+                  )}
+                  {shown?.isFeatured && (
+                    <span className="inline-flex items-center border border-ink/15 bg-[#E2DDD1]/70 px-3 py-1 font-geist text-[11px] font-semibold text-ink">
+                      {t('product.featured', 'Featured')}
+                    </span>
+                  )}
+                  {shown?.freeShipping && (
+                    <span className="inline-flex items-center border border-ink/15 bg-[#E2DDD1]/70 px-3 py-1 font-geist text-[11px] font-semibold text-ink">
+                      {t('product.free_shipping', 'Free Shipping')}
+                    </span>
+                  )}
+                </div>
               </section>
             ) : (
               <div aria-hidden="true" className="space-y-3">

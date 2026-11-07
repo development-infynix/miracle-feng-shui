@@ -56,6 +56,7 @@ const productFields = z.object({
   isActive: z.boolean().optional(),
   isPaused: z.boolean().optional(),
   isFeatured: z.boolean().optional(),
+  showStockLeft: z.boolean().optional(),
 });
 
 export const createProductSchema = productFields.extend({
@@ -77,6 +78,7 @@ export const createProductSchema = productFields.extend({
   isActive: z.boolean().optional().default(true),
   isPaused: z.boolean().optional().default(false),
   isFeatured: z.boolean().optional().default(false),
+  showStockLeft: z.boolean().optional().default(false),
 });
 
 export type CreateProductInput = z.infer<typeof createProductSchema>;

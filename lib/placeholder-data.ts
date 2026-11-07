@@ -25,6 +25,8 @@ export type Product = {
   bestseller?: boolean;
   etsyPick?: boolean;
   freeShipping?: boolean;
+  isFeatured?: boolean;
+  showStockLeft?: boolean;
   rating: number;
   reviewCount: number;
   category: string;
@@ -45,7 +47,7 @@ export type Product = {
 /** The fields a product card needs. Everything else loads when the product is opened. */
 export type ProductSummary = Pick<
   Product,
-  'id' | 'name' | 'price' | 'originalPrice' | 'images' | 'stock' | 'isPaused' | 'bestseller' | 'category' | 'rating' | 'maker'
+  'id' | 'name' | 'price' | 'originalPrice' | 'images' | 'stock' | 'isPaused' | 'bestseller' | 'etsyPick' | 'freeShipping' | 'isFeatured' | 'showStockLeft' | 'category' | 'rating' | 'maker'
 >;
 
 export const categories = [
