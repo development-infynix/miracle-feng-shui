@@ -3,26 +3,12 @@
 import React from 'react';
 import { MdKeyboardDoubleArrowRight } from 'react-icons/md';
 import { OrderItemData } from '../types';
+import OrderStatusSelect, { statusColor } from './OrderStatusSelect';
 
 function StatusBadge({ value }: { value: string }) {
-  const normalized = (value || '').toLowerCase();
-  const colors: Record<string, string> = {
-    pending: 'bg-amber-50 text-amber-700 border-amber-200',
-    processing: 'bg-blue-50 text-blue-700 border-blue-200',
-    shipped: 'bg-purple-50 text-purple-700 border-purple-200',
-    delivered: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    'cancellation requested': 'bg-red-50 text-red-700 border-red-200',
-    'cancellation approved': 'bg-red-50 text-red-700 border-red-200',
-    cancelled: 'bg-red-50 text-red-700 border-red-200',
-    paid: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    refunded: 'bg-gray-100 text-gray-600 border-gray-300',
-    failed: 'bg-red-50 text-red-700 border-red-200',
-  };
-  const className = colors[normalized] || 'bg-gray-50 text-gray-700 border-gray-200';
-
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold whitespace-nowrap ${className}`}
+      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold whitespace-nowrap ${statusColor(value)}`}
     >
       {value}
     </span>
@@ -32,9 +18,11 @@ function StatusBadge({ value }: { value: string }) {
 interface OrdersTableProps {
   orders: OrderItemData[];
   onView: (order: OrderItemData) => void;
+  /** Called after the status is changed from the table. */
+  onSaved: (updated: OrderItemData) => void;
 }
 
-export default function OrdersTable({ orders, onView }: OrdersTableProps) {
+export default function OrdersTable({ orders, onView, onSaved }: OrdersTableProps) {
   return (
     <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-2xs">
       <table className="w-full min-w-full border-collapse text-sm">
@@ -70,7 +58,7 @@ export default function OrdersTable({ orders, onView }: OrdersTableProps) {
                   <p className="text-gray-700 tabular-nums font-semibold">{itemCount} {itemCount === 1 ? 'item' : 'items'}</p>
                 </td>
                 <td className="px-4 py-3">
-                  <StatusBadge value={order.status} />
+                  <OrderStatusSelect order={order} onSaved={onSaved} />
                   {(order.refund?.status === 'REQUESTED' || order.refund?.status === 'FAILED') && (
                     <span className="mt-1 block w-fit rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-bold whitespace-nowrap text-amber-800">
                       {order.refund.status === 'FAILED' ? 'Refund failed' : 'Refund requested'}

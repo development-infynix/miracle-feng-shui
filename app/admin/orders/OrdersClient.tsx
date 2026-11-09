@@ -127,6 +127,14 @@ export default function OrdersClient({ initialOrders, search = '', status: statu
     setTimeout(() => setToastMessage(null), 3000);
   };
 
+  // Shared by the table, the phone cards and the drawer: show the new status at once, then refresh
+  // the page data so counts and filters catch up.
+  const handleStatusSaved = (updated: OrderItemData) => {
+    setOrders((prev) => prev.map((o) => (o.id === updated.id ? updated : o)));
+    showToast(`Order ${updated.orderNumber} is now ${updated.status}.`);
+    startTransition(() => router.refresh());
+  };
+
   return (
     <div
       style={{ fontFamily: "'Montserrat', sans-serif" }}
@@ -162,11 +170,11 @@ export default function OrdersClient({ initialOrders, search = '', status: statu
         ) : (
           <>
             <div className="hidden lg:block">
-              <OrdersTable orders={orders} onView={setViewOrder} />
+              <OrdersTable orders={orders} onView={setViewOrder} onSaved={handleStatusSaved} />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:hidden gap-3">
               {orders.map((order) => (
-                <OrderCard key={order.id} order={order} onView={setViewOrder} />
+                <OrderCard key={order.id} order={order} onView={setViewOrder} onSaved={handleStatusSaved} />
               ))}
             </div>
           </>
@@ -186,9 +194,7 @@ export default function OrdersClient({ initialOrders, search = '', status: statu
           onClose={() => setViewOrder(null)}
           onSaved={(updated) => {
             setViewOrder(updated);
-            setOrders((prev) => prev.map((o) => (o.id === updated.id ? updated : o)));
-            showToast(`Order ${updated.orderNumber} updated.`);
-            startTransition(() => router.refresh());
+            handleStatusSaved(updated);
           }}
           onDeleted={(orderId) => {
             setViewOrder(null);
