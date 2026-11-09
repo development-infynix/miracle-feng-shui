@@ -5,16 +5,19 @@ import Image from 'next/image';
 import { ADMIN_CARD_IMAGE_SIZES, canResizeImage } from '@/lib/images';
 import { MdKeyboardDoubleArrowRight } from 'react-icons/md';
 import { OrderItemData } from '../types';
+import OrderStatusSelect from './OrderStatusSelect';
 
 interface OrderCardProps {
   order: OrderItemData;
   onView: (order: OrderItemData) => void;
+  /** Called after the status is changed from the card. */
+  onSaved: (updated: OrderItemData) => void;
 }
 
 const FALLBACK_IMAGE =
   'https://images.unsplash.com/photo-1518895949257-7621c3c786d7?auto=format&fit=crop&w=600&q=80';
 
-export default function OrderCard({ order, onView }: OrderCardProps) {
+export default function OrderCard({ order, onView, onSaved }: OrderCardProps) {
   const [imageFailed, setImageFailed] = useState(false);
   const firstItem = order.items[0];
   const imageSrc = firstItem && !imageFailed ? firstItem.image : FALLBACK_IMAGE;
@@ -32,11 +35,11 @@ export default function OrderCard({ order, onView }: OrderCardProps) {
           className="object-cover"
           onError={() => setImageFailed(true)}
         />
-        <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[9px] font-bold bg-white/90 text-gray-800 border border-gray-200">
-          {order.status}
-          {order.refund?.status === 'REQUESTED' && ' · Refund requested'}
-          {order.refund?.status === 'FAILED' && ' · Refund failed'}
-        </span>
+        {(order.refund?.status === 'REQUESTED' || order.refund?.status === 'FAILED') && (
+          <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-50 text-amber-800 border border-amber-300">
+            {order.refund.status === 'FAILED' ? 'Refund failed' : 'Refund requested'}
+          </span>
+        )}
         <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full text-[9px] font-bold bg-[#040404] text-white">
           {order.paymentStatus}
         </span>
@@ -49,6 +52,9 @@ export default function OrderCard({ order, onView }: OrderCardProps) {
           <span className="text-[10.5px] text-gray-400 block truncate">
             {order.customerName} · {order.city}
           </span>
+        </div>
+        <div className="mt-1">
+          <OrderStatusSelect order={order} onSaved={onSaved} />
         </div>
       </div>
       <div className="flex items-center justify-between gap-2 px-3 py-2 border-t border-gray-100 bg-gray-50">
