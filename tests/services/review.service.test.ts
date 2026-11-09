@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { REVIEW_PAGE_SIZE, reviewService } from '@/server/services/review.service';
 import { reviewRepository } from '@/server/repositories/review.repository';
 import { productRepository } from '@/server/repositories/product.repository';
@@ -15,6 +15,10 @@ const review = {
 };
 
 afterEach(() => vi.restoreAllMocks());
+// No reviewer here has a delivered order; verified-purchase.test.ts covers the ones who do.
+beforeEach(() => {
+  vi.spyOn(reviewRepository, 'findDeliveries').mockResolvedValue([]);
+});
 
 describe('reviewService.listByProduct', () => {
   it('returns the exact total for the product found by slug or id', async () => {
