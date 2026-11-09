@@ -40,6 +40,8 @@ export interface OrderItemData {
   paymentMethod: string;
   status: OrderUiStatus;
   rawStatus: string;
+  /** False when the order was placed while the store didn't allow cancellation. */
+  cancellationAllowed?: boolean;
   paymentStatus: string;
   cancellationReason?: string | null;
   refund?: OrderRefund | null;

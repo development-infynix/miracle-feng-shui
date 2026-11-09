@@ -68,10 +68,12 @@ export const orderService = {
           amount: latestRefund.amountPaise / 100,
         }
       : null;
+    // Only after the customer's own cancellation request is approved. An order the store cancelled
+    // itself (Cancelled) is refunded by the store from the admin.
     const canRequestRefund =
       !order.refundRequestedAt &&
       !latestRefund &&
-      ['CANCELLATION_APPROVED', 'CANCELLED'].includes(order.status) &&
+      order.status === 'CANCELLATION_APPROVED' &&
       order.paymentStatus === 'PAID' &&
       order.paymentMethod === 'RAZORPAY' &&
       Boolean(order.razorpayPaymentId);
@@ -82,6 +84,19 @@ export const orderService = {
       // Only ever sent to the order's owner or an admin; customer links use it instead of the number.
       accessToken: order.accessToken ?? null,
       timeline: customerTimeline(order),
+      // The store's reason, when the store cancelled the order itself (its latest cancel by an admin).
+      storeCancellationReason:
+        order.status === 'CANCELLED'
+          ? ([...(order.statusEvents ?? [])].reverse().find((e: any) => e.toStatus === 'CANCELLED' && e.actor === 'ADMIN')?.note ?? null)
+          : null,
+      // The store cancelled a paid online order itself: the store refunds it, so the customer is
+      // told it's on its way rather than offered a Refund button.
+      refundPending:
+        order.status === 'CANCELLED' &&
+        order.paymentStatus === 'PAID' &&
+        order.paymentMethod === 'RAZORPAY' &&
+        Boolean(order.razorpayPaymentId) &&
+        latestRefund?.status !== 'PROCESSED',
       cancellationAllowed,
       date: rawDate.toLocaleDateString('en-IN', {
         month: 'short',

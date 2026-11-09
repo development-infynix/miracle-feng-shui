@@ -367,6 +367,12 @@ function DrawerContent({ productId, seed, onClose, titleId }: {
                     {t('shop.in_stock', '{count} in stock').replace('{count}', String(stock))}
                   </p>
                 )}
+                {noCancellation && (
+                  <p className="mt-1 flex items-start gap-1.5 text-[12px] leading-snug text-[#595959]">
+                    <i aria-hidden="true" className="fa-solid fa-circle-info mt-[3px] text-[10px]" />
+                    <span>{t('checkout.no_cancellation', 'Currently, orders can’t be cancelled after they’re placed. If an item arrives damaged or wrong, we’ll replace it.')}</span>
+                  </p>
+                )}
                 <div className="mt-3 flex flex-wrap gap-2">
                   {shown?.etsyPick && (
                     <span className="inline-flex items-center rounded-full border border-[#E1E3DF] bg-white/70 px-3 py-1 text-[11px] font-semibold text-[#222222]">
@@ -546,12 +552,6 @@ function DrawerContent({ productId, seed, onClose, titleId }: {
 
       {tab === 'details' && !unavailable && (
         <footer className="shrink-0 border-t border-[#E1E3DF] p-4">
-          {noCancellation && (
-            <p role="note" className="mb-3 flex items-start gap-2 rounded-lg border border-[#D9A400]/50 bg-[#FFF8E1] px-3 py-2.5 text-[13px] font-medium leading-snug text-[#5C4300]">
-              <i aria-hidden="true" className="fa-solid fa-triangle-exclamation mt-0.5 text-[12px] text-[#B07F00]" />
-              <span>{t('checkout.no_cancellation', 'Currently, orders can’t be cancelled after they’re placed. If an item arrives damaged or wrong, we’ll replace it.')}</span>
-            </p>
-          )}
           {addError && (
             <p role="alert" className="mb-3 text-[14px] font-medium text-[#8F1610]">
               {addError}

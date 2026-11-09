@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Alert from '@/app/components/alert';
 import OrderRefundPanel from './OrderRefundPanel';
 import OrderHistory from './OrderHistory';
+import CancelReasonDialog from './CancelReasonDialog';
 import { LuX } from 'react-icons/lu';
 import { OrderItemData } from '../types';
 
@@ -28,8 +29,19 @@ export default function ViewOrderDrawer({ order, onClose, onSaved, onDeleted }: 
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  const saveStatus = async (next: typeof status) => {
+  const [askReason, setAskReason] = useState(false);
+
+  // Cancelled asks why first; the reason is shown to the customer.
+  const chooseStatus = (next: typeof status) => {
     if (next === order.status || saving) return;
+    if (next === 'Cancelled') {
+      setAskReason(true);
+      return;
+    }
+    void saveStatus(next);
+  };
+
+  const saveStatus = async (next: typeof status, note?: string) => {
     setStatus(next);
     setSaving(true);
     setError('');
@@ -37,7 +49,7 @@ export default function ViewOrderDrawer({ order, onClose, onSaved, onDeleted }: 
       const res = await fetch(`/api/admin/orders/${order.id}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: next.toUpperCase() }),
+        body: JSON.stringify({ status: next.toUpperCase(), ...(note && { note }) }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.success) throw new Error(data.error || 'Failed to update status.');
@@ -47,6 +59,7 @@ export default function ViewOrderDrawer({ order, onClose, onSaved, onDeleted }: 
       setStatus(order.status);
     } finally {
       setSaving(false);
+      setAskReason(false);
     }
   };
 
@@ -194,11 +207,17 @@ export default function ViewOrderDrawer({ order, onClose, onSaved, onDeleted }: 
             <select
               id="order-status"
               value={status}
-              onChange={(e) => saveStatus(e.target.value as typeof status)}
+              onChange={(e) => chooseStatus(e.target.value as typeof status)}
               disabled={saving}
               className={`${inputClass} h-10 min-w-0 w-full disabled:opacity-60`}
             >
-              {STATUS_OPTIONS.map((option) => (
+              {STATUS_OPTIONS.filter(
+                // Placed while cancellation was off: no request steps, but Cancelled stays for a forced cancel.
+                (option) =>
+                  order.cancellationAllowed !== false ||
+                  option === status ||
+                  (option !== 'Cancellation Requested' && option !== 'Cancellation Approved')
+              ).map((option) => (
                 <option key={option} value={option}>
                   {option}
                 </option>
@@ -222,6 +241,15 @@ export default function ViewOrderDrawer({ order, onClose, onSaved, onDeleted }: 
             Delete
           </button>
         </footer>
+
+        <CancelReasonDialog
+          open={askReason}
+          orderNumber={order.orderNumber}
+          required={order.status !== 'Cancellation Requested' && order.status !== 'Cancellation Approved'}
+          busy={saving}
+          onCancel={() => setAskReason(false)}
+          onConfirm={(note) => void saveStatus('Cancelled', note)}
+        />
 
         <Alert
           open={confirmDelete}

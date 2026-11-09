@@ -1,23 +1,27 @@
 import prisma from '@/lib/prisma';
-import { Prisma } from '@/app/generated/prisma/client';
+import { Prisma, type OrderStatus } from '@/app/generated/prisma/client';
 
 export type RazorpayRefundState = 'pending' | 'processed' | 'failed';
-
-const CANCELLED_STATUSES = ['CANCELLATION_APPROVED', 'CANCELLED'] as const;
 
 export const refundRepository = {
   /**
    * Checked in the update itself, so two taps can't create two requests.
-   * Returns false if this order can't request a refund.
+   * A customer asks once their cancellation is approved; an admin refunds an order they cancelled
+   * themselves (`userId` null). Returns false if this order can't get a refund that way.
    */
-  async createRequest(orderId: string, userId: string, amountPaise: number) {
+  async createRequest(
+    orderId: string,
+    userId: string | null,
+    amountPaise: number,
+    statuses: readonly OrderStatus[] = ['CANCELLATION_APPROVED']
+  ) {
     return prisma.$transaction(async (tx) => {
       const { count } = await tx.order.updateMany({
         where: {
           id: orderId,
-          userId,
+          ...(userId && { userId }),
           refundRequestedAt: null,
-          status: { in: [...CANCELLED_STATUSES] },
+          status: { in: [...statuses] },
           paymentStatus: 'PAID',
           paymentMethod: 'RAZORPAY',
           razorpayPaymentId: { not: null },
