@@ -155,8 +155,13 @@ export default function CheckoutDrawer({ open, onClose }: CheckoutDrawerProps) {
     setAddressDrawerOpen(false);
   };
 
-  const finishOrder = (order: { orderNumber?: string; id?: string; orderId?: string }) => {
+  const finishOrder = (order: { accessToken?: string | null; orderNumber?: string; id?: string; orderId?: string }) => {
     clearCart();
+    // The link carries the unguessable token, so the order number doesn't end up in history or shared links.
+    if (order.accessToken) {
+      router.push(`/order-confirmation?order=${encodeURIComponent(order.accessToken)}`);
+      return;
+    }
     const reference = order.orderNumber || order.id || order.orderId || '';
     router.push(reference ? `/order-confirmation?orderNumber=${encodeURIComponent(reference)}` : '/order-confirmation');
   };

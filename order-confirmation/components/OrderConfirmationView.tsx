@@ -170,7 +170,9 @@ function CenteredMessage({ title, hint, children }: { title: string; hint: strin
 export default function OrderConfirmationView() {
   const searchParams = useSearchParams();
   const { t } = useLocale();
-  const reference = searchParams.get('orderNumber') || searchParams.get('orderId') || searchParams.get('id');
+  // New links carry ?order=<access token>; links from before keep working.
+  const reference =
+    searchParams.get('order') || searchParams.get('orderNumber') || searchParams.get('orderId') || searchParams.get('id');
   const [order, setOrder] = useState<CustomerOrder | null>(null);
   const [status, setStatus] = useState<'loading' | 'ready' | 'not-found' | 'failed'>(reference ? 'loading' : 'not-found');
   const [attempt, setAttempt] = useState(0);

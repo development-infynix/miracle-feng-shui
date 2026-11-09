@@ -1,4 +1,5 @@
 import prisma from '@/lib/prisma';
+import { generateOrderAccessToken } from '../utils/orderReference';
 import { Prisma, OrderStatus, PaymentMethod, PaymentStatus } from '@/app/generated/prisma/client';
 
 export const orderRepository = {
@@ -28,6 +29,7 @@ export const orderRepository = {
     return client.order.create({
       data: {
         orderNumber: data.orderNumber,
+        accessToken: generateOrderAccessToken(),
         userId: data.userId,
         status: data.status || 'PENDING',
         paymentMethod: data.paymentMethod,

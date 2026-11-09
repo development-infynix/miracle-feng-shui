@@ -13,10 +13,10 @@
 - [x] In `verifyPayment` and the `payment.captured` webhook (`server/services/payment.service.ts`), fetch the Razorpay payment entity and compare `payment.amount === Math.round(session.total * 100)`, `currency === 'INR'`, and status captured/authorized before creating a PAID order. New test: "writes nothing when the captured amount does not match the session total".
 - [x] Verified live: two end-to-end orders (MFS-441673 and MFS-178463) created, verified (`POST /payments/verify 200`), and landed on `/order-confirmation` with no amount mismatch.
 
-### 3. Order number enumeration → PII leak
-- [ ] Replace the 6-digit `MFS-` random order number (900k space, `Math.random`) with an unguessable ID (`order.service.ts:191`), and increase entropy / use CSPRNG. Use the new `Order.accessToken` for lookups everywhere customer-facing orders are fetched.
-- [ ] Resolve the orderNumber uniqueness-check gap in the generic `POST /api/orders` path (currently only the Razorpay path loops against existing orders+sessions).
-- [x] Foundation: added unguessable `Order.accessToken` (unique) to the `Order` model for customer-facing lookups; `orderNumber` is display-only. Migration + code wiring still open.
+### 3. Order number enumeration → PII leak ✅ DONE
+- [x] Order details and invoice already require sign-in and ownership (someone else's order returns 404), so a guessed number exposes nothing.
+- [x] Order numbers are now `MFS-XXXX-XXXX` from a 32-character alphabet (~10^12) drawn with `crypto.randomInt` (`server/utils/orderReference.ts`), checked against orders and open checkouts before use on both the Razorpay and COD paths (`checkoutSessionRepository.newOrderNumber`). Existing orders keep their numbers.
+- [x] Every order gets an unguessable `accessToken` when it's created; migration `20261109170000_backfill_order_access_tokens` gave existing orders one. Checkout's confirmation link carries `?order=<token>` instead of the number, and the order and invoice APIs accept it (still with the ownership check).
 
 ### 4. No rate limiting anywhere
 - [ ] Add rate limiting (and ideally CAPTCHA/lockout) to: login (`credentials`), register, forgot/reset password, `verify-password`, `change-password`. Grep confirmed zero `rateLimit|throttle` hits.

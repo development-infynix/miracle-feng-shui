@@ -67,6 +67,12 @@ describe.each([
   });
 });
 
+it('finds the order by its access token, the id customer links carry', async () => {
+  getServerSession.mockResolvedValue({ user: OWNER });
+  await getOrder(url('/api/orders/tok_abc'), { params: Promise.resolve({ id: 'tok_abc' }) });
+  expect(db.order.findFirst.mock.calls[0][0].where.OR).toContainEqual({ accessToken: 'tok_abc' });
+});
+
 it('gives the order details the IDs a customer needs', async () => {
   getServerSession.mockResolvedValue({ user: OWNER });
   const { data } = await (await getOrder(url('/api/orders/MFS-123456'), context)).json();
