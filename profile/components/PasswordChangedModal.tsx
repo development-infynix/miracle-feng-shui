@@ -57,36 +57,36 @@ export default function PasswordChangedModal({ onDone }: { onDone: (choice: Devi
     <div className="fixed inset-0 z-[9998] flex items-center justify-center p-3">
       <div
         aria-hidden="true"
-        className={`absolute inset-0 bg-black/40 transition-opacity duration-300 motion-reduce:transition-none ${poured ? 'opacity-100' : 'opacity-0'}`}
+        className={`absolute inset-0 bg-[#2B154C]/25 backdrop-blur-md transition-opacity duration-300 motion-reduce:transition-none ${poured ? 'opacity-100' : 'opacity-0'}`}
       />
       <div
         ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="password-changed-title"
-        className={`relative w-full max-w-[440px] rounded-[28px] border border-[#E1E3DF] bg-white p-6 transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${poured ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0'}`}
+        className={`glass-veil relative w-full max-w-[440px] rounded-[28px] p-6 shadow-[0_6px_10px_rgba(67,23,105,0.14),inset_0_2px_0_rgba(255,255,255,0.7),inset_0_-3px_5px_rgba(67,23,105,0.16)] transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${poured ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0'}`}
       >
         <div className="flex items-center gap-3">
-          <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#222222]">
+          <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#431769]">
             <i className="fa-solid fa-check text-[16px] text-white" />
           </span>
-          <h2 id="password-changed-title" className="font-serif text-[24px] font-bold leading-tight tracking-tight text-[#222222]">
+          <h2 id="password-changed-title" className="font-serif text-[24px] font-bold leading-tight tracking-tight text-[#111111]">
             {title}
           </h2>
         </div>
-        <p className="mt-2 text-[15px] leading-relaxed text-[#222222]">
+        <p className="mt-2 font-outfit text-[15px] leading-relaxed text-[#2B1A3F]">
           {t('profile.password_changed_body', 'Your password was updated. Use the new one next time you sign in.')}
         </p>
 
         <fieldset className="mt-5">
-          <legend className="text-[14px] font-semibold text-[#222222]">
+          <legend className="font-outfit text-[14px] font-semibold text-[#111111]">
             {t('profile.other_devices', 'What about your other devices?')}
           </legend>
           <div className="mt-2 space-y-2">
             {options.map((option, index) => (
               <label
                 key={option.value}
-                className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3.5 transition-colors ${choice === option.value ? 'border-[#222222] bg-[#F5F5F1]' : 'border-[#E1E3DF]'}`}
+                className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3.5 transition-colors ${choice === option.value ? 'border-[#431769] bg-white/70' : 'border-[#431769]/20 bg-white/40'}`}
               >
                 <input
                   ref={index === 0 ? firstOptionRef : undefined}
@@ -96,11 +96,11 @@ export default function PasswordChangedModal({ onDone }: { onDone: (choice: Devi
                   checked={choice === option.value}
                   disabled={saving}
                   onChange={() => setChoice(option.value)}
-                  className={`mt-1 h-4 w-4 shrink-0 accent-[#222222] ${focusRing}`}
+                  className={`mt-1 h-4 w-4 shrink-0 accent-[#431769] ${focusRing}`}
                 />
                 <span>
-                  <span className="block text-[15px] font-semibold text-[#222222]">{option.label}</span>
-                  <span className="mt-0.5 block text-[13px] leading-snug text-[#595959]">{option.hint}</span>
+                  <span className="block font-outfit text-[15px] font-semibold text-[#111111]">{option.label}</span>
+                  <span className="mt-0.5 block font-outfit text-[13px] leading-snug text-[#5B4A70]">{option.hint}</span>
                 </span>
               </label>
             ))}
