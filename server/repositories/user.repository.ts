@@ -22,6 +22,11 @@ export const userRepository = {
     });
   },
 
+  /** Just what an open session needs re-checked: whether the account still exists and is active. */
+  async findSessionStatus(id: string) {
+    return prisma.user.findUnique({ where: { id }, select: { deactivatedAt: true } });
+  },
+
   async findByGoogleId(googleId: string, tx?: Prisma.TransactionClient) {
     const client = tx || prisma;
     return client.user.findUnique({ where: { googleId } });

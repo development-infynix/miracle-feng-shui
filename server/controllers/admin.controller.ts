@@ -6,6 +6,7 @@ import {
   createProductSchema,
   updateProductSchema,
   updateOrderStatusSchema,
+  setCustomerActiveSchema,
 } from '../validators/admin.validator';
 import { apiResponse } from '../utils/apiResponse';
 
@@ -73,6 +74,11 @@ export const adminController = {
     const input = updateOrderStatusSchema.parse(body);
     const order = await adminService.updateOrderStatus(params.id, input);
     return apiResponse.ok(order);
+  },
+
+  async setCustomerActive(req: NextRequest, params: { id: string }) {
+    const { active } = setCustomerActiveSchema.parse(await req.json());
+    return apiResponse.ok(await adminService.setCustomerActive(params.id, active));
   },
 
   async getCustomerProfile(params: { id: string }) {

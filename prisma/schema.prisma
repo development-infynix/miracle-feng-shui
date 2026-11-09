@@ -47,6 +47,8 @@ model User {
   passwordHash String?
   /// Google's account id ("sub"), set once the customer signs in with Google.
   googleId     String?    @unique
+  /// Set when an admin deactivates the account: it can't sign in and open sessions end. Null means active.
+  deactivatedAt DateTime?
   role         Role       @default(CUSTOMER)
   phone        String?
   createdAt    DateTime   @default(now())

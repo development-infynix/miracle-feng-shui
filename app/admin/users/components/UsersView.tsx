@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import UsersTable from './UsersTable';
 import UserCard from './UserCard';
 import UserDetailDrawer from './UserDetailDrawer';
@@ -16,7 +17,14 @@ interface UsersViewProps {
 // Holds the selected customer so the table (desktop) and cards (mobile) share
 // one drawer — mirrors how ProductsClient owns viewProduct for ViewProductDrawer.
 export default function UsersView({ users, page, pageSize, search }: UsersViewProps) {
+  const router = useRouter();
   const [selected, setSelected] = useState<UserRow | null>(null);
+
+  // The drawer shows the change at once; the list catches up when the page data refreshes.
+  const handleStatusChange = (deactivatedAt: string | null) => {
+    setSelected((current) => (current ? { ...current, deactivatedAt } : current));
+    router.refresh();
+  };
 
   const openDrawer = (user: UserRow) => setSelected(user);
   const closeDrawer = () => setSelected(null);
@@ -40,7 +48,7 @@ export default function UsersView({ users, page, pageSize, search }: UsersViewPr
       </div>
 
       {/* Mounted per open customer, so tabs always start fresh with no stale data. */}
-      {selected && <UserDetailDrawer key={selected.id} user={selected} onClose={closeDrawer} />}
+      {selected && <UserDetailDrawer key={selected.id} user={selected} onClose={closeDrawer} onStatusChange={handleStatusChange} />}
     </>
   );
 }

@@ -45,6 +45,7 @@ export default async function AdminUsersPage({
         email: true,
         phone: true,
         createdAt: true,
+        deactivatedAt: true,
         _count: { select: { orders: true } },
       },
     }),
