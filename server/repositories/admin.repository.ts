@@ -367,6 +367,13 @@ export const adminRepository = {
   // Customer drawer queries. Each one returns null unless the id belongs to a
   // CUSTOMER. Results go to the browser, so they use allowlists: never select
   // passwordHash or resetToken*.
+  /** Customers only: an admin account can't be deactivated from here. Null when no such customer. */
+  async setCustomerDeactivatedAt(id: string, deactivatedAt: Date | null) {
+    const { count } = await prisma.user.updateMany({ where: { id, role: 'CUSTOMER' }, data: { deactivatedAt } });
+    if (count === 0) return null;
+    return prisma.user.findUnique({ where: { id }, select: { id: true, deactivatedAt: true } });
+  },
+
   async findCustomerProfile(id: string) {
     return prisma.user.findFirst({
       where: { id, role: 'CUSTOMER' },
@@ -376,6 +383,7 @@ export const adminRepository = {
         email: true,
         phone: true,
         createdAt: true,
+        deactivatedAt: true,
         // Default address first, so the drawer lists them in a sensible order.
         addresses: {
           orderBy: { isDefault: 'desc' },

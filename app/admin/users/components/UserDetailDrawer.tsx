@@ -11,6 +11,8 @@ import OrdersTab from './tabs/OrdersTab';
 interface UserDetailDrawerProps {
   user: UserRow;
   onClose: () => void;
+  /** Called after the customer is deactivated (a date) or reactivated (null). */
+  onStatusChange: (deactivatedAt: string | null) => void;
 }
 
 type TabKey = 'details' | 'favorites' | 'cart' | 'orders';
@@ -22,7 +24,7 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: 'orders', label: 'Orders' },
 ];
 
-export default function UserDetailDrawer({ user, onClose }: UserDetailDrawerProps) {
+export default function UserDetailDrawer({ user, onClose, onStatusChange }: UserDetailDrawerProps) {
   const [tab, setTab] = useState<TabKey>('details');
   // A tab mounts (and fetches) the first time it's opened, then stays mounted but
   // hidden, so going back to it keeps its data and scroll position.
@@ -34,7 +36,7 @@ export default function UserDetailDrawer({ user, onClose }: UserDetailDrawerProp
   };
 
   const panels: Record<TabKey, React.ReactNode> = {
-    details: <ProfileTab user={user} />,
+    details: <ProfileTab user={user} onStatusChange={onStatusChange} />,
     favorites: <FavoritesTab userId={user.id} />,
     cart: <CartTab userId={user.id} />,
     orders: <OrdersTab userId={user.id} />,

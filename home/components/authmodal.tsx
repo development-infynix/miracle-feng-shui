@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { getProviders, signIn } from 'next-auth/react';
 import GoogleMark from '@/components/GoogleMark';
+import { ACCOUNT_DEACTIVATED } from '@/lib/authErrors';
 import { useLocale } from '@/context/CurrencyContext';
 import { useGlassModal } from './useGlassModal';
 
@@ -122,6 +123,10 @@ export default function AuthModal({ open, mode, onModeChange, onClose, initialEr
         redirect: false,
       });
 
+      if (result?.error === ACCOUNT_DEACTIVATED) {
+        setError(t('auth.deactivated', 'This account has been deactivated. Contact us if you think this is a mistake.'));
+        return;
+      }
       if (result?.error) {
         setError(t('auth.invalid_credentials', "That email and password don't match. Try again, or reset your password."));
         return;

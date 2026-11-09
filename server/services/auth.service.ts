@@ -4,6 +4,7 @@ import { userRepository } from '../repositories/user.repository';
 import { ApiError } from '../utils/ApiError';
 import { RegisterInput, LoginInput, UpdateProfileInput } from '../validators/auth.validator';
 import { emailService } from './email.service';
+import { ACCOUNT_DEACTIVATED } from '@/lib/authErrors';
 
 const GOOGLE_ONLY_MESSAGE = 'This account signs in with Google, so it has no password. Use "Continue with Google".';
 
@@ -58,6 +59,10 @@ export const authService = {
     if (!isValid) {
       throw ApiError.unauthorized('Invalid email or password');
     }
+    // Only said after the right password, so it can't be used to find out which emails have accounts.
+    if (user.deactivatedAt) {
+      throw ApiError.forbidden(ACCOUNT_DEACTIVATED);
+    }
 
     return {
       id: user.id,
@@ -79,10 +84,14 @@ export const authService = {
     const email = input.email.trim().toLowerCase();
 
     const linked = await userRepository.findByGoogleId(input.googleId);
-    if (linked) return linked;
+    if (linked) {
+      if (linked.deactivatedAt) throw ApiError.forbidden(ACCOUNT_DEACTIVATED);
+      return linked;
+    }
 
     const existing = await userRepository.findByEmail(email);
     if (existing) {
+      if (existing.deactivatedAt) throw ApiError.forbidden(ACCOUNT_DEACTIVATED);
       if (existing.googleId && existing.googleId !== input.googleId) {
         throw ApiError.conflict('This email is linked to a different Google account.');
       }

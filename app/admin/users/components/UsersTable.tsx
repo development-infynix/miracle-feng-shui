@@ -47,8 +47,13 @@ export default function UsersTable({ users, page, pageSize, search, onView }: Us
               <td className="py-2.5 px-4 text-gray-400 tabular-nums">
                 {(page - 1) * (pageSize || PAGE_SIZE_FALLBACK) + idx + 1}
               </td>
-              <td className="py-2.5 px-4 font-semibold text-gray-900 max-w-[180px] truncate" title={user.name}>
+              <td className="py-2.5 px-4 font-semibold text-gray-900 max-w-[240px] truncate" title={user.name}>
                 {user.name}
+                {user.deactivatedAt && (
+                  <span className="ml-2 inline-flex shrink-0 rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-[10px] font-bold text-red-700 align-middle">
+                    Deactivated
+                  </span>
+                )}
               </td>
               <td className="py-2.5 px-4 max-w-[220px] truncate" title={user.email}>
                 {user.email}

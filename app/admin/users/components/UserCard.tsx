@@ -35,6 +35,11 @@ export default function UserCard({ user, onView }: UserCardProps) {
         <span className="font-bold text-sm text-gray-900 truncate" title={user.name}>
           {user.name}
         </span>
+        {user.deactivatedAt && (
+          <span className="ml-auto shrink-0 rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-[10px] font-bold text-red-700">
+            Deactivated
+          </span>
+        )}
       </div>
 
       {/* Email */}

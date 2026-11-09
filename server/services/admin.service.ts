@@ -446,6 +446,16 @@ export const adminService = {
     };
   },
 
+  /**
+   * Deactivating stops the customer signing in and ends their open sessions on their next request.
+   * Their orders, addresses and history stay, and orders already placed still go out.
+   */
+  async setCustomerActive(id: string, active: boolean) {
+    const customer = await adminRepository.setCustomerDeactivatedAt(id, active ? null : new Date());
+    if (!customer) throw ApiError.notFound('Customer not found');
+    return customer;
+  },
+
   async getCustomerProfile(id: string) {
     const customer = await adminRepository.findCustomerProfile(id);
     if (!customer) throw ApiError.notFound('Customer not found');

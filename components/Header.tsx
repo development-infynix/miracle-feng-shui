@@ -8,6 +8,7 @@ import { useCart } from "@/context/CartContext";
 import { useLocale } from "@/context/CurrencyContext";
 import type { NavCategory } from "@/lib/nav-categories";
 import AuthModal from "@/home/components/authmodal";
+import { ACCOUNT_DEACTIVATED } from "@/lib/authErrors";
 import GeneralSearchModal from "@/home/components/generalsearchmodal";
 import NavCategoriesMenu from "@/components/nav/NavCategoriesMenu";
 import NavAccountMenu from "@/components/nav/NavAccountMenu";
@@ -363,9 +364,11 @@ function SiteHeader({
           setAuthError("");
         }}
         initialError={
-          authError
-            ? t("auth.google_failed", "We couldn't sign you in with Google. Please try again.")
-            : undefined
+          authError === ACCOUNT_DEACTIVATED
+            ? t("auth.deactivated", "This account has been deactivated. Contact us if you think this is a mistake.")
+            : authError
+              ? t("auth.google_failed", "We couldn't sign you in with Google. Please try again.")
+              : undefined
         }
         onSignedIn={({ name, email }) => {
           setUserLoggedIn(true);

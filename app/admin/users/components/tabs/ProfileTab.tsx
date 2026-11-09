@@ -1,13 +1,43 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import type { CustomerProfile, UserRow } from '../../types';
 import { useCustomerSection } from './useCustomerSection';
 import { EmptyState, formatDate, TabBody, TabError, TabLoading } from './shared';
 
-export default function ProfileTab({ user }: { user: UserRow }) {
+export default function ProfileTab({
+  user,
+  onStatusChange,
+}: {
+  user: UserRow;
+  onStatusChange: (deactivatedAt: string | null) => void;
+}) {
   const { state, retry } = useCustomerSection<CustomerProfile>(user.id);
   const profile = state.status === 'ready' ? state.data : null;
+  const deactivated = Boolean(user.deactivatedAt);
+  const [confirming, setConfirming] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  const setActive = async (active: boolean) => {
+    setSaving(true);
+    setError('');
+    try {
+      const res = await fetch(`/api/admin/users/${user.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ active }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json.success) throw new Error(json.error || 'request failed');
+      setConfirming(false);
+      onStatusChange(json.data.deactivatedAt ?? null);
+    } catch {
+      setError(active ? "Couldn't reactivate this customer. Try again." : "Couldn't deactivate this customer. Try again.");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const initials = user.name
     .split(' ')
@@ -24,6 +54,14 @@ export default function ProfileTab({ user }: { user: UserRow }) {
     ['Email', user.email],
     ['Phone', user.phone || '—'],
     ['Role', 'Customer'],
+    [
+      'Status',
+      deactivated ? (
+        <span className="text-red-700">Deactivated on {formatDate(user.deactivatedAt as string)}</span>
+      ) : (
+        <span className="text-emerald-700">Active</span>
+      ),
+    ],
     ['Joined', formatDate(user.createdAt)],
     ['Orders', `${user._count.orders} placed`],
     ['Favorites', profile ? `${profile._count.favorites}` : pending],
@@ -104,14 +142,63 @@ export default function ProfileTab({ user }: { user: UserRow }) {
         </section>
       </TabBody>
 
-      {/* Placeholder Deactivate action, not wired up yet. */}
-      <footer className="flex shrink-0 items-center justify-end border-t border-stone-200 bg-[#fafaf9] px-5 py-3">
-        <button
-          type="button"
-          className="inline-flex items-center rounded-md border border-stone-300 bg-white px-3 py-1.5 text-xs font-semibold text-stone-700 transition-colors hover:bg-stone-100 cursor-pointer"
-        >
-          Deactivate
-        </button>
+      {/* Deactivate asks first; Reactivate doesn't, since it only gives access back. */}
+      <footer className="shrink-0 border-t border-stone-200 bg-[#fafaf9] px-5 py-3">
+        {error && (
+          <p role="alert" className="mb-2 text-xs font-medium text-red-700">
+            {error}
+          </p>
+        )}
+        {confirming ? (
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs text-stone-700">
+              Deactivate <strong>{user.name}</strong>? They&rsquo;ll be signed out and can&rsquo;t sign in until you reactivate them.
+              Their orders stay, and orders already placed still go out.
+            </p>
+            <div className="flex shrink-0 justify-end gap-2">
+              <button
+                type="button"
+                disabled={saving}
+                onClick={() => setConfirming(false)}
+                className="inline-flex items-center rounded-md border border-stone-300 bg-white px-3 py-1.5 text-xs font-semibold text-stone-700 transition-colors hover:bg-stone-100 disabled:opacity-50 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={saving}
+                onClick={() => void setActive(false)}
+                className="inline-flex items-center rounded-md bg-red-700 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-red-800 disabled:opacity-50 cursor-pointer"
+              >
+                {saving ? 'Deactivating…' : 'Deactivate'}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center justify-end">
+            {deactivated ? (
+              <button
+                type="button"
+                disabled={saving}
+                onClick={() => void setActive(true)}
+                className="inline-flex items-center rounded-md border border-emerald-300 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-800 transition-colors hover:bg-emerald-50 disabled:opacity-50 cursor-pointer"
+              >
+                {saving ? 'Reactivating…' : 'Reactivate'}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setError('');
+                  setConfirming(true);
+                }}
+                className="inline-flex items-center rounded-md border border-red-300 bg-white px-3 py-1.5 text-xs font-semibold text-red-700 transition-colors hover:bg-red-50 cursor-pointer"
+              >
+                Deactivate
+              </button>
+            )}
+          </div>
+        )}
       </footer>
     </>
   );

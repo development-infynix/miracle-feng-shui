@@ -8,6 +8,8 @@ export interface UserRow {
   email: string;
   phone: string | null;
   createdAt: Date;
+  /** Set when the account is deactivated; null when active. A string once updated in the browser. */
+  deactivatedAt: Date | string | null;
   _count: { orders: number };
 }
 
