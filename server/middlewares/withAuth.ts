@@ -16,8 +16,11 @@ export type AuthenticatedRouteHandler = (
   context: { user: AuthenticatedUser; params?: any }
 ) => Promise<Response>;
 
+/** The opt-in local bypass's stand-in admin. It has no account, so nothing should store its id. */
+export const DEV_ADMIN_ID = 'dev-admin';
+
 const DEV_ADMIN: AuthenticatedUser = {
-  id: 'dev-admin',
+  id: DEV_ADMIN_ID,
   name: 'Dev Admin',
   email: 'dev@local',
   role: 'ADMIN',

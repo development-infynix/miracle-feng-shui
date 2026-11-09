@@ -69,10 +69,14 @@ export const adminController = {
     return apiResponse.ok(orders);
   },
 
-  async updateOrderStatus(req: NextRequest, params: { id: string }) {
+  async getOrderHistory(params: { id: string }) {
+    return apiResponse.ok(await adminService.getOrderHistory(params.id));
+  },
+
+  async updateOrderStatus(req: NextRequest, params: { id: string }, adminId?: string) {
     const body = await req.json();
     const input = updateOrderStatusSchema.parse(body);
-    const order = await adminService.updateOrderStatus(params.id, input);
+    const order = await adminService.updateOrderStatus(params.id, input, adminId);
     return apiResponse.ok(order);
   },
 

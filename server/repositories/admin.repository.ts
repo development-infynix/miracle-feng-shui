@@ -353,10 +353,45 @@ export const adminRepository = {
     });
   },
 
-  async updateOrderStatus(id: string, status: OrderStatus, deliveredAt: Date | null) {
+  /** Every status change on one order, oldest first, with the name of whoever made it. Null if no such order. */
+  async findOrderHistory(id: string) {
+    return prisma.order.findUnique({
+      where: { id },
+      select: {
+        statusEvents: {
+          orderBy: { createdAt: 'asc' },
+          select: {
+            id: true,
+            fromStatus: true,
+            toStatus: true,
+            actor: true,
+            note: true,
+            createdAt: true,
+            changedBy: { select: { name: true, email: true } },
+          },
+        },
+      },
+    });
+  },
+
+  /** Writes the history entry in the same update, so a status can't change without one. */
+  async updateOrderStatus(
+    id: string,
+    status: OrderStatus,
+    deliveredAt: Date | null,
+    change: { fromStatus: OrderStatus; adminId: string | null } | null
+  ) {
     return prisma.order.update({
       where: { id },
-      data: { status, deliveredAt },
+      data: {
+        status,
+        deliveredAt,
+        ...(change && {
+          statusEvents: {
+            create: { fromStatus: change.fromStatus, toStatus: status, actor: 'ADMIN', changedById: change.adminId },
+          },
+        }),
+      },
       include: {
         items: true,
         user: { select: { id: true, name: true, email: true, phone: true } },

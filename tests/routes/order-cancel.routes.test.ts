@@ -2,9 +2,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
 
 const getServerSession = vi.hoisted(() => vi.fn());
-const db = vi.hoisted(() => ({
-  order: { findUnique: vi.fn(), updateMany: vi.fn() },
-}));
+const db = vi.hoisted(() => {
+  const client: any = {
+    order: { findUnique: vi.fn(), updateMany: vi.fn() },
+    orderStatusEvent: { create: vi.fn() },
+  };
+  // The request and its history entry are written in one transaction.
+  client.$transaction = vi.fn((work: (tx: unknown) => unknown) => work(client));
+  return client;
+});
 
 vi.mock('next-auth', () => ({ getServerSession }));
 vi.mock('@/lib/auth', () => ({ authOptions: {} }));
@@ -65,7 +71,8 @@ describe('POST /api/orders/[id]/cancel', () => {
 
   it('records the request and its trimmed reason', async () => {
     db.order.findUnique
-      .mockResolvedValueOnce(ORDER)
+      .mockResolvedValueOnce(ORDER) // the ownership check
+      .mockResolvedValueOnce(ORDER) // the status read inside the transaction
       .mockResolvedValueOnce({ ...ORDER, status: 'CANCELLATION_REQUESTED', cancellationRequestedAt: new Date() });
 
     const res = await post({ reason: '  Wrong item  ' });
@@ -80,11 +87,16 @@ describe('POST /api/orders/[id]/cancel', () => {
     expect(where).toMatchObject({ id: 'o1', userId: 'owner', cancellationRequestedAt: null });
     expect(where.OR[0].status.in).not.toContain('SHIPPED');
     expect(data).toMatchObject({ status: 'CANCELLATION_REQUESTED', cancellationReason: 'Wrong item' });
+    expect(where.status).toBe('PAID');
+    expect(db.orderStatusEvent.create).toHaveBeenCalledWith({
+      data: { orderId: 'o1', fromStatus: 'PAID', toStatus: 'CANCELLATION_REQUESTED', actor: 'CUSTOMER', changedById: 'owner', note: 'Wrong item' },
+    });
   });
 
   it('refuses an order that can no longer be cancelled', async () => {
     db.order.updateMany.mockResolvedValue({ count: 0 });
     expect((await post({ reason: 'Wrong item' })).status).toBe(409);
+    expect(db.orderStatusEvent.create).not.toHaveBeenCalled();
   });
 });
 

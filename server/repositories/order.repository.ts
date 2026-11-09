@@ -26,12 +26,15 @@ export const orderRepository = {
     tx?: Prisma.TransactionClient
   ) {
     const client = tx || prisma;
+    const status = data.status || 'PENDING';
     return client.order.create({
       data: {
         orderNumber: data.orderNumber,
         accessToken: generateOrderAccessToken(),
         userId: data.userId,
-        status: data.status || 'PENDING',
+        status,
+        // The customer placing the order is the first entry in its history.
+        statusEvents: { create: { toStatus: status, actor: 'CUSTOMER', changedById: data.userId, note: 'Order placed' } },
         paymentMethod: data.paymentMethod,
         paymentStatus: data.paymentStatus || 'PENDING',
         total: data.total,
@@ -101,6 +104,7 @@ export const orderRepository = {
     return client.order.findUnique({
       where: { id },
       include: {
+        statusEvents: { select: { toStatus: true, createdAt: true }, orderBy: { createdAt: 'asc' } },
         refunds: { orderBy: { createdAt: 'desc' } },
         items: {
           include: { product: true },
@@ -117,6 +121,7 @@ export const orderRepository = {
     return client.order.findUnique({
       where: { orderNumber },
       include: {
+        statusEvents: { select: { toStatus: true, createdAt: true }, orderBy: { createdAt: 'asc' } },
         items: {
           include: { product: true },
         },
@@ -142,6 +147,7 @@ export const orderRepository = {
     return client.order.findMany({
       where: { userId },
       include: {
+        statusEvents: { select: { toStatus: true, createdAt: true }, orderBy: { createdAt: 'asc' } },
         refunds: { orderBy: { createdAt: 'desc' } },
         items: {
           include: { product: true },
@@ -190,37 +196,45 @@ export const orderRepository = {
     return prisma.order.findFirst({ where: { razorpayPaymentId } });
   },
 
-  async updateStatus(id: string, status: OrderStatus, tx?: Prisma.TransactionClient) {
-    const client = tx || prisma;
-    return client.order.update({
-      where: { id },
-      data: { status },
-      include: { items: true },
-    });
-  },
-
   /**
    * Checked in the update itself, so a request can't slip in just after the order ships.
    * A customer gets one request per order. Returns false if nothing changed.
    */
   async requestCancellation(orderId: string, userId: string, reason: string) {
-    const { count } = await prisma.order.updateMany({
-      where: {
-        id: orderId,
-        userId,
-        cancellationRequestedAt: null,
-        OR: [
-          { status: { in: ['PAID', 'COD_PENDING', 'PROCESSING'] } },
-          { status: 'PENDING', paymentStatus: 'PAID' },
-        ],
-      },
-      data: {
-        status: 'CANCELLATION_REQUESTED',
-        cancellationReason: reason,
-        cancellationRequestedAt: new Date(),
-      },
+    return prisma.$transaction(async (tx) => {
+      const current = await tx.order.findUnique({ where: { id: orderId }, select: { status: true } });
+      if (!current) return false;
+      const { count } = await tx.order.updateMany({
+        where: {
+          id: orderId,
+          userId,
+          // Also the status just read, so the history records exactly what it changed from.
+          status: current.status,
+          cancellationRequestedAt: null,
+          OR: [
+            { status: { in: ['PAID', 'COD_PENDING', 'PROCESSING'] } },
+            { status: 'PENDING', paymentStatus: 'PAID' },
+          ],
+        },
+        data: {
+          status: 'CANCELLATION_REQUESTED',
+          cancellationReason: reason,
+          cancellationRequestedAt: new Date(),
+        },
+      });
+      if (count === 0) return false;
+      await tx.orderStatusEvent.create({
+        data: {
+          orderId,
+          fromStatus: current.status,
+          toStatus: 'CANCELLATION_REQUESTED',
+          actor: 'CUSTOMER',
+          changedById: userId,
+          note: reason,
+        },
+      });
+      return true;
     });
-    return count > 0;
   },
 
 };
