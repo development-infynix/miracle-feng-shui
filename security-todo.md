@@ -31,8 +31,9 @@
 
 ## 🟠 Medium
 
-### 7. Verbose error leakage
-- [ ] Return a generic message for non-`ApiError` errors in `handleError.ts:30-31` (stop returning `error.message` verbatim — Prisma/Razorpay/S3 internals).
+### 7. Verbose error leakage ✅ DONE
+- [x] `handleError.ts` now returns "Something went wrong. Please try again." for any error that isn't an `ApiError` or a validation error, and logs the full error on the server. Common database errors get plain messages instead (not found → 404, already exists / still in use → 409).
+- [x] Admin CSV import and export no longer return raw error messages either.
 
 ### 8. Unauthenticated S3 fetch
 - [ ] Require auth on `/api/images/[...key]` and restrict keys to an `uploads/` prefix (`app/api/images/[...key]/route.ts:14-38`).

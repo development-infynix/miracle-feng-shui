@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { prismaErrorCode } from '@/server/middlewares/handleError';
 import { withRole } from '@/server/middlewares/withAuth';
 import { prisma } from '@/lib/prisma';
 import { invalidateNavCategories } from '@/lib/nav-categories';
@@ -289,10 +290,14 @@ export const POST = withRole('ADMIN', async (req: NextRequest) => {
           createdCount++;
         }
       } catch (err: any) {
+        console.error(`CSV import: row ${rowNumber} failed:`, err);
         errors.push({
           row: rowNumber,
           title: rawTitle,
-          message: err?.message || 'Failed to save product in database',
+          message:
+            prismaErrorCode(err) === 'P2002'
+              ? 'Another product already uses this slug or title.'
+              : "Couldn't save this product. Check its values and try again.",
         });
       }
     }
@@ -310,7 +315,7 @@ export const POST = withRole('ADMIN', async (req: NextRequest) => {
   } catch (error: any) {
     console.error('CSV import handler failed:', error);
     return NextResponse.json(
-      { success: false, error: error?.message || 'Failed to process CSV import' },
+      { success: false, error: "Couldn't process the CSV import. Check the file and try again." },
       { status: 500 }
     );
   }

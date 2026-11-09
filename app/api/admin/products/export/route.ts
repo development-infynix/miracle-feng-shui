@@ -102,7 +102,7 @@ export const GET = withRole('ADMIN', async (req: NextRequest) => {
   } catch (error: any) {
     console.error('CSV export failed:', error);
     return NextResponse.json(
-      { success: false, error: error?.message || 'Failed to export products CSV' },
+      { success: false, error: "Couldn't export the products CSV. Please try again." },
       { status: 500 }
     );
   }
