@@ -379,7 +379,7 @@ export const adminRepository = {
     id: string,
     status: OrderStatus,
     deliveredAt: Date | null,
-    change: { fromStatus: OrderStatus; adminId: string | null } | null
+    change: { fromStatus: OrderStatus; adminId: string | null; note?: string | null } | null
   ) {
     return prisma.order.update({
       where: { id },
@@ -388,7 +388,7 @@ export const adminRepository = {
         deliveredAt,
         ...(change && {
           statusEvents: {
-            create: { fromStatus: change.fromStatus, toStatus: status, actor: 'ADMIN', changedById: change.adminId },
+            create: { fromStatus: change.fromStatus, toStatus: status, actor: 'ADMIN', changedById: change.adminId, note: change.note ?? null },
           },
         }),
       },

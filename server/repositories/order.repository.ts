@@ -107,7 +107,7 @@ export const orderRepository = {
     return client.order.findUnique({
       where: { id },
       include: {
-        statusEvents: { select: { toStatus: true, createdAt: true }, orderBy: { createdAt: 'asc' } },
+        statusEvents: { select: { toStatus: true, createdAt: true, actor: true, note: true }, orderBy: { createdAt: 'asc' } },
         refunds: { orderBy: { createdAt: 'desc' } },
         items: {
           include: { product: true },
@@ -124,7 +124,7 @@ export const orderRepository = {
     return client.order.findUnique({
       where: { orderNumber },
       include: {
-        statusEvents: { select: { toStatus: true, createdAt: true }, orderBy: { createdAt: 'asc' } },
+        statusEvents: { select: { toStatus: true, createdAt: true, actor: true, note: true }, orderBy: { createdAt: 'asc' } },
         items: {
           include: { product: true },
         },
@@ -150,7 +150,7 @@ export const orderRepository = {
     return client.order.findMany({
       where: { userId },
       include: {
-        statusEvents: { select: { toStatus: true, createdAt: true }, orderBy: { createdAt: 'asc' } },
+        statusEvents: { select: { toStatus: true, createdAt: true, actor: true, note: true }, orderBy: { createdAt: 'asc' } },
         refunds: { orderBy: { createdAt: 'desc' } },
         items: {
           include: { product: true },

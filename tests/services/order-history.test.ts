@@ -70,7 +70,7 @@ describe('history is written with every admin change', () => {
 
     await adminService.updateOrderStatus('o1', { status: 'SHIPPED' } as any, 'admin-1');
 
-    expect(save).toHaveBeenCalledWith('o1', 'SHIPPED', null, { fromStatus: 'PAID', adminId: 'admin-1' });
+    expect(save).toHaveBeenCalledWith('o1', 'SHIPPED', null, { fromStatus: 'PAID', adminId: 'admin-1', note: null });
   });
 
   it('adds nothing when the same status is saved again', async () => {

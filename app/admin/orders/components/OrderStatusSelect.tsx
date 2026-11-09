@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import type { OrderItemData, OrderUiStatus } from '../types';
+import CancelReasonDialog from './CancelReasonDialog';
 
 export const ORDER_STATUS_OPTIONS: OrderUiStatus[] = [
   'Pending',
@@ -30,7 +31,10 @@ export const statusColor = (value: string) =>
   ORDER_STATUS_COLORS[(value || '').toLowerCase()] || 'bg-gray-50 text-gray-700 border-gray-200';
 
 // Ending an order is easy to mis-click in a list, so these ask first.
-const CONFIRM_STATUSES: OrderUiStatus[] = ['Cancellation Approved', 'Cancelled'];
+// Cancelled asks for a reason instead (CancelReasonDialog), which is its confirmation.
+const CONFIRM_STATUSES: OrderUiStatus[] = ['Cancellation Approved'];
+// Steps of a customer's cancellation request, which orders placed while cancellation was off can't have.
+const REQUEST_STATUSES: OrderUiStatus[] = ['Cancellation Requested', 'Cancellation Approved'];
 // Once a refund is under way or done the server keeps the order cancelled, so only these are offered.
 const REFUNDED_STATUSES: OrderUiStatus[] = ['Cancellation Approved', 'Cancelled'];
 
@@ -50,7 +54,10 @@ export default function OrderStatusSelect({
   const [error, setError] = useState('');
 
   const moneyMoved = order.refund?.status === 'PROCESSING' || order.refund?.status === 'PROCESSED';
-  const options = moneyMoved ? REFUNDED_STATUSES : ORDER_STATUS_OPTIONS;
+  const allowed = order.cancellationAllowed === false
+    ? ORDER_STATUS_OPTIONS.filter((option) => !REQUEST_STATUSES.includes(option))
+    : ORDER_STATUS_OPTIONS;
+  const options = moneyMoved ? REFUNDED_STATUSES : allowed;
   // Keep the current status listed even if it's no longer one of the offered choices.
   const shown = options.includes(status) ? options : [status, ...options];
 
@@ -61,10 +68,21 @@ export default function OrderStatusSelect({
     setStatus(order.status);
   }
 
-  const save = async (next: OrderUiStatus) => {
-    if (next === status || saving) return;
-    if (CONFIRM_STATUSES.includes(next) && !window.confirm(`Mark order #${order.orderNumber} as ${next}?`)) return;
+  const [askReason, setAskReason] = useState(false);
+  // The customer didn't ask to cancel, so they're owed a reason.
+  const reasonRequired = status !== 'Cancellation Requested' && status !== 'Cancellation Approved';
 
+  const choose = (next: OrderUiStatus) => {
+    if (next === status || saving) return;
+    if (next === 'Cancelled') {
+      setAskReason(true);
+      return;
+    }
+    if (CONFIRM_STATUSES.includes(next) && !window.confirm(`Mark order #${order.orderNumber} as ${next}?`)) return;
+    void save(next);
+  };
+
+  const save = async (next: OrderUiStatus, note?: string) => {
     const previous = status;
     setStatus(next);
     setSaving(true);
@@ -73,7 +91,7 @@ export default function OrderStatusSelect({
       const res = await fetch(`/api/admin/orders/${order.id}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: next.toUpperCase() }),
+        body: JSON.stringify({ status: next.toUpperCase(), ...(note && { note }) }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.success) throw new Error(data.error || "Couldn't update the status.");
@@ -83,6 +101,7 @@ export default function OrderStatusSelect({
       setError(err instanceof Error ? err.message : "Couldn't update the status.");
     } finally {
       setSaving(false);
+      setAskReason(false);
     }
   };
 
@@ -96,7 +115,7 @@ export default function OrderStatusSelect({
           id={`status-${order.id}`}
           value={status}
           disabled={saving}
-          onChange={(e) => void save(e.target.value as OrderUiStatus)}
+          onChange={(e) => choose(e.target.value as OrderUiStatus)}
           title={moneyMoved ? 'This order has a refund, so it stays cancelled.' : 'Change status'}
           className={`cursor-pointer appearance-none rounded-full border py-0.5 pl-2 pr-6 text-[10px] font-bold whitespace-nowrap outline-none transition-colors hover:brightness-95 focus-visible:ring-2 focus-visible:ring-stone-900/20 disabled:cursor-wait disabled:opacity-60 ${statusColor(status)}`}
         >
@@ -116,6 +135,14 @@ export default function OrderStatusSelect({
           {error}
         </span>
       )}
+      <CancelReasonDialog
+        open={askReason}
+        orderNumber={order.orderNumber}
+        required={reasonRequired}
+        busy={saving}
+        onCancel={() => setAskReason(false)}
+        onConfirm={(note) => void save('Cancelled', note)}
+      />
     </div>
   );
 }

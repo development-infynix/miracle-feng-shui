@@ -8,6 +8,7 @@ import { ProductLink } from '@/shop/components/ProductDrawerProvider';
 import CancelOrderModal from './CancelOrderModal';
 import RefundSubmittedModal from './RefundSubmittedModal';
 import OrderDetailsDrawer from './OrderDetailsDrawer';
+import StoreCancelledModal from './StoreCancelledModal';
 import type { TimelineEntry } from './OrderTimeline';
 import { FormError, skeleton } from './profileUi';
 
@@ -52,6 +53,10 @@ export interface CustomerOrder {
   timeline?: TimelineEntry[];
   /** False when the order was bought while the store didn't allow cancellation. */
   cancellationAllowed?: boolean;
+  /** The store cancelled this paid order and is refunding it. */
+  refundPending?: boolean;
+  /** Why the store cancelled it, when the store did. */
+  storeCancellationReason?: string | null;
 }
 
 // Stone & Gold: the same sharp, lightly outlined box as the product card.
@@ -114,6 +119,7 @@ function OrderCard({
   const red = RED_STATUSES.includes(order.status);
   const [requesting, setRequesting] = useState(false);
   const [refundError, setRefundError] = useState('');
+  const [showCancelReason, setShowCancelReason] = useState(false);
 
   const requestRefund = async () => {
     setRequesting(true);
@@ -144,10 +150,32 @@ function OrderCard({
         </div>
         {/* The status and what the customer can do about it share one line. */}
         <div className="flex items-center justify-between gap-3">
-          <p aria-live="polite" className={`flex min-w-0 items-center gap-2 font-geist text-[14px] font-semibold ${red ? 'text-[#8F1610]' : 'text-ink'}`}>
-            <i aria-hidden="true" className={`${status.icon} text-[13px]`} />
-            {status.key ? t(status.key, status.label) : status.label}
-          </p>
+          {order.storeCancellationReason ? (
+            // The store cancelled it: the status opens the reason.
+            <button
+              type="button"
+              onClick={() => setShowCancelReason(true)}
+              aria-label={`${status.key ? t(status.key, status.label) : status.label}. ${t('profile.store_cancelled_title', 'Why was this order cancelled?')}`}
+              className={`group flex min-w-0 cursor-pointer items-center gap-2 font-geist text-[14px] font-semibold text-[#8F1610] ${focusRing}`}
+            >
+              <i aria-hidden="true" className={`${status.icon} text-[13px]`} />
+              <span className="underline decoration-dotted underline-offset-4 group-hover:decoration-solid">
+                {status.key ? t(status.key, status.label) : status.label}
+              </span>
+              {order.refundPending && (
+                <span className="font-normal text-[#5C4300]">({t('profile.processing_refund', 'Processing refund')})</span>
+              )}
+              <i aria-hidden="true" className="fa-solid fa-circle-info text-[12px] opacity-70" />
+            </button>
+          ) : (
+            <p aria-live="polite" className={`flex min-w-0 items-center gap-2 font-geist text-[14px] font-semibold ${red ? 'text-[#8F1610]' : 'text-ink'}`}>
+              <i aria-hidden="true" className={`${status.icon} text-[13px]`} />
+              {status.key ? t(status.key, status.label) : status.label}
+              {order.refundPending && (
+                <span className="font-normal text-[#5C4300]">({t('profile.processing_refund', 'Processing refund')})</span>
+              )}
+            </p>
+          )}
           {order.canCancel && (
             <button
               type="button"
@@ -265,14 +293,36 @@ function OrderCard({
           <i aria-hidden="true" className="fa-solid fa-download text-[12px] text-ink" />
           <span className={linkLabel}>{t('profile.invoice', 'Invoice')}</span>
         </button>
-        <a
-          href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(`Order ${order.orderNumber}`)}`}
-          aria-label={`${t('profile.order_help', 'Get help with this order')}: #${order.orderNumber}`}
-          className={linkButton}
-        >
-          <span className={linkLabel}>{t('profile.support', 'Support')}</span>
-        </a>
+        {/* Once it's delivered, help is usually about a problem with what arrived. */}
+        {order.status === 'DELIVERED' ? (
+          <a
+            href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(`Issue with order ${order.orderNumber}`)}`}
+            aria-label={`${t('profile.report_issue_full', 'Report an issue with this order')}: #${order.orderNumber}`}
+            className={linkButton}
+          >
+            <span className={linkLabel}>{t('profile.report_issue', 'Report issue')}</span>
+          </a>
+        ) : (
+          <a
+            href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(`Order ${order.orderNumber}`)}`}
+            aria-label={`${t('profile.order_help', 'Get help with this order')}: #${order.orderNumber}`}
+            className={linkButton}
+          >
+            <span className={linkLabel}>{t('profile.support', 'Support')}</span>
+          </a>
+        )}
       </div>
+      {showCancelReason && order.storeCancellationReason && (
+        <StoreCancelledModal
+          orderNumber={order.orderNumber}
+          reason={order.storeCancellationReason}
+          total={order.total || order.totalAmount}
+          refundPending={Boolean(order.refundPending)}
+          refunded={order.refund?.status === 'PROCESSED'}
+          supportEmail={SUPPORT_EMAIL}
+          onClose={() => setShowCancelReason(false)}
+        />
+      )}
     </li>
   );
 }

@@ -90,6 +90,8 @@ export const updateOrderStatusSchema = z.object({
   status: z.string().transform((val) => val.toUpperCase().replace(/ /g, '_')).pipe(
     z.enum(['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLATION_REQUESTED', 'CANCELLATION_APPROVED', 'CANCELLED'])
   ),
+  /** Why the store cancelled it. Shown to the customer and kept in the order's history. */
+  note: z.string().trim().max(300, 'Keep the reason under 300 characters').optional(),
 });
 
 export type UpdateOrderStatusInput = z.infer<typeof updateOrderStatusSchema>;

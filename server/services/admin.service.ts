@@ -382,6 +382,7 @@ export const adminService = {
         status: uiStatus,
         rawStatus: o.status,
         paymentStatus: o.paymentStatus,
+        cancellationAllowed: o.cancellationAllowed,
         cancellationReason: o.cancellationReason,
         refund: o.refunds[0]
           ? {
@@ -425,6 +426,26 @@ export const adminService = {
       throw ApiError.notFound('Order not found');
     }
 
+    // Bought while the store didn't allow cancellation: the customer can't request it, so these two
+    // don't apply. An admin can still force-cancel with Cancelled.
+    if (
+      existing.cancellationAllowed === false &&
+      (input.status === 'CANCELLATION_REQUESTED' || input.status === 'CANCELLATION_APPROVED') &&
+      existing.status !== input.status
+    ) {
+      throw ApiError.badRequest('This order was placed while cancellation was off. To cancel it, set it to Cancelled.');
+    }
+
+    // Cancelling an order the customer didn't ask to cancel: the customer is owed a reason.
+    const forcedCancel =
+      input.status === 'CANCELLED' &&
+      existing.status !== 'CANCELLED' &&
+      existing.status !== 'CANCELLATION_REQUESTED' &&
+      existing.status !== 'CANCELLATION_APPROVED';
+    if (forcedCancel && !input.note) {
+      throw ApiError.badRequest('Give a reason for cancelling, so the customer knows why.');
+    }
+
     // Money has gone back or is on its way, so the order can't go back to being fulfilled.
     const moneyMoved = existing.refunds?.some((refund) => refund.status === 'PROCESSING' || refund.status === 'PROCESSED');
     if (moneyMoved && input.status !== 'CANCELLATION_APPROVED' && input.status !== 'CANCELLED') {
@@ -435,7 +456,9 @@ export const adminService = {
     const deliveredAt = input.status === 'DELIVERED' ? (existing.deliveredAt ?? new Date()) : null;
     // Saving the same status again changes nothing, so it adds nothing to the history either.
     const change =
-      existing.status === input.status ? null : { fromStatus: existing.status as OrderStatus, adminId: adminId ?? null };
+      existing.status === input.status
+        ? null
+        : { fromStatus: existing.status as OrderStatus, adminId: adminId ?? null, note: input.note || null };
     const updated = await adminRepository.updateOrderStatus(id, input.status as OrderStatus, deliveredAt, change);
     const addr = (updated.shippingAddress as any) || {};
     return {

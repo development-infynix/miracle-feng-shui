@@ -60,6 +60,13 @@ describe('requesting a refund', () => {
     expect(razorpayMock.payments.refund).not.toHaveBeenCalled();
   });
 
+  it('refuses an order the store cancelled itself, without creating anything', async () => {
+    vi.spyOn(orderRepository, 'findById').mockResolvedValue({ ...ORDER, status: 'CANCELLED' });
+    const create = vi.spyOn(refundRepository, 'createRequest').mockResolvedValue(true);
+    await expect(refundService.requestRefund('o1', 'owner')).rejects.toThrow('once your cancellation is approved');
+    expect(create).not.toHaveBeenCalled();
+  });
+
   it('refuses when the order is not eligible or was already requested', async () => {
     vi.spyOn(refundRepository, 'createRequest').mockResolvedValue(false);
     await expect(refundService.requestRefund('o1', 'owner')).rejects.toThrow("can't be requested");
@@ -69,8 +76,24 @@ describe('requesting a refund', () => {
 describe('what the customer is offered', () => {
   const format = (order: object) => orderService.formatOrder({ ...ORDER, ...order });
 
-  it.each(['CANCELLATION_APPROVED', 'CANCELLED'])('offers Refund on a paid order that is %s', (status) => {
-    expect(format({ status }).canRequestRefund).toBe(true);
+  it('offers Refund once the customer’s cancellation is approved', () => {
+    expect(format({ status: 'CANCELLATION_APPROVED' }).canRequestRefund).toBe(true);
+  });
+
+  it('does not offer Refund on an order the store cancelled itself; the store refunds it', () => {
+    expect(format({ status: 'CANCELLED' }).canRequestRefund).toBe(false);
+  });
+
+  it('tells the customer the refund is being processed after the store cancels a paid order', () => {
+    expect(format({ status: 'CANCELLED' }).refundPending).toBe(true);
+    expect(format({ status: 'CANCELLED', refunds: [{ ...REFUND, status: 'PROCESSING' }] }).refundPending).toBe(true);
+  });
+
+  it('stops saying so once the refund is done, and never says it for unpaid or other orders', () => {
+    expect(format({ status: 'CANCELLED', refunds: [{ ...REFUND, status: 'PROCESSED' }] }).refundPending).toBe(false);
+    expect(format({ status: 'CANCELLED', paymentStatus: 'PENDING' }).refundPending).toBe(false);
+    expect(format({ status: 'CANCELLATION_APPROVED' }).refundPending).toBe(false);
+    expect(format({ status: 'SHIPPED' }).refundPending).toBe(false);
   });
 
   it.each([
@@ -88,6 +111,27 @@ describe('what the customer is offered', () => {
     const order = format({ refunds: [{ ...REFUND, status: 'FAILED', failureReason: 'Low balance' }] });
     expect(order.refund).toEqual({ status: 'REQUESTED', amount: 499.5 });
     expect(JSON.stringify(order)).not.toContain('Low balance');
+  });
+});
+
+describe('refunding an order the store cancelled itself', () => {
+  it('creates the refund from the order total and sends it, with no customer request', async () => {
+    vi.spyOn(orderRepository, 'findById').mockResolvedValue({ ...ORDER, status: 'CANCELLED' });
+    vi.spyOn(refundRepository, 'findOpenForOrder').mockResolvedValueOnce(null).mockResolvedValueOnce(REFUND);
+    const create = vi.spyOn(refundRepository, 'createRequest').mockResolvedValue(true);
+    razorpayMock.payments.refund.mockResolvedValue({ id: 'rfnd_1', status: 'pending' });
+
+    await refundService.approveRefund('o1', 'admin');
+
+    expect(create).toHaveBeenCalledWith('o1', null, 49950, ['CANCELLED']);
+    expect(razorpayMock.payments.refund).toHaveBeenCalledWith('pay_1', expect.objectContaining({ amount: 49950 }));
+  });
+
+  it('does not start one for an approved cancellation the customer hasn’t asked a refund for', async () => {
+    vi.spyOn(refundRepository, 'findOpenForOrder').mockResolvedValue(null);
+    const create = vi.spyOn(refundRepository, 'createRequest');
+    await expect(refundService.approveRefund('o1', 'admin')).rejects.toThrow('no refund waiting');
+    expect(create).not.toHaveBeenCalled();
   });
 });
 

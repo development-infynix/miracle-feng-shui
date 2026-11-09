@@ -64,6 +64,11 @@ export const refundService = {
       throw ApiError.notFound('Order not found');
     }
 
+    // Customers ask for their money back once their cancellation request is approved. An order the
+    // store cancelled itself is refunded by the store (approveRefund), so it isn't offered here.
+    if (order.status !== 'CANCELLATION_APPROVED') {
+      throw ApiError.conflict('A refund can be requested once your cancellation is approved.');
+    }
     // The amount comes from the order, never from the browser.
     const amountPaise = Math.round(order.total * 100);
     if (!(await refundRepository.createRequest(orderId, userId, amountPaise))) {
@@ -72,7 +77,10 @@ export const refundService = {
     return orderService.formatOrder(await orderRepository.findById(orderId));
   },
 
-  /** The owner's approval, and the only place the store sends money back. */
+  /**
+   * The owner's approval, and the only place the store sends money back. For an order the store
+   * cancelled itself (Cancelled), with no refund yet, it starts the refund here too: no request needed.
+   */
   async approveRefund(orderId: string, adminId: string) {
     const order = await orderRepository.findById(orderId);
     if (!order) throw ApiError.notFound('Order not found');
@@ -83,7 +91,12 @@ export const refundService = {
       throw ApiError.conflict('This order has no online payment to refund.');
     }
 
-    const refund = await refundRepository.findOpenForOrder(orderId);
+    let refund = await refundRepository.findOpenForOrder(orderId);
+    if (!refund && order.status === 'CANCELLED') {
+      // The amount comes from the order. The create is conditional, so two clicks make one refund.
+      await refundRepository.createRequest(orderId, null, Math.round(order.total * 100), ['CANCELLED']);
+      refund = await refundRepository.findOpenForOrder(orderId);
+    }
     if (!refund) throw ApiError.conflict('This order has no refund waiting for approval.');
     if (!razorpay) throw ApiError.internal('Online payment is not configured');
     if (!(await refundRepository.claimForApproval(refund.id, adminId))) {
