@@ -14,7 +14,8 @@ async function getInvoice(req: NextRequest, user: AuthenticatedUser, id: string,
     try {
       const order = await prisma.order.findFirst({
         where: {
-          OR: [{ id }, { orderNumber: id }],
+          // The access token is what customer links carry; id and number still work for the owner and admins.
+          OR: [{ accessToken: id }, { id }, { orderNumber: id }],
         },
         include: {
           items: true,

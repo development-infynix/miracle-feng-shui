@@ -51,11 +51,11 @@ async function sendPaidOrderEmail(orderId: string) {
 }
 
 async function newOrderNumber() {
-  for (let attempt = 0; attempt < 5; attempt++) {
-    const orderNumber = `MFS-${Math.floor(100000 + Math.random() * 900000)}`;
-    if (!(await checkoutSessionRepository.orderNumberTaken(orderNumber))) return orderNumber;
+  try {
+    return await checkoutSessionRepository.newOrderNumber();
+  } catch {
+    throw ApiError.internal('We could not start the payment. Please try again shortly.');
   }
-  throw ApiError.internal('We could not start the payment. Please try again shortly.');
 }
 
 export const paymentService = {

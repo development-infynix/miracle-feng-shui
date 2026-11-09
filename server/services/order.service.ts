@@ -1,5 +1,6 @@
 import { COD_ENABLED } from '@/lib/payment-options';
 import { orderRepository } from '../repositories/order.repository';
+import { checkoutSessionRepository } from '../repositories/checkout-session.repository';
 import { cartRepository } from '../repositories/cart.repository';
 import { productRepository } from '../repositories/product.repository';
 import { CreateOrderInput } from '../validators/order.validator';
@@ -67,6 +68,8 @@ export const orderService = {
     return {
       id: order.id,
       orderNumber: order.orderNumber || `MFS-${order.id?.slice(-6).toUpperCase() || '100000'}`,
+      // Only ever sent to the order's owner or an admin; customer links use it instead of the number.
+      accessToken: order.accessToken ?? null,
       date: rawDate.toLocaleDateString('en-IN', {
         month: 'short',
         day: 'numeric',
@@ -200,7 +203,7 @@ export const orderService = {
       });
     }
 
-    const orderNumber = `MFS-${Math.floor(100000 + Math.random() * 900000)}`;
+    const orderNumber = await checkoutSessionRepository.newOrderNumber();
     const isCod = input.paymentMethod === 'COD';
     const initialStatus: OrderStatus = isCod ? 'COD_PENDING' : 'PENDING';
 

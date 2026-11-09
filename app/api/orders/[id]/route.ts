@@ -12,7 +12,8 @@ export const GET = withAuth(async (_req: NextRequest, { user, params }) => {
 
     const order = await prisma.order.findFirst({
       where: {
-        OR: [{ id }, { orderNumber: id }],
+        // The access token is what customer links carry; id and number still work for the owner and admins.
+        OR: [{ accessToken: id }, { id }, { orderNumber: id }],
       },
       include: {
         items: {

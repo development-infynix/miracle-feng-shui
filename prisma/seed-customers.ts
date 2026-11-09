@@ -2,6 +2,7 @@
 // /admin/users page + detail drawer have data.
 // Run with: npm run seed:customers
 // Idempotent: re-running upserts the same 5 emails and resets their addresses.
+import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 // Same shared client the main seed uses (loads dotenv + generated Prisma 7 client).
 import prisma from '../lib/prisma';
@@ -218,6 +219,7 @@ async function main() {
         await prisma.order.create({
           data: {
             orderNumber: `MFS-SEED-${user.email.split('@')[0]}-${k + 1}`,
+            accessToken: crypto.randomBytes(24).toString('base64url'),
             userId: user.id,
             status: k === 0 ? 'DELIVERED' : 'PROCESSING',
             paymentMethod: 'RAZORPAY',

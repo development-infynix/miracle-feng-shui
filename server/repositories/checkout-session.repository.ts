@@ -1,4 +1,5 @@
 import prisma from '@/lib/prisma';
+import { generateOrderAccessToken, generateOrderNumber } from '../utils/orderReference';
 import { Prisma } from '@/app/generated/prisma/client';
 
 // A late payment can still arrive for a while after the customer opens the payment window.
@@ -33,6 +34,15 @@ export const checkoutSessionRepository = {
     return prisma.checkoutSession.deleteMany({
       where: { createdAt: { lt: new Date(Date.now() - KEEP_SESSION_MS) } },
     });
+  },
+
+  /** A fresh order number no order or open checkout already has. Collisions are very unlikely; this rules them out. */
+  async newOrderNumber() {
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const orderNumber = generateOrderNumber();
+      if (!(await this.orderNumberTaken(orderNumber))) return orderNumber;
+    }
+    throw new Error('Could not find a free order number');
   },
 
   async orderNumberTaken(orderNumber: string) {
@@ -85,6 +95,7 @@ export const checkoutSessionRepository = {
         const order = await tx.order.create({
           data: {
             orderNumber: session.orderNumber,
+            accessToken: generateOrderAccessToken(),
             userId: session.userId,
             status: 'PAID',
             paymentMethod: 'RAZORPAY',
