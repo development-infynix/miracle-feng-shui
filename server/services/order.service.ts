@@ -140,7 +140,15 @@ export const orderService = {
     };
   },
 
+  /**
+   * Cash on delivery only. An online-payment order is never made here: it's created only once Razorpay
+   * confirms the payment (payment.service verifyPayment / the payment.captured webhook), so no order
+   * can exist that hasn't been paid for.
+   */
   async createFromCart(userId: string, input: CreateOrderInput) {
+    if (input.paymentMethod !== 'COD') {
+      throw ApiError.badRequest('Online orders are created once your payment goes through. Please check out and pay.');
+    }
     if (input.paymentMethod === 'COD' && !COD_ENABLED) {
       throw ApiError.badRequest('Cash on delivery is not available right now. Please pay online.');
     }

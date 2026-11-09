@@ -6,6 +6,16 @@ import { RegisterInput, LoginInput, UpdateProfileInput } from '../validators/aut
 import { emailService } from './email.service';
 import { ACCOUNT_DEACTIVATED } from '@/lib/authErrors';
 
+/**
+ * Passwords are compared with surrounding spaces removed, as they're saved. A password saved with a
+ * stray space before every path trimmed it still matches, so nobody is locked out by the change.
+ */
+async function matchesPassword(input: string, passwordHash: string) {
+  const trimmed = input.trim();
+  if (await bcrypt.compare(trimmed, passwordHash)) return true;
+  return trimmed !== input && bcrypt.compare(input, passwordHash);
+}
+
 const GOOGLE_ONLY_MESSAGE = 'This account signs in with Google, so it has no password. Use "Continue with Google".';
 
 /** A display name from the email address, for when Google gives none: "priya.sharma92" becomes "Priya Sharma". */
@@ -31,7 +41,7 @@ export const authService = {
       );
     }
 
-    const passwordHash = await bcrypt.hash(input.password, 12);
+    const passwordHash = await bcrypt.hash(input.password.trim(), 12);
 
     const user = await userRepository.create({
       name: input.name,
@@ -46,7 +56,6 @@ export const authService = {
 
   async validateCredentials(input: LoginInput) {
     const email = input.email.trim().toLowerCase();
-    const password = input.password.trim();
 
     // Let any database error propagate: we must never hand out a session when
     // the user lookup fails. No demo/in-memory admin fallback.
@@ -55,7 +64,7 @@ export const authService = {
       throw ApiError.unauthorized('Invalid email or password');
     }
 
-    const isValid = await bcrypt.compare(password, user.passwordHash);
+    const isValid = await matchesPassword(input.password, user.passwordHash);
     if (!isValid) {
       throw ApiError.unauthorized('Invalid email or password');
     }
@@ -70,6 +79,7 @@ export const authService = {
       email: user.email,
       role: user.role,
       phone: user.phone,
+      sessionVersion: user.sessionVersion,
     };
   },
 
@@ -125,7 +135,7 @@ export const authService = {
     if (user && !user.passwordHash) {
       throw ApiError.badRequest(GOOGLE_ONLY_MESSAGE);
     }
-    if (!user || !user.passwordHash || !(await bcrypt.compare(currentPassword.trim(), user.passwordHash))) {
+    if (!user || !user.passwordHash || !(await matchesPassword(currentPassword, user.passwordHash))) {
       throw ApiError.badRequest("That password isn't correct. Try again, or reset it by email.");
     }
     return user;
@@ -134,11 +144,19 @@ export const authService = {
   async changePassword(userId: string, currentPassword: string, newPassword: string) {
     // Checked again here: the earlier Verify step only unlocks the form, and proves nothing to the server.
     const user = await this.verifyCurrentPassword(userId, currentPassword);
-    if (await bcrypt.compare(newPassword, user.passwordHash!)) {
+    const password = newPassword.trim();
+    if (await bcrypt.compare(password, user.passwordHash!)) {
       throw ApiError.badRequest('Choose a new password that is different from your current one.');
     }
-    await userRepository.updatePassword(user.id, await bcrypt.hash(newPassword, 12));
+    // Other devices stay signed in until the customer chooses otherwise (signOutOtherDevices).
+    await userRepository.updatePassword(user.id, await bcrypt.hash(password, 12));
     return { changed: true };
+  },
+
+  /** Ends every session of this account except the one asking; the caller re-issues that one. */
+  async signOutOtherDevices(userId: string) {
+    const { sessionVersion } = await userRepository.bumpSessionVersion(userId);
+    return { sessionVersion };
   },
 
   async requestPasswordReset(rawEmail: string) {
@@ -166,8 +184,9 @@ export const authService = {
     return { message: 'If that email exists in our records, a reset link has been sent.' };
   },
 
-  async resetPassword(token: string, newPassword: string) {
-    if (!token || !newPassword || newPassword.length < 6) {
+  async resetPassword(token: string, rawPassword: string) {
+    const newPassword = typeof rawPassword === 'string' ? rawPassword.trim() : '';
+    if (!token || newPassword.length < 6) {
       throw ApiError.badRequest('Valid token and a password of at least 6 characters are required.');
     }
 
@@ -178,7 +197,9 @@ export const authService = {
 
     const passwordHash = await bcrypt.hash(newPassword, 12);
     await userRepository.updatePassword(user.id, passwordHash);
+    // A reset by email usually means the old password was forgotten or exposed, so every session ends.
+    await userRepository.bumpSessionVersion(user.id);
 
-    return { message: 'Password has been reset successfully. You may now sign in.' };
+    return { message: 'Your password has been reset, and you were signed out on all devices. Sign in with your new password.' };
   },
 };

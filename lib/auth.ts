@@ -65,7 +65,7 @@ export const authOptions: NextAuthOptions = {
           name: google?.name,
         });
         // From here on the session uses our account, not Google's profile.
-        Object.assign(user, { id: customer.id, name: customer.name, email: customer.email, role: customer.role, phone: customer.phone });
+        Object.assign(user, { id: customer.id, name: customer.name, email: customer.email, role: customer.role, phone: customer.phone, sessionVersion: customer.sessionVersion });
         return true;
       } catch (error) {
         if (isDeactivatedError(error)) return `/login?error=${ACCOUNT_DEACTIVATED}`;
@@ -74,16 +74,21 @@ export const authOptions: NextAuthOptions = {
       }
     },
     async jwt({ token, user, trigger }) {
-      // Every request re-checks an open session, so deactivating (or deleting) an account signs it out at once.
-      // Throwing makes NextAuth drop the session and clear its cookie. A database error keeps the session.
+      // Every request re-checks an open session, so deactivating (or deleting) an account, or signing out
+      // its other devices, ends the session at once. Throwing makes NextAuth drop the session and clear its
+      // cookie. A database error keeps the session.
       if (!user && token.id) {
-        let status: { deactivatedAt: Date | null } | null | undefined;
+        let status: { deactivatedAt: Date | null; sessionVersion: number } | null | undefined;
         try {
           status = await userRepository.findSessionStatus(token.id as string);
         } catch {
           status = undefined;
         }
         if (status === null || status?.deactivatedAt) throw new Error(ACCOUNT_DEACTIVATED);
+        // Sessions from before the change have no version, which counts as 0, the starting value.
+        if (status && status.sessionVersion !== ((token.sessionVersion as number | undefined) ?? 0)) {
+          throw new Error('SessionEnded');
+        }
       }
       // Refreshes from the database, never from what the browser sent, after the customer edits their profile.
       if (trigger === 'update' && token.id) {
@@ -98,6 +103,7 @@ export const authOptions: NextAuthOptions = {
         token.name = user.name;
         token.role = (user as any).role || 'CUSTOMER';
         token.phone = (user as any).phone || null;
+        token.sessionVersion = (user as any).sessionVersion ?? 0;
       }
       return token;
     },
