@@ -5,6 +5,7 @@ const getServerSession = vi.hoisted(() => vi.fn());
 const db = vi.hoisted(() => ({
   product: { findFirst: vi.fn(), update: vi.fn() },
   review: { findUnique: vi.fn(), create: vi.fn() },
+  orderItem: { findMany: vi.fn().mockResolvedValue([]) },
 }));
 
 vi.mock('next-auth', () => ({ getServerSession }));

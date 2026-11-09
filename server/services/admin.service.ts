@@ -417,7 +417,9 @@ export const adminService = {
       throw ApiError.conflict('This order has a refund, so it has to stay cancelled.');
     }
 
-    const updated = await adminRepository.updateOrderStatus(id, input.status as OrderStatus);
+    // Delivered keeps its first date, so re-saving doesn't move it; any other status clears it.
+    const deliveredAt = input.status === 'DELIVERED' ? (existing.deliveredAt ?? new Date()) : null;
+    const updated = await adminRepository.updateOrderStatus(id, input.status as OrderStatus, deliveredAt);
     const addr = (updated.shippingAddress as any) || {};
     return {
       id: updated.id,

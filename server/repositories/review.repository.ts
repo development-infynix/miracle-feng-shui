@@ -20,6 +20,19 @@ export const reviewRepository = {
     return { items, total };
   },
 
+  /** When each of these customers had this product delivered, from orders that are still Delivered. */
+  async findDeliveries(productId: string, userIds: string[]) {
+    if (userIds.length === 0) return [];
+    const items = await prisma.orderItem.findMany({
+      where: {
+        productId,
+        order: { userId: { in: userIds }, status: 'DELIVERED', deliveredAt: { not: null } },
+      },
+      select: { order: { select: { userId: true, deliveredAt: true } } },
+    });
+    return items.map(({ order }) => ({ userId: order.userId, deliveredAt: order.deliveredAt as Date }));
+  },
+
   async findByUserAndProduct(
     userId: string,
     productId: string,

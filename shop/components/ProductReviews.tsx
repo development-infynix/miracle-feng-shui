@@ -10,6 +10,8 @@ type ProductReview = {
   date: string;
   comment: string;
   productVariation?: string;
+  /** The author had this product delivered from the shop before writing the review. */
+  verifiedPurchase?: boolean;
 };
 
 type ReviewsPage = {
@@ -313,6 +315,15 @@ export function ProductReviewList({ state, productId, signedIn, guest, onSignIn 
                   label={t('product.rating_out_of', '{rating} out of 5').replace('{rating}', String(review.rating))}
                 />
                 <span className="text-[14px] font-semibold text-[#222222]">{review.author}</span>
+                {review.verifiedPurchase && (
+                  <span
+                    title={t('product.verified_purchase_hint', 'Bought from us and reviewed after it was delivered.')}
+                    className="inline-flex items-center gap-1 rounded-full border border-[#1F6F43]/25 bg-[#EEF6F0] px-2 py-0.5 text-[11px] font-semibold text-[#1F6F43]"
+                  >
+                    <i aria-hidden="true" className="fa-solid fa-circle-check text-[10px]" />
+                    {t('product.verified_purchase', 'Verified Purchase')}
+                  </span>
+                )}
                 <span className="text-[12px] tabular-nums text-[#595959]">{review.date}</span>
               </div>
               {review.productVariation && <p className="text-[12px] text-[#595959]">{review.productVariation}</p>}

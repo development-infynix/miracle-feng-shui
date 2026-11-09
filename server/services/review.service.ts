@@ -6,6 +6,20 @@ import { ApiError } from '../utils/ApiError';
 export const REVIEW_PAGE_SIZE = 20;
 
 export const reviewService = {
+  /**
+   * A review is a verified purchase when its author had this product delivered from this shop before
+   * writing it. Anyone can still review (they may have bought it elsewhere); this only marks the ones we can vouch for.
+   */
+  async markVerified<T extends { userId: string; productId: string; createdAt: Date | string }>(productId: string, reviews: T[]) {
+    const deliveries = await reviewRepository.findDeliveries(productId, [...new Set(reviews.map((r) => r.userId))]);
+    return reviews.map((review) => ({
+      ...review,
+      verifiedPurchase: deliveries.some(
+        (d) => d.userId === review.userId && d.deliveredAt.getTime() <= new Date(review.createdAt).getTime()
+      ),
+    }));
+  },
+
   formatReview(r: any) {
     return {
       id: r.id,
@@ -19,6 +33,7 @@ export const reviewService = {
       comment: r.comment,
       productVariation: r.productVariation || undefined,
       productId: r.productId,
+      verifiedPurchase: Boolean(r.verifiedPurchase),
     };
   },
 
@@ -33,8 +48,9 @@ export const reviewService = {
       take: REVIEW_PAGE_SIZE,
     });
 
+    const verified = await this.markVerified(product.id, items);
     return {
-      items: items.map(this.formatReview),
+      items: verified.map((review) => this.formatReview(review)),
       total,
       page,
       hasMore: page * REVIEW_PAGE_SIZE < total,
@@ -55,6 +71,7 @@ export const reviewService = {
     // Reviews don't change a product's rating. Admins set the rating themselves.
     const review = await reviewRepository.create(userId, product.id, input);
 
-    return this.formatReview(review);
+    const [verified] = await this.markVerified(product.id, [review]);
+    return this.formatReview(verified);
   },
 };

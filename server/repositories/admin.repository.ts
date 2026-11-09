@@ -353,10 +353,10 @@ export const adminRepository = {
     });
   },
 
-  async updateOrderStatus(id: string, status: OrderStatus) {
+  async updateOrderStatus(id: string, status: OrderStatus, deliveredAt: Date | null) {
     return prisma.order.update({
       where: { id },
-      data: { status },
+      data: { status, deliveredAt },
       include: {
         items: true,
         user: { select: { id: true, name: true, email: true, phone: true } },
