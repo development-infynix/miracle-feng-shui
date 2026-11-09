@@ -7,6 +7,7 @@ import { cartRepository } from '@/server/repositories/cart.repository';
 import { productRepository } from '@/server/repositories/product.repository';
 import { userRepository } from '@/server/repositories/user.repository';
 import { emailService } from '@/server/services/email.service';
+import { settingsService } from '@/server/services/settings.service';
 
 const createRazorpayOrder = vi.hoisted(() => vi.fn());
 const fetchPayment = vi.hoisted(() => vi.fn());
@@ -110,6 +111,16 @@ describe('PaymentService', () => {
       vi.spyOn(checkoutSessionRepository, 'orderNumberTaken').mockResolvedValue(false);
       vi.spyOn(checkoutSessionRepository, 'deleteExpired').mockResolvedValue({ count: 0 });
       vi.spyOn(checkoutSessionRepository, 'create').mockResolvedValue({} as any);
+      vi.spyOn(settingsService, 'isCancellationAllowed').mockResolvedValue(true);
+    });
+
+    it('records the store’s cancellation setting on the checkout, for the order to keep', async () => {
+      createRazorpayOrder.mockResolvedValue({ id: 'order_real' });
+      vi.spyOn(settingsService, 'isCancellationAllowed').mockResolvedValue(false);
+
+      await paymentService.createRazorpayOrder('user-1', input);
+
+      expect(checkoutSessionRepository.create).toHaveBeenCalledWith(expect.objectContaining({ cancellationAllowed: false }));
     });
 
     it('saves nothing and invents no id when Razorpay refuses', async () => {

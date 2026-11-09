@@ -13,6 +13,7 @@ import AddProductDrawer from './components/AddProductDrawer';
 import ProductCard from './components/ProductCard';
 import ViewProductDrawer from './components/ViewProductDrawer';
 import EditProductDrawer from './components/EditProductDrawer';
+import CancellationSettingToggle from './components/CancellationSettingToggle';
 
 
 
@@ -537,6 +538,8 @@ export default function ProductsClient({
             <span className="hidden sm:inline">Add Product</span>
           </button>
         </div>
+
+        <CancellationSettingToggle />
 
         <div className="relative">
           <button

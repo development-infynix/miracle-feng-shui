@@ -50,6 +50,8 @@ export interface CustomerOrder {
   items: OrderItem[];
   /** The main steps so far, with dates. */
   timeline?: TimelineEntry[];
+  /** False when the order was bought while the store didn't allow cancellation. */
+  cancellationAllowed?: boolean;
 }
 
 // Stone & Gold: the same sharp, lightly outlined box as the product card.
@@ -86,6 +88,7 @@ export function invoicePayload(order: CustomerOrder) {
     paymentMethod: order.paymentMethod,
     paymentStatus: order.paymentStatus,
     totalAmount: order.total || order.totalAmount || 0,
+    cancellationAllowed: order.cancellationAllowed !== false,
     items: order.items.map((item) => ({
       name: item.title || item.name || item.productName || '',
       quantity: item.quantity || 1,

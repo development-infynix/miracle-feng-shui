@@ -5,6 +5,10 @@ import { orderService } from '@/server/services/order.service';
 import { cartRepository } from '@/server/repositories/cart.repository';
 import { productRepository } from '@/server/repositories/product.repository';
 import { orderRepository } from '@/server/repositories/order.repository';
+import { settingsService } from '@/server/services/settings.service';
+
+// The store setting comes from the database; these tests don't need it.
+vi.spyOn(settingsService, 'isCancellationAllowed').mockResolvedValue(true);
 
 describe('OrderService', () => {
   it('should reject order creation if user cart is empty', async () => {

@@ -1,5 +1,6 @@
 import PDFDocument from 'pdfkit';
 import { calculateOrderTax, TAX_CONFIG } from '../../lib/tax';
+import { INVOICE_POLICY_NOTE, NO_CANCELLATION_INVOICE_NOTE } from '@/lib/invoicePolicy';
 
 export interface InvoiceItem {
   id?: string;
@@ -23,6 +24,8 @@ export interface InvoiceOrderData {
   totalAmount: number;
   items: InvoiceItem[];
   date?: string;
+  /** False when the order was bought while the store didn't allow cancellation; the invoice then says so. */
+  cancellationAllowed?: boolean;
 }
 
 export class InvoiceService {
@@ -324,7 +327,7 @@ export class InvoiceService {
           .text('POLICY & SACRED LIVING NOTICE:', 45, footerY + 8)
           .font('Helvetica')
           .text(
-            'All items are spiritually consecrated and energized specifically for the recipient. In accordance with our Cancellation, Return & Refund Policy, all sales are final with zero cancellations, zero returns, and zero refunds. Damaged packages reported within 48 hours qualify for a free replacement only.',
+            order.cancellationAllowed === false ? `${INVOICE_POLICY_NOTE} ${NO_CANCELLATION_INVOICE_NOTE}` : INVOICE_POLICY_NOTE,
             45,
             footerY + 18,
             { width: 505 }

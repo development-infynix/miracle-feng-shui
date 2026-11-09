@@ -8,6 +8,7 @@ import { userRepository } from '../repositories/user.repository';
 import { orderService } from './order.service';
 import { emailService } from './email.service';
 import { refundService } from './refund.service';
+import { settingsService } from './settings.service';
 import { CreatePaymentOrderInput, VerifyPaymentInput } from '../validators/payment.validator';
 import { ApiError } from '../utils/ApiError';
 
@@ -154,6 +155,8 @@ export const paymentService = {
       total,
       shippingAddress: input.shippingAddress,
       items: orderItemsData,
+      // The terms the customer is shown now are the ones the order keeps.
+      cancellationAllowed: await settingsService.isCancellationAllowed(),
     });
 
     return {

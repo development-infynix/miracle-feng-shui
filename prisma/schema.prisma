@@ -209,6 +209,8 @@ model Order {
   cancellationReason      String?
   cancellationRequestedAt DateTime?
   refundRequestedAt       DateTime?
+  /// Whether the store allowed cancellation when this order was bought. Changing the store setting later doesn't touch it.
+  cancellationAllowed     Boolean       @default(true)
   /// When the order was marked Delivered; cleared if it's moved back. Reviews written after it are verified purchases.
   deliveredAt             DateTime?
   createdAt         DateTime      @default(now())
@@ -257,6 +259,8 @@ model CheckoutSession {
   total           Float
   shippingAddress Json
   items           Json
+  /// The store's cancellation setting the customer saw at checkout.
+  cancellationAllowed Boolean @default(true)
   createdAt       DateTime @default(now())
 
   @@index([userId])
@@ -320,4 +324,13 @@ model Review {
   @@unique([userId, productId])
   @@index([productId])
   @@index([userId])
+}
+
+/// Store-wide settings, kept in a single row (id 1).
+model StoreSettings {
+  id                  Int      @id @default(1)
+  /// Whether customers can cancel orders. Each order records the value it was bought under.
+  cancellationAllowed Boolean  @default(true)
+  updatedById         String?
+  updatedAt           DateTime @updatedAt
 }

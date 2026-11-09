@@ -10,6 +10,7 @@ import { useGlassModal } from '@/home/components/useGlassModal';
 import type { Product, ProductSummary } from '@/lib/placeholder-data';
 import { translateCategory, translateProductDescription, translateProductTitle } from '@/lib/translations';
 import { ProductReviewList, useProductReviews } from './ProductReviews';
+import { useStoreSettings } from '@/lib/useStoreSettings';
 
 const FALLBACK_IMAGE = '/images/miracle.jpeg';
 const LOW_STOCK = 10;
@@ -130,6 +131,8 @@ function DrawerContent({ productId, seed, onClose, titleId }: {
   const { status: sessionStatus } = useSession();
   const { items, cartLoading, addItem, addFavorite, removeFavorite, isFavorite, userLoggedIn } = useCart();
   const { formatPrice, language, t } = useLocale();
+  // Told before they buy, not only on the invoice.
+  const noCancellation = useStoreSettings()?.cancellationAllowed === false;
   const { product: details, status, retry } = useProductDetails(productId);
 
   const [tab, setTab] = useState<Tab>('details');
@@ -362,6 +365,12 @@ function DrawerContent({ productId, seed, onClose, titleId }: {
                 {!lowStock && shown?.showStockLeft && stock !== undefined && stock > 0 && (
                   <p className="mt-1 font-geist text-[13px] text-ink-muted">
                     {t('shop.in_stock', '{count} in stock').replace('{count}', String(stock))}
+                  </p>
+                )}
+                {noCancellation && (
+                  <p className="mt-1 flex items-start gap-1.5 font-geist text-[12px] leading-snug text-ink-muted">
+                    <i aria-hidden="true" className="fa-solid fa-circle-info mt-[3px] text-[10px]" />
+                    <span>{t('checkout.no_cancellation', 'Currently, orders can’t be cancelled after they’re placed. If an item arrives damaged or wrong, we’ll replace it.')}</span>
                   </p>
                 )}
                 <div className="mt-3 flex flex-wrap gap-2">
