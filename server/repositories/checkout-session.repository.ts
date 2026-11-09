@@ -24,6 +24,7 @@ export const checkoutSessionRepository = {
     total: number;
     shippingAddress: any;
     items: CheckoutItem[];
+    cancellationAllowed: boolean;
   }) {
     return prisma.checkoutSession.create({
       data: { ...data, items: data.items as unknown as Prisma.InputJsonValue },
@@ -104,6 +105,7 @@ export const checkoutSessionRepository = {
             shippingAddress: session.shippingAddress as Prisma.InputJsonValue,
             razorpayOrderId,
             razorpayPaymentId,
+            cancellationAllowed: session.cancellationAllowed,
             // The order's history starts with the payment that created it.
             statusEvents: { create: { toStatus: 'PAID', actor: 'SYSTEM', note: 'Payment confirmed' } },
             items: {

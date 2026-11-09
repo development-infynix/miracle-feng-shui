@@ -13,6 +13,7 @@ export const orderRepository = {
       total: number;
       shippingAddress: any;
       razorpayOrderId?: string;
+      cancellationAllowed?: boolean;
       items: {
         productId: string;
         title: string;
@@ -40,6 +41,7 @@ export const orderRepository = {
         total: data.total,
         shippingAddress: data.shippingAddress,
         razorpayOrderId: data.razorpayOrderId,
+        cancellationAllowed: data.cancellationAllowed ?? true,
         items: {
           create: data.items.map((item) => ({
             productId: item.productId,
@@ -68,6 +70,7 @@ export const orderRepository = {
       total: number;
       shippingAddress: any;
       razorpayOrderId?: string;
+      cancellationAllowed?: boolean;
       items: {
         productId: string;
         title: string;
@@ -210,6 +213,7 @@ export const orderRepository = {
           userId,
           // Also the status just read, so the history records exactly what it changed from.
           status: current.status,
+          cancellationAllowed: true,
           cancellationRequestedAt: null,
           OR: [
             { status: { in: ['PAID', 'COD_PENDING', 'PROCESSING'] } },

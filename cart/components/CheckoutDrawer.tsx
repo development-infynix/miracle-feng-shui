@@ -13,6 +13,7 @@ import { translateProductTitle } from '@/lib/translations';
 import AddressDetailsDrawer from '@/profile/components/AddressDetailsDrawer';
 import { isCartItemBlocked, isCartItemPaused, isCartItemUnavailable } from './cartStock';
 import { openRazorpay, type RazorpaySuccess } from './razorpayCheckout';
+import { useStoreSettings } from '@/lib/useStoreSettings';
 
 const FALLBACK_IMAGE = '/images/miracle.jpeg';
 const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#222222]';
@@ -74,6 +75,8 @@ export default function CheckoutDrawer({ open, onClose }: CheckoutDrawerProps) {
   const { data: session } = useSession();
   const { items, subtotal, count, clearCart, refreshCart } = useCart();
   const { currency, formatPrice, language, t } = useLocale();
+  // Shown with the terms, before the customer pays.
+  const noCancellation = useStoreSettings()?.cancellationAllowed === false;
 
   const [addresses, setAddresses] = useState<SavedAddress[] | null>(null);
   const [addressesFailed, setAddressesFailed] = useState(false);
@@ -424,6 +427,12 @@ export default function CheckoutDrawer({ open, onClose }: CheckoutDrawerProps) {
               {chargedInOtherCurrency && (
                 <p className="mt-2 text-[13px] leading-snug text-[#222222]">
                   {t('checkout.charged_in_inr', 'You will be charged ₹{amount} in Indian rupees. The final amount may vary slightly with your bank’s exchange rate.').replace('{amount}', subtotal.toLocaleString('en-IN'))}
+                </p>
+              )}
+              {noCancellation && (
+                <p role="note" className="mt-3 flex items-start gap-2 rounded-lg border border-[#D9A400]/50 bg-[#FFF8E1] px-3 py-2.5 text-[13px] font-medium leading-snug text-[#5C4300]">
+                  <i aria-hidden="true" className="fa-solid fa-triangle-exclamation mt-0.5 text-[12px] text-[#B07F00]" />
+                  <span>{t('checkout.no_cancellation', 'Currently, orders can’t be cancelled after they’re placed. If an item arrives damaged or wrong, we’ll replace it.')}</span>
                 </p>
               )}
               <p className="mt-2 text-[13px] text-[#595959]">

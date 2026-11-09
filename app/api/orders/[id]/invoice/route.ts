@@ -42,6 +42,7 @@ async function getInvoice(req: NextRequest, user: AuthenticatedUser, id: string,
           paymentMethod: order.paymentMethod === 'RAZORPAY' ? 'UPI / Online Payment' : (order.paymentMethod || 'Cash on Delivery'),
           paymentStatus: order.paymentStatus || 'PAID',
           totalAmount: Number(order.total) || 0,
+          cancellationAllowed: order.cancellationAllowed,
           date: order.createdAt ? order.createdAt.toISOString().replace('T', ' ').substring(0, 10) : new Date().toISOString().substring(0, 10),
           items: (order.items || []).map((it) => ({
             id: it.id,

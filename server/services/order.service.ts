@@ -8,6 +8,11 @@ import { ApiError } from '../utils/ApiError';
 import { OrderStatus, PaymentMethod } from '@/app/generated/prisma/client';
 import { emailService } from './email.service';
 import { customerTimeline } from './orderTimeline';
+import { settingsService } from './settings.service';
+
+/** Shown when an order was bought while the store didn't allow cancellation. */
+export const NO_CANCELLATION_MESSAGE =
+  "This order can't be cancelled: cancellation wasn't available when it was placed. If an item arrives damaged or wrong, contact us and we'll replace it.";
 
 export const orderService = {
   formatOrder(order: any) {
@@ -47,7 +52,10 @@ export const orderService = {
 
     const requestedCancellation = Boolean(order.cancellationRequestedAt);
     // An unpaid online order has nothing to review: it closes by itself when the customer pays again.
+    // Orders bought while the store didn't allow cancellation never offer it.
+    const cancellationAllowed = order.cancellationAllowed !== false;
     const canCancel =
+      cancellationAllowed &&
       !requestedCancellation &&
       (['PAID', 'COD_PENDING', 'PROCESSING'].includes(order.status) ||
         (order.status === 'PENDING' && order.paymentStatus === 'PAID'));
@@ -74,6 +82,7 @@ export const orderService = {
       // Only ever sent to the order's owner or an admin; customer links use it instead of the number.
       accessToken: order.accessToken ?? null,
       timeline: customerTimeline(order),
+      cancellationAllowed,
       date: rawDate.toLocaleDateString('en-IN', {
         month: 'short',
         day: 'numeric',
@@ -221,6 +230,7 @@ export const orderService = {
         total: calculatedTotal,
         shippingAddress: input.shippingAddress,
         items: orderItemsData,
+        cancellationAllowed: await settingsService.isCancellationAllowed(),
       },
       isCod
     );
@@ -259,6 +269,9 @@ export const orderService = {
       throw ApiError.notFound('Order not found');
     }
 
+    if (order.cancellationAllowed === false) {
+      throw ApiError.conflict(NO_CANCELLATION_MESSAGE);
+    }
     if (!(await orderRepository.requestCancellation(orderId, userId, reason))) {
       throw ApiError.conflict("This order can't be cancelled any more.");
     }

@@ -1,5 +1,6 @@
 import { calculateOrderTax } from './tax';
 import { TAX_CONFIG } from './tax/config';
+import { INVOICE_POLICY_NOTE, NO_CANCELLATION_INVOICE_NOTE } from './invoicePolicy';
 
 /** The seller block's lines, leaving out any detail that isn't set in .env. */
 function sellerLines(isUAE: boolean): string[] {
@@ -31,6 +32,8 @@ export interface TaxInvoiceData {
   paymentMethod: string;
   paymentStatus: string;
   totalAmount: number;
+  /** False when the order was bought while the store didn't allow cancellation; the invoice then says so. */
+  cancellationAllowed?: boolean;
   items: Array<{
     name: string;
     quantity: number;
@@ -55,6 +58,7 @@ export function generateTaxInvoiceHTML(data: TaxInvoiceData): string {
     paymentMethod,
     paymentStatus,
     totalAmount,
+    cancellationAllowed = true,
     items,
   } = data;
 
@@ -380,8 +384,11 @@ export function generateTaxInvoiceHTML(data: TaxInvoiceData): string {
       </div>
     </div>
 
+    ${cancellationAllowed ? '' : `<p style="margin: 18px 0 0; padding: 10px 12px; border: 1px solid #E1E3DF; border-radius: 8px; font-size: 12px; color: #222222;"><strong>${NO_CANCELLATION_INVOICE_NOTE}</strong></p>`}
+
     <div class="footer">
       <div>
+        <p>• ${INVOICE_POLICY_NOTE}</p>
         <p>• All sacred talismans and cures are consecrated and authenticity certified.</p>
         <p>• This is a computer-generated tax invoice and requires no physical signature.</p>
       </div>

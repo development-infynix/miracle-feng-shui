@@ -79,6 +79,11 @@ export default function OrderDetailsDrawer({ open, order, statusLabel, onClose, 
                   {order.paymentMethod} · {order.paymentStatus}
                 </Row>
                 {order.paymentId && <Row label={t('profile.payment_id', 'Payment ID')}>{order.paymentId}</Row>}
+                {order.cancellationAllowed === false && (
+                  <Row label={t('profile.cancellation', 'Cancellation')}>
+                    {t('profile.not_cancellable', 'Not available for this order. Damaged or wrong items are still replaced.')}
+                  </Row>
+                )}
                 {order.tracking && (
                   <Row label={order.tracking.courier || t('profile.tracking', 'Tracking')}>
                     <span className="tabular-nums">{order.tracking.number}</span>

@@ -10,6 +10,7 @@ import { useGlassModal } from '@/home/components/useGlassModal';
 import type { Product, ProductSummary } from '@/lib/placeholder-data';
 import { translateCategory, translateProductDescription, translateProductTitle } from '@/lib/translations';
 import { ProductReviewList, useProductReviews } from './ProductReviews';
+import { useStoreSettings } from '@/lib/useStoreSettings';
 
 const FALLBACK_IMAGE = '/images/miracle.jpeg';
 const LOW_STOCK = 10;
@@ -130,6 +131,8 @@ function DrawerContent({ productId, seed, onClose, titleId }: {
   const { status: sessionStatus } = useSession();
   const { items, cartLoading, addItem, addFavorite, removeFavorite, isFavorite, userLoggedIn } = useCart();
   const { formatPrice, language, t } = useLocale();
+  // Told before they buy, not only on the invoice.
+  const noCancellation = useStoreSettings()?.cancellationAllowed === false;
   const { product: details, status, retry } = useProductDetails(productId);
 
   const [tab, setTab] = useState<Tab>('details');
@@ -543,6 +546,12 @@ function DrawerContent({ productId, seed, onClose, titleId }: {
 
       {tab === 'details' && !unavailable && (
         <footer className="shrink-0 border-t border-[#E1E3DF] p-4">
+          {noCancellation && (
+            <p role="note" className="mb-3 flex items-start gap-2 rounded-lg border border-[#D9A400]/50 bg-[#FFF8E1] px-3 py-2.5 text-[13px] font-medium leading-snug text-[#5C4300]">
+              <i aria-hidden="true" className="fa-solid fa-triangle-exclamation mt-0.5 text-[12px] text-[#B07F00]" />
+              <span>{t('checkout.no_cancellation', 'Currently, orders can’t be cancelled after they’re placed. If an item arrives damaged or wrong, we’ll replace it.')}</span>
+            </p>
+          )}
           {addError && (
             <p role="alert" className="mb-3 text-[14px] font-medium text-[#8F1610]">
               {addError}
