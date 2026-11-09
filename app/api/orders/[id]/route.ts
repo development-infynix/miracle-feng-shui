@@ -16,6 +16,8 @@ export const GET = withAuth(async (_req: NextRequest, { user, params }) => {
         OR: [{ accessToken: id }, { id }, { orderNumber: id }],
       },
       include: {
+        statusEvents: { select: { toStatus: true, createdAt: true }, orderBy: { createdAt: 'asc' } },
+        refunds: { orderBy: { createdAt: 'desc' } },
         items: {
           include: { product: true },
         },

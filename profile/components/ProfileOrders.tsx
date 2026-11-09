@@ -7,6 +7,8 @@ import { downloadStandaloneTaxInvoice } from '@/lib/invoice';
 import { ProductLink } from '@/shop/components/ProductDrawerProvider';
 import CancelOrderModal from './CancelOrderModal';
 import RefundSubmittedModal from './RefundSubmittedModal';
+import OrderDetailsDrawer from './OrderDetailsDrawer';
+import type { TimelineEntry } from './OrderTimeline';
 import { FormError, skeleton } from './profileUi';
 
 const FALLBACK_IMAGE = '/images/miracle.jpeg';
@@ -46,6 +48,8 @@ export interface CustomerOrder {
   paymentId?: string | null;
   shopName: string;
   items: OrderItem[];
+  /** The main steps so far, with dates. */
+  timeline?: TimelineEntry[];
 }
 
 // Stone & Gold: the same sharp, lightly outlined box as the product card.
@@ -95,10 +99,12 @@ function OrderCard({
   order,
   onCancel,
   onRefundRequested,
+  onShowDetails,
 }: {
   order: CustomerOrder;
   onCancel: () => void;
   onRefundRequested: (order: CustomerOrder) => void;
+  onShowDetails: () => void;
 }) {
   const { formatPrice, t } = useLocale();
   const status = STATUS[order.status] ?? { key: '', label: order.status, icon: 'fa-regular fa-clock' };
@@ -238,11 +244,30 @@ function OrderCard({
       </ul>
 
       <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-ink/15 p-4 sm:px-5">
-        <button type="button" onClick={() => downloadStandaloneTaxInvoice(invoicePayload(order))} className={linkButton}>
-          <span className={linkLabel}>{t('profile.download_invoice', 'Download invoice')}</span>
+        <button
+          type="button"
+          onClick={onShowDetails}
+          aria-label={`${t('profile.show_order_details', 'Show order details')}: ${t('profile.order', 'Order')} #${order.orderNumber}`}
+          className={linkButton}
+        >
+          <span className={linkLabel}>{t('profile.show_order_details', 'Show order details')}</span>
         </button>
-        <a href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(`Order ${order.orderNumber}`)}`} className={linkButton}>
-          <span className={linkLabel}>{t('profile.order_help', 'Get help with this order')}</span>
+        {/* Short labels; the full meaning is in each one's accessible name. */}
+        <button
+          type="button"
+          onClick={() => downloadStandaloneTaxInvoice(invoicePayload(order))}
+          aria-label={`${t('profile.download_invoice', 'Download invoice')}: ${t('profile.order', 'Order')} #${order.orderNumber}`}
+          className={`${linkButton} inline-flex items-center gap-1.5`}
+        >
+          <i aria-hidden="true" className="fa-solid fa-download text-[12px] text-ink" />
+          <span className={linkLabel}>{t('profile.invoice', 'Invoice')}</span>
+        </button>
+        <a
+          href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(`Order ${order.orderNumber}`)}`}
+          aria-label={`${t('profile.order_help', 'Get help with this order')}: #${order.orderNumber}`}
+          className={linkButton}
+        >
+          <span className={linkLabel}>{t('profile.support', 'Support')}</span>
         </a>
       </div>
     </li>
@@ -255,6 +280,13 @@ export default function ProfileOrders() {
   const [failed, setFailed] = useState(false);
   const [cancelling, setCancelling] = useState<CustomerOrder | null>(null);
   const [refundSubmitted, setRefundSubmitted] = useState(false);
+  // The id, not a copy, so the drawer shows the order as it is in the list (after a cancel or refund too).
+  const [details, setDetails] = useState<{ id: string | null; open: boolean }>({ id: null, open: false });
+  const detailsOrder = orders?.find((order) => order.id === details.id) ?? null;
+  const statusLabel = (status: string) => {
+    const info = STATUS[status];
+    return info ? t(info.key, info.label) : status;
+  };
 
   const load = useCallback(async (signal?: AbortSignal) => {
     setFailed(false);
@@ -326,6 +358,7 @@ export default function ProfileOrders() {
             key={order.id}
             order={order}
             onCancel={() => setCancelling(order)}
+            onShowDetails={() => setDetails({ id: order.id, open: true })}
             onRefundRequested={(updated) => {
               setOrders((current) => current && current.map((row) => (row.id === updated.id ? updated : row)));
               setRefundSubmitted(true);
@@ -334,6 +367,13 @@ export default function ProfileOrders() {
         ))}
       </ul>
       {refundSubmitted && <RefundSubmittedModal onClose={() => setRefundSubmitted(false)} />}
+      <OrderDetailsDrawer
+        open={details.open}
+        order={detailsOrder}
+        statusLabel={detailsOrder ? statusLabel(detailsOrder.status) : ''}
+        onClose={() => setDetails((current) => ({ ...current, open: false }))}
+        onDownloadInvoice={(order) => downloadStandaloneTaxInvoice(invoicePayload(order))}
+      />
       {cancelling && (
         <CancelOrderModal
           orderId={cancelling.id}

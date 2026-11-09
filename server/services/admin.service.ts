@@ -405,7 +405,21 @@ export const adminService = {
     });
   },
 
-  async updateOrderStatus(id: string, input: UpdateOrderStatusInput) {
+  async getOrderHistory(id: string) {
+    const order = await adminRepository.findOrderHistory(id);
+    if (!order) throw ApiError.notFound('Order not found');
+    return order.statusEvents.map((event) => ({
+      id: event.id,
+      from: event.fromStatus ? uiOrderStatus(event.fromStatus) : null,
+      to: uiOrderStatus(event.toStatus),
+      actor: event.actor,
+      by: event.changedBy?.name || event.changedBy?.email || null,
+      note: event.note,
+      at: event.createdAt.toISOString(),
+    }));
+  },
+
+  async updateOrderStatus(id: string, input: UpdateOrderStatusInput, adminId?: string) {
     const existing = await orderRepository.findById(id);
     if (!existing) {
       throw ApiError.notFound('Order not found');
@@ -419,7 +433,10 @@ export const adminService = {
 
     // Delivered keeps its first date, so re-saving doesn't move it; any other status clears it.
     const deliveredAt = input.status === 'DELIVERED' ? (existing.deliveredAt ?? new Date()) : null;
-    const updated = await adminRepository.updateOrderStatus(id, input.status as OrderStatus, deliveredAt);
+    // Saving the same status again changes nothing, so it adds nothing to the history either.
+    const change =
+      existing.status === input.status ? null : { fromStatus: existing.status as OrderStatus, adminId: adminId ?? null };
+    const updated = await adminRepository.updateOrderStatus(id, input.status as OrderStatus, deliveredAt, change);
     const addr = (updated.shippingAddress as any) || {};
     return {
       id: updated.id,

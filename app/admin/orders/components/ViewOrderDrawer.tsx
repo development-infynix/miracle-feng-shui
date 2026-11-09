@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Alert from '@/app/components/alert';
 import OrderRefundPanel from './OrderRefundPanel';
+import OrderHistory from './OrderHistory';
 import { LuX } from 'react-icons/lu';
 import { OrderItemData } from '../types';
 
@@ -127,6 +128,8 @@ export default function ViewOrderDrawer({ order, onClose, onSaved, onDeleted }: 
           )}
 
           <OrderRefundPanel order={order} onUpdated={onSaved} />
+
+          <OrderHistory orderId={order.id} status={order.status} />
 
           <section>
             <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-stone-500">Shipping</h4>

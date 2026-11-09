@@ -7,6 +7,7 @@ import { CreateOrderInput } from '../validators/order.validator';
 import { ApiError } from '../utils/ApiError';
 import { OrderStatus, PaymentMethod } from '@/app/generated/prisma/client';
 import { emailService } from './email.service';
+import { customerTimeline } from './orderTimeline';
 
 export const orderService = {
   formatOrder(order: any) {
@@ -35,8 +36,10 @@ export const orderService = {
     deliveryEnd.setDate(rawDate.getDate() + 7);
 
     const isDelivered = order.status === 'DELIVERED';
+    // The real delivery date when it was recorded; orders delivered before that keep the estimate.
+    const deliveredOn = order.deliveredAt ? new Date(order.deliveredAt) : deliveryEnd;
     const estimatedDelivery = isDelivered
-      ? `Delivered on ${deliveryEnd.toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}`
+      ? `Delivered on ${deliveredOn.toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}`
       : `Arriving ${deliveryStart.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}–${deliveryEnd.toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}`;
 
     const digitsOnly = (order.orderNumber || order.id || '').replace(/[^0-9]/g, '') || '984210984';
@@ -70,6 +73,7 @@ export const orderService = {
       orderNumber: order.orderNumber || `MFS-${order.id?.slice(-6).toUpperCase() || '100000'}`,
       // Only ever sent to the order's owner or an admin; customer links use it instead of the number.
       accessToken: order.accessToken ?? null,
+      timeline: customerTimeline(order),
       date: rawDate.toLocaleDateString('en-IN', {
         month: 'short',
         day: 'numeric',

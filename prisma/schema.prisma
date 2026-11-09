@@ -62,6 +62,7 @@ model User {
   reviews          Review[]
   cart             Cart?
   favorites        Favorite[]
+  orderStatusChanges OrderStatusEvent[]
   resetToken       String?   @unique
   resetTokenExpiry DateTime?
 
@@ -215,10 +216,35 @@ model Order {
 
   items             OrderItem[]
   refunds           Refund[]
+  statusEvents      OrderStatusEvent[]
 
   @@index([userId])
   @@index([status])
   @@index([orderNumber])
+}
+
+enum OrderEventActor {
+  CUSTOMER
+  ADMIN
+  SYSTEM
+}
+
+/// One row per change to an order's status, written in the same step as the change. Never edited.
+model OrderStatusEvent {
+  id          String          @id @default(cuid())
+  orderId     String
+  order       Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  /// Null for the first event, when the order is created.
+  fromStatus  OrderStatus?
+  toStatus    OrderStatus
+  actor       OrderEventActor
+  /// The admin or customer who made the change; kept as null if that account is ever removed.
+  changedById String?
+  changedBy   User?           @relation(fields: [changedById], references: [id], onDelete: SetNull)
+  note        String?
+  createdAt   DateTime        @default(now())
+
+  @@index([orderId, createdAt])
 }
 
 /// What a customer is paying for. It becomes an Order only once the payment is confirmed.

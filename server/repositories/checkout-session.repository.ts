@@ -104,6 +104,8 @@ export const checkoutSessionRepository = {
             shippingAddress: session.shippingAddress as Prisma.InputJsonValue,
             razorpayOrderId,
             razorpayPaymentId,
+            // The order's history starts with the payment that created it.
+            statusEvents: { create: { toStatus: 'PAID', actor: 'SYSTEM', note: 'Payment confirmed' } },
             items: {
               create: items.map((item) => ({
                 productId: item.productId,
