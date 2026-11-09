@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { signOut } from 'next-auth/react';
 import { useCart } from '@/context/CartContext';
 import { useLocale } from '@/context/CurrencyContext';
+import PasswordChangedModal, { type DevicesChoice } from './PasswordChangedModal';
 import {
   card,
   CardHeading,
@@ -44,7 +45,8 @@ export default function ChangePasswordCard() {
   const [busy, setBusy] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [error, setError] = useState('');
-  const [changed, setChanged] = useState(false);
+  const [changed, setChanged] = useState<DevicesChoice | null>(null);
+  const [askDevices, setAskDevices] = useState(false);
   const nextRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -67,7 +69,7 @@ export default function ChangePasswordCard() {
     }
     setBusy(true);
     setError('');
-    setChanged(false);
+    setChanged(null);
     try {
       await post('/api/auth/verify-password', { currentPassword: current });
       setVerified(true);
@@ -89,7 +91,7 @@ export default function ChangePasswordCard() {
     try {
       await post('/api/auth/change-password', { currentPassword: current, newPassword: next });
       reset();
-      setChanged(true);
+      setAskDevices(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : '');
     } finally {
@@ -182,7 +184,13 @@ export default function ChangePasswordCard() {
         />
 
         {error && <FormError>{error}</FormError>}
-        {changed && <FormSuccess>{t('profile.password_changed', 'Your password has been changed.')}</FormSuccess>}
+        {changed && (
+          <FormSuccess>
+            {changed === 'sign-out'
+              ? t('profile.password_changed_signed_out', 'Your password has been changed, and your other devices were signed out.')
+              : t('profile.password_changed', 'Your password has been changed.')}
+          </FormSuccess>
+        )}
 
         <div className="grid grid-cols-2 gap-3">
           <button type="submit" disabled={!verified || busy} className={`${primaryButton} !px-3`}>
@@ -202,6 +210,14 @@ export default function ChangePasswordCard() {
           </button>
         </div>
       </form>
+      {askDevices && (
+        <PasswordChangedModal
+          onDone={(choice) => {
+            setAskDevices(false);
+            setChanged(choice);
+          }}
+        />
+      )}
     </section>
   );
 }

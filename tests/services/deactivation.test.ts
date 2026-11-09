@@ -56,12 +56,12 @@ describe('open sessions', () => {
   const jwt = (token: Record<string, unknown>) => authOptions.callbacks!.jwt!({ token, user: undefined } as any);
 
   it('keeps an active account signed in', async () => {
-    vi.spyOn(userRepository, 'findSessionStatus').mockResolvedValueOnce({ deactivatedAt: null });
+    vi.spyOn(userRepository, 'findSessionStatus').mockResolvedValueOnce({ deactivatedAt: null, sessionVersion: 0 });
     await expect(jwt({ id: 'u1', role: 'CUSTOMER' })).resolves.toMatchObject({ id: 'u1' });
   });
 
   it('ends the session of a deactivated or deleted account', async () => {
-    vi.spyOn(userRepository, 'findSessionStatus').mockResolvedValueOnce({ deactivatedAt: new Date() });
+    vi.spyOn(userRepository, 'findSessionStatus').mockResolvedValueOnce({ deactivatedAt: new Date(), sessionVersion: 0 });
     await expect(jwt({ id: 'u1' })).rejects.toThrow(ACCOUNT_DEACTIVATED);
     vi.spyOn(userRepository, 'findSessionStatus').mockResolvedValueOnce(null);
     await expect(jwt({ id: 'u1' })).rejects.toThrow(ACCOUNT_DEACTIVATED);

@@ -24,7 +24,12 @@ export const userRepository = {
 
   /** Just what an open session needs re-checked: whether the account still exists and is active. */
   async findSessionStatus(id: string) {
-    return prisma.user.findUnique({ where: { id }, select: { deactivatedAt: true } });
+    return prisma.user.findUnique({ where: { id }, select: { deactivatedAt: true, sessionVersion: true } });
+  },
+
+  /** Signs out every session issued before now. Returns the new version for the session that stays. */
+  async bumpSessionVersion(id: string) {
+    return prisma.user.update({ where: { id }, data: { sessionVersion: { increment: 1 } }, select: { sessionVersion: true } });
   },
 
   async findByGoogleId(googleId: string, tx?: Prisma.TransactionClient) {
@@ -66,6 +71,7 @@ export const userRepository = {
         role: true,
         phone: true,
         createdAt: true,
+        sessionVersion: true,
       },
     });
   },

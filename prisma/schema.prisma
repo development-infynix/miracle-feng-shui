@@ -49,6 +49,8 @@ model User {
   googleId     String?    @unique
   /// Set when an admin deactivates the account: it can't sign in and open sessions end. Null means active.
   deactivatedAt DateTime?
+  /// Every sign-in carries this number. Raising it signs out every session that holds an older one.
+  sessionVersion Int      @default(0)
   role         Role       @default(CUSTOMER)
   phone        String?
   createdAt    DateTime   @default(now())

@@ -35,9 +35,10 @@ describe('AuthService', () => {
       passwordHash: data.passwordHash,
       role: data.role || 'CUSTOMER',
       phone: data.phone || null,
+      sessionVersion: 0,
       createdAt: new Date(),
       updatedAt: new Date(),
-    }));
+    }) as any);
 
     const result = await authService.register({
       name: 'Kavita Singh',

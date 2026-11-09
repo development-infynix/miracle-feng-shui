@@ -24,7 +24,8 @@ function ResetPasswordForm() {
       return;
     }
 
-    if (newPassword.length < 6) {
+    // Spaces around a password aren't kept, so they don't count toward its length.
+    if (newPassword.trim().length < 6) {
       setError('Password must be at least 6 characters long.');
       return;
     }
@@ -84,7 +85,7 @@ function ResetPasswordForm() {
           <i className="fa-solid fa-circle-check text-emerald-600 text-base mb-1 block" />
           <strong>Password Reset Complete!</strong>
           <p className="mt-1 text-emerald-700">
-            Your password has been securely updated. You can now log into your Miracle Feng Shui account.
+            Your password has been updated, and you were signed out on all devices. Sign in with your new password.
           </p>
         </div>
         <div className="pt-2">
