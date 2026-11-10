@@ -344,6 +344,12 @@ model Review {
   hiddenAt         DateTime?
   hiddenReason     ReviewHideReason?
   hiddenNote       String?
+  /// The author's request to look again at a hidden review: one per take-down, cleared when it's hidden again or restored.
+  appealMessage    String?
+  appealedAt       DateTime?
+  /// The admin's answer when the review stays hidden. Shown to the author.
+  appealResponse   String?
+  appealResolvedAt DateTime?
   /// The store's public reply, shown under the review.
   reply            String?
   repliedAt        DateTime?
@@ -372,6 +378,8 @@ enum ReviewEventAction {
   RESTORED
   REPLIED
   REPLY_REMOVED
+  APPEALED
+  APPEAL_DECLINED
 }
 
 /// One row per admin action on a review. Never edited.

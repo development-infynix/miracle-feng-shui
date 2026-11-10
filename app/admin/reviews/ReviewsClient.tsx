@@ -14,6 +14,8 @@ interface ReviewsClientProps {
   /** Set when opened from a product's drawer. */
   product: { id: string; title: string } | null;
   hiddenCount: number;
+  /** Hidden reviews whose author asked us to look again, not answered yet. */
+  openAppeals: number;
 }
 
 function reviewsUrl(params: { q?: string; rating?: string; unanswered?: boolean; product?: string; page?: number }) {
@@ -30,7 +32,7 @@ function reviewsUrl(params: { q?: string; rating?: string; unanswered?: boolean;
 const control =
   'h-9 rounded-md border border-gray-300 bg-white px-2.5 text-xs text-gray-800 shadow-sm outline-none focus:border-black focus:ring-2 focus:ring-black/5';
 
-export default function ReviewsClient({ data, q, rating, unanswered, product, hiddenCount }: ReviewsClientProps) {
+export default function ReviewsClient({ data, q, rating, unanswered, product, hiddenCount, openAppeals }: ReviewsClientProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [reviews, setReviews] = useState<AdminReview[]>(data.items);
@@ -70,6 +72,11 @@ export default function ReviewsClient({ data, q, rating, unanswered, product, hi
         </div>
         <Link href="/admin/archive?tab=reviews" className="text-xs font-medium text-gray-600 underline-offset-2 hover:underline">
           Hidden reviews ({hiddenCount}) on the Archive page
+          {openAppeals > 0 && (
+            <span className="ml-1.5 rounded-full bg-amber-100 px-1.5 py-px text-[10px] font-bold text-amber-900 no-underline">
+              {openAppeals} asking to look again
+            </span>
+          )}
         </Link>
       </div>
 

@@ -23,9 +23,10 @@ export default async function AdminReviewsPage({
     product: sp?.product || undefined,
   });
 
-  const [data, hiddenCount, product] = await Promise.all([
+  const [data, hiddenCount, openAppeals, product] = await Promise.all([
     reviewService.listForAdmin(query),
     reviewRepository.countHidden(),
+    reviewRepository.countOpenAppeals(),
     query.product ? prisma.product.findUnique({ where: { id: query.product }, select: { id: true, title: true } }) : null,
   ]);
 
@@ -37,6 +38,7 @@ export default async function AdminReviewsPage({
       unanswered={Boolean(query.unanswered)}
       product={product}
       hiddenCount={hiddenCount}
+      openAppeals={openAppeals}
     />
   );
 }

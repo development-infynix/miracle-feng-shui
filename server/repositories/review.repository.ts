@@ -132,7 +132,10 @@ export const reviewRepository = {
             select: { changedBy: { select: { name: true, email: true } } },
           },
         },
-        orderBy: filters.hidden ? [{ hiddenAt: 'desc' }, { id: 'desc' }] : [{ createdAt: 'desc' }, { id: 'desc' }],
+        // Hidden reviews with a request to look again come first.
+        orderBy: filters.hidden
+          ? [{ appealedAt: { sort: 'desc', nulls: 'last' } }, { hiddenAt: 'desc' }, { id: 'desc' }]
+          : [{ createdAt: 'desc' }, { id: 'desc' }],
         skip: filters.skip,
         take: filters.take,
       }),
@@ -145,6 +148,11 @@ export const reviewRepository = {
     return prisma.review.count({ where: { hiddenAt: { not: null } } });
   },
 
+  /** Hidden reviews whose author asked us to look again, not answered yet. */
+  async countOpenAppeals() {
+    return prisma.review.count({ where: { hiddenAt: { not: null }, appealedAt: { not: null }, appealResolvedAt: null } });
+  },
+
   /**
    * Hides or restores a review and records it, in one step. Only matches a review in the other state,
    * so two admins acting at once can't both succeed. Returns false when nothing matched.
@@ -155,11 +163,13 @@ export const reviewRepository = {
     adminId: string | null
   ) {
     return prisma.$transaction(async (tx) => {
+      // Either way, any request to look again belongs to the take-down that just ended or began.
+      const clearAppeal = { appealMessage: null, appealedAt: null, appealResponse: null, appealResolvedAt: null };
       const { count } = await tx.review.updateMany({
         where: hide ? { id, hiddenAt: null } : { id, hiddenAt: { not: null } },
         data: hide
-          ? { hiddenAt: new Date(), hiddenReason: hide.reason, hiddenNote: hide.note }
-          : { hiddenAt: null, hiddenReason: null, hiddenNote: null },
+          ? { hiddenAt: new Date(), hiddenReason: hide.reason, hiddenNote: hide.note, ...clearAppeal }
+          : { hiddenAt: null, hiddenReason: null, hiddenNote: null, ...clearAppeal },
       });
       if (count === 0) return false;
       await tx.reviewEvent.create({
@@ -187,6 +197,49 @@ export const reviewRepository = {
   },
 
   async findById(id: string) {
-    return prisma.review.findUnique({ where: { id }, select: { id: true, hiddenAt: true, reply: true } });
+    return prisma.review.findUnique({ where: { id }, select: { id: true, hiddenAt: true, reply: true, appealedAt: true, appealResolvedAt: true } });
+  },
+
+  /** Who to tell about a review, and about which product. */
+  async findForNotice(id: string) {
+    return prisma.review.findUnique({
+      where: { id },
+      select: { user: { select: { name: true, email: true } }, product: { select: { id: true, title: true } } },
+    });
+  },
+
+  /** The author asks the store to look again. Only matches a hidden review with no request yet for this take-down. */
+  async appeal(id: string, userId: string, message: string) {
+    return prisma.$transaction(async (tx) => {
+      const { count } = await tx.review.updateMany({
+        where: { id, userId, hiddenAt: { not: null }, appealedAt: null },
+        data: { appealMessage: message, appealedAt: new Date() },
+      });
+      if (count === 0) return false;
+      await tx.reviewEvent.create({ data: { reviewId: id, action: 'APPEALED', note: message, changedById: userId } });
+      return true;
+    });
+  },
+
+  /** The admin keeps the review hidden and answers the request. Only matches an open request. */
+  async declineAppeal(id: string, response: string, adminId: string | null) {
+    return prisma.$transaction(async (tx) => {
+      const { count } = await tx.review.updateMany({
+        where: { id, hiddenAt: { not: null }, appealedAt: { not: null }, appealResolvedAt: null },
+        data: { appealResponse: response, appealResolvedAt: new Date() },
+      });
+      if (count === 0) return false;
+      await tx.reviewEvent.create({ data: { reviewId: id, action: 'APPEAL_DECLINED', note: response, changedById: adminId } });
+      return true;
+    });
+  },
+
+  /**
+   * The author deletes their own review for good, with its history, so they can write a new one.
+   * The one real delete in the admin's world: it's the customer's own words, not a store record.
+   */
+  async deleteOwn(id: string, userId: string) {
+    const { count } = await prisma.review.deleteMany({ where: { id, userId } });
+    return count > 0;
   },
 };

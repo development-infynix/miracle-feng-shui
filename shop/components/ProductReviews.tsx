@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocale } from '@/context/CurrencyContext';
+import HiddenReviewNotice, { type HiddenReview } from './HiddenReviewNotice';
 
 type ProductReview = {
   id: string;
@@ -17,7 +18,12 @@ type ProductReview = {
 };
 
 /** Only customers who've had the product delivered can review it, once. */
-type ReviewEligibility = { canReview: boolean; reason: 'already_reviewed' | 'not_delivered' | null };
+type ReviewEligibility = {
+  canReview: boolean;
+  reason: 'already_reviewed' | 'not_delivered' | 'hidden' | null;
+  /** The customer's own review, when the store has taken it down. Only they see it. */
+  hiddenReview?: HiddenReview;
+};
 
 type ReviewsPage = {
   items: ProductReview[];
@@ -281,6 +287,15 @@ export function ProductReviewList({ state, productId, signedIn, guest, onSignIn 
     <button type="button" onClick={onSignIn} className={`h-12 cursor-pointer rounded-lg bg-[#222222] px-6 transition-colors hover:bg-black ${focusRing}`}>
       <span className="text-[15px] font-semibold text-white">{t('product.login_to_review', 'Login to add review')}</span>
     </button>
+  ) : signedIn && eligibility?.hiddenReview ? (
+    <HiddenReviewNotice
+      productId={productId}
+      review={eligibility.hiddenReview}
+      onDeleted={() => setEligibility({ canReview: true, reason: null })}
+      onAppealed={(appeal) =>
+        setEligibility((current) => (current?.hiddenReview ? { ...current, hiddenReview: { ...current.hiddenReview, appeal } } : current))
+      }
+    />
   ) : signedIn && eligibility?.canReview ? (
     <button type="button" onClick={() => setWriting(true)} className={`h-12 cursor-pointer rounded-lg bg-[#222222] px-6 transition-colors hover:bg-black ${focusRing}`}>
       <span className="text-[15px] font-semibold text-white">{t('product.add_review', 'Add review')}</span>

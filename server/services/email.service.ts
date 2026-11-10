@@ -26,6 +26,11 @@ export interface OrderEmailData {
 class EmailService {
   private transporter: nodemailer.Transporter | null = null;
 
+  /** The same transporter, for notice emails written outside this class. */
+  getTransporterForNotices(): nodemailer.Transporter {
+    return this.getTransporter();
+  }
+
   private getTransporter(): nodemailer.Transporter {
     if (this.transporter) return this.transporter;
 
@@ -344,6 +349,61 @@ class EmailService {
       console.error('[EmailService] Failed to send password reset email:', err);
       return { success: false };
     }
+  }
+}
+
+const escapeHtml = (text: string) =>
+  text.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c] as string);
+
+export type ReviewNotice =
+  | { kind: 'hidden'; because: string }
+  | { kind: 'restored' }
+  | { kind: 'kept_hidden'; response: string };
+
+/** Tells a customer what happened to their review. Never includes the admin's private note. */
+export async function sendReviewNoticeEmail(
+  service: EmailService,
+  data: { email: string; name?: string; productTitle: string; productUrl: string; notice: ReviewNotice }
+): Promise<{ success: boolean }> {
+  if (!data.email) return { success: false };
+  const from = process.env.EMAIL_FROM || process.env.SMTP_USER || 'Miracle Feng Shui <care@miraclefengshui.com>';
+  const product = escapeHtml(data.productTitle);
+  const { notice } = data;
+  const subject =
+    notice.kind === 'restored' ? `Your review of ${data.productTitle} is showing again` : `About your review of ${data.productTitle}`;
+  const body =
+    notice.kind === 'hidden'
+      ? `Your review of <strong>${product}</strong> has been taken down from our store because ${escapeHtml(notice.because)}.<br /><br />
+         On the product page you can see your review, delete it and write a new one, or ask us to look again.`
+      : notice.kind === 'restored'
+        ? `We've looked again, and your review of <strong>${product}</strong> is showing in our store again. Thank you for your patience.`
+        : `We've looked again at your review of <strong>${product}</strong>, and it will stay hidden.<br /><br />
+           <em>${escapeHtml(notice.response)}</em><br /><br />
+           You can still delete it and write a new one from the product page.`;
+
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8" /><title>${escapeHtml(subject)}</title></head>
+    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #FAF9F5; margin: 0; padding: 32px 16px; color: #222222;">
+      <div style="max-width: 540px; margin: 0 auto; background-color: #ffffff; border-radius: 20px; overflow: hidden; border: 1px solid #E1E3DF;">
+        <div style="background-color: #170E22; padding: 22px 20px; text-align: center; border-bottom: 3px solid #D4AF37;">
+          <h1 style="color: #ffffff; margin: 0; font-size: 18px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;">Miracle Feng Shui</h1>
+        </div>
+        <div style="padding: 28px;">
+          <p style="color: #333333; font-size: 14px; margin: 0 0 16px 0; line-height: 1.6;">
+            Hello ${escapeHtml(data.name || 'there')},<br /><br />${body}
+          </p>
+          <a href="${escapeHtml(data.productUrl)}" style="display: inline-block; background-color: #140D1F; color: #ffffff; text-decoration: none; padding: 12px 26px; border-radius: 12px; font-size: 14px; font-weight: 700;">View the product</a>
+          <p style="color: #888888; font-size: 12px; margin: 20px 0 0 0; line-height: 1.5;">Questions? Just reply to this email.</p>
+        </div>
+      </div>
+    </body></html>`;
+
+  try {
+    const info = await service.getTransporterForNotices().sendMail({ from, to: data.email, subject, html });
+    console.log(`[EmailService] Review notice (${notice.kind}) sent to ${data.email} (Message ID: ${info.messageId || 'local-stream'})`);
+    return { success: true };
+  } catch (err) {
+    console.error('[EmailService] Failed to send review notice email:', err);
+    return { success: false };
   }
 }
 
