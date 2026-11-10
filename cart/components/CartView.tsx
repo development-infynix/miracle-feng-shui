@@ -60,10 +60,8 @@ export default function CartView() {
   const handleRemove = async (item: CartItem) => {
     if (removingIds.has(item.id)) return;
     setRemovingIds((prev) => new Set(prev).add(item.id));
-    const start = Date.now();
-    await removeItem(item.id);
-    const remaining = MIN_REMOVE_MS - (Date.now() - start);
-    if (remaining > 0) await new Promise((resolve) => setTimeout(resolve, remaining));
+    // Keep the removing state up for at least MIN_REMOVE_MS so it doesn't flash.
+    await Promise.all([removeItem(item.id), new Promise((resolve) => setTimeout(resolve, MIN_REMOVE_MS))]);
     setRemovingIds((prev) => {
       const next = new Set(prev);
       next.delete(item.id);
