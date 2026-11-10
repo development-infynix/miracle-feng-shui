@@ -56,9 +56,9 @@ export const adminController = {
     return apiResponse.ok(product);
   },
 
-  async deleteProduct(_req: NextRequest, params: { id: string }) {
-    // The product's orders decide between deleting, archiving and refusing; see adminService.deleteProduct.
-    const result = await adminService.deleteProduct(params.id);
+  async archiveProduct(_req: NextRequest, params: { id: string }) {
+    // Products are never deleted: DELETE archives, unless the product is in an open order.
+    const result = await adminService.archiveProduct(params.id);
     return apiResponse.ok(result);
   },
 

@@ -147,7 +147,7 @@ export default function ArchiveClient({ tab: initialTab, orders: initialOrders, 
         <section id="archive-panel-products" role="tabpanel" aria-labelledby="archive-tab-products">
           {products.length === 0 ? (
             <p className="rounded-2xl border border-gray-100 bg-white p-10 text-center text-sm text-gray-500">
-              No archived products. A product that&rsquo;s in past orders is archived instead of deleted.
+              No archived products. Archive a product from its details on the Products page.
             </p>
           ) : (
             <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-200 bg-white">

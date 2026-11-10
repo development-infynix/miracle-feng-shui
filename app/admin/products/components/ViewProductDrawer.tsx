@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { LuChevronLeft, LuChevronRight, LuPencil, LuTrash2, LuX } from 'react-icons/lu';
+import { LuArchive, LuChevronLeft, LuChevronRight, LuPencil, LuX } from 'react-icons/lu';
 import { useStore } from '@/context/StoreContext';
 import ItemDetailsField from './ItemDetailsField';
 import ProductImagesEditor from './ProductImagesEditor';
@@ -116,15 +116,13 @@ export default function ViewProductDrawer({ open, product, categories, loading, 
     }
   };
 
-  // The product's orders and stock decide what removing it does (see adminService.deleteProduct).
-  const removal: { mode: 'blocked' | 'archive' | 'in_stock' | 'delete'; openOrders: number } | undefined = product?.removal;
+  // Products are never deleted, only archived; an open order blocks that (see adminService.archiveProduct).
+  const removal: { mode: 'blocked' | 'archive'; openOrders: number } | undefined = product?.removal;
   const archived = product?.isActive === false;
   const blockedReason =
     removal?.mode === 'blocked'
-      ? `In ${removal.openOrders === 1 ? '1 open order' : `${removal.openOrders} open orders`}. It can be removed once they're delivered, or cancelled with any refund processed.`
-      : removal?.mode === 'in_stock'
-        ? 'Still in stock. Set stock to 0 (sold out) to delete it.'
-        : '';
+      ? `In ${removal.openOrders === 1 ? '1 open order' : `${removal.openOrders} open orders`}. It can be archived once they're delivered, or cancelled with any refund processed.`
+      : '';
 
   const handleDelete = async () => {
     if (!product?.id) return;
@@ -132,13 +130,13 @@ export default function ViewProductDrawer({ open, product, categories, loading, 
     try {
       const res = await fetch(`/api/admin/products/${product.id}`, { method: 'DELETE' });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) { setError(data?.error || 'Failed to remove product.'); setConfirmDelete(false); return; }
+      if (!res.ok) { setError(data?.error || 'Failed to archive product.'); setConfirmDelete(false); return; }
       refreshProducts();
       setConfirmDelete(false);
-      // Deleted or archived, it leaves the Products list either way; archived ones are on the Archive page.
+      // It leaves the Products list for the Archive page.
       onClose(); onDeleted?.();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete product.');
+      setError(err instanceof Error ? err.message : 'Failed to archive product.');
       setConfirmDelete(false);
     } finally {
       setDeleting(false);
@@ -390,12 +388,12 @@ export default function ViewProductDrawer({ open, product, categories, loading, 
               <button type="button" aria-label={`Edit ${name}`} title="Edit product" onClick={startEditing} className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-stone-900 text-white transition-colors hover:bg-stone-700">
                 <LuPencil className="h-4 w-4" />
               </button>
-              {removal?.mode === 'blocked' || removal?.mode === 'in_stock' ? (
+              {removal?.mode === 'blocked' ? (
                 // A disabled button gets no hover or focus, so the wrapper carries the tooltip.
                 <span tabIndex={0} aria-describedby="delete-blocked-reason" className="group relative inline-flex cursor-not-allowed rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-stone-400">
-                  <button type="button" disabled aria-label={`Delete ${name}`} className="pointer-events-none inline-flex h-10 items-center justify-center gap-2 rounded-md bg-stone-200 px-4 text-sm font-medium text-stone-500">
-                    <LuTrash2 className="h-4 w-4" />
-                    Delete
+                  <button type="button" disabled aria-label={`Archive ${name}`} className="pointer-events-none inline-flex h-10 items-center justify-center gap-2 rounded-md bg-stone-200 px-4 text-sm font-medium text-stone-500">
+                    <LuArchive className="h-4 w-4" />
+                    Archive
                   </button>
                   <span
                     id="delete-blocked-reason"
@@ -406,17 +404,12 @@ export default function ViewProductDrawer({ open, product, categories, loading, 
                     <span aria-hidden="true" className="absolute right-6 top-full h-0 w-0 border-x-[6px] border-t-[6px] border-x-transparent border-t-stone-900" />
                   </span>
                 </span>
-              ) : removal?.mode === 'archive' && archived ? (
-                <span className="text-xs text-stone-500">Archived: hidden from the store, kept in past orders.</span>
-              ) : removal?.mode === 'archive' ? (
-                <button type="button" aria-label={`Archive ${name}`} title="It's in past orders, so it can be archived but not deleted" onClick={() => setConfirmDelete(true)} className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-red-600 px-4 text-sm font-medium text-red-700 transition-colors hover:bg-red-50">
-                  <LuTrash2 className="h-4 w-4" />
-                  Archive
-                </button>
+              ) : archived ? (
+                <span className="text-xs text-stone-500">Archived: hidden from the store. Restore it from the Archive page.</span>
               ) : (
-                <button type="button" aria-label={`Delete ${name}`} title="Delete product" onClick={() => setConfirmDelete(true)} className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-red-600 px-4 text-sm font-medium text-white transition-colors hover:bg-red-700">
-                  <LuTrash2 className="h-4 w-4" />
-                  Delete
+                <button type="button" aria-label={`Archive ${name}`} title="Hide from the store and move to the Archive page" onClick={() => setConfirmDelete(true)} className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-stone-300 bg-white px-4 text-sm font-medium text-stone-800 transition-colors hover:bg-stone-100">
+                  <LuArchive className="h-4 w-4" />
+                  Archive
                 </button>
               )}
             </>
@@ -426,21 +419,12 @@ export default function ViewProductDrawer({ open, product, categories, loading, 
         {confirmDelete && (
           <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40">
             <div className="bg-white p-4 rounded-md shadow">
-              {removal?.mode === 'archive' ? (
-                <>
-                  <p className="text-sm font-medium text-stone-900">Archive {name}?</p>
-                  <p className="mt-1 mb-3 max-w-sm text-sm text-stone-600">It&apos;s in past orders, so it can&apos;t be deleted. Archiving hides it from the store and moves it to the Archive page, and keeps it in those orders and their invoices. You can restore it from there.</p>
-                </>
-              ) : (
-                <>
-                  <p className="text-sm font-medium text-stone-900">Delete {name}?</p>
-                  <p className="mt-1 mb-3 max-w-sm text-sm text-stone-600">It isn&apos;t in any order, so it will be removed for good, along with it in any carts and favorites.</p>
-                </>
-              )}
+              <p className="text-sm font-medium text-stone-900">Archive {name}?</p>
+              <p className="mt-1 mb-3 max-w-sm text-sm text-stone-600">It&apos;s hidden from the store and moves to the Archive page. Its stock, reviews and past orders are kept, and you can restore it from there any time.</p>
               <div className="flex gap-2 justify-end">
                 <button type="button" onClick={() => setConfirmDelete(false)} className="px-3 py-1.5 text-sm border rounded">Cancel</button>
-                <button type="button" onClick={handleDelete} disabled={deleting} className="px-3 py-1.5 text-sm bg-red-600 text-white rounded">
-                  {removal?.mode === 'archive' ? (deleting ? 'Archiving...' : 'Archive') : deleting ? 'Deleting...' : 'Delete'}
+                <button type="button" onClick={handleDelete} disabled={deleting} className="px-3 py-1.5 text-sm bg-stone-900 text-white rounded">
+                  {deleting ? 'Archiving...' : 'Archive'}
                 </button>
               </div>
             </div>

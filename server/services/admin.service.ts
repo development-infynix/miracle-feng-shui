@@ -39,13 +39,11 @@ export const OPEN_ORDER_WHERE: Prisma.OrderWhereInput = {
 };
 
 /**
- * What removing a product does:
+ * What removing a product does. Products are never deleted, so a removal can always be undone from the Archive page.
  * - blocked: it's in an open order, so it stays until that order is delivered or cancelled;
- * - archive: it's only in finished orders, so it's hidden from the store but kept for their history and invoices;
- * - in_stock: it's in no order but still has stock, so it has to be sold out (stock 0) before it can be deleted;
- * - delete: it's in no order and sold out, so it's removed for good (with it, any cart lines and favorites).
+ * - archive: it's hidden from the store and moved to the Archive page, keeping its stock, reviews and order history.
  */
-export type ProductRemoval = { mode: 'blocked' | 'archive' | 'in_stock' | 'delete'; openOrders: number };
+export type ProductRemoval = { mode: 'blocked' | 'archive'; openOrders: number };
 
 const customerListRange = (page: number) => ({
   skip: (page - 1) * CUSTOMER_LIST_PAGE_SIZE,
@@ -292,14 +290,17 @@ export const adminService = {
     if (!product) {
       throw ApiError.notFound('Product not found');
     }
-    return { ...this.formatAdminProduct(product), removal: await this.getProductRemoval(id, product.stock) };
+    return { ...this.formatAdminProduct(product), removal: await this.getProductRemoval(id) };
   },
 
-  async getProductRemoval(id: string, stock: number): Promise<ProductRemoval> {
-    const { openOrders, orderItems } = await adminRepository.countProductOrders(id, OPEN_ORDER_WHERE);
-    if (openOrders > 0) return { mode: 'blocked', openOrders };
-    if (orderItems > 0) return { mode: 'archive', openOrders: 0 };
-    return { mode: stock > 0 ? 'in_stock' : 'delete', openOrders: 0 };
+  async getProductRemoval(id: string): Promise<ProductRemoval> {
+    const openOrders = await adminRepository.countOpenProductOrders(id, OPEN_ORDER_WHERE);
+    return openOrders > 0 ? { mode: 'blocked', openOrders } : { mode: 'archive', openOrders: 0 };
+  },
+
+  blockedProductMessage(openOrders: number) {
+    const orders = openOrders === 1 ? '1 open order' : `${openOrders} open orders`;
+    return `This product is in ${orders}. It can be archived once they're delivered, or cancelled with any refund processed.`;
   },
 
   async createProduct(input: CreateProductInput) {
@@ -313,41 +314,33 @@ export const adminService = {
       throw ApiError.notFound('Product not found');
     }
 
+    // Archiving through the status picker follows the same rule as the Archive button.
+    if (input.isActive === false && existing.isActive !== false) {
+      const removal = await this.getProductRemoval(id);
+      if (removal.mode === 'blocked') throw ApiError.conflict(this.blockedProductMessage(removal.openOrders));
+    }
+
     const product = await adminRepository.updateProduct(id, input);
     return this.formatAdminProduct(product);
   },
 
-  /** Removes a product the only way its orders allow. See ProductRemoval. */
-  async deleteProduct(id: string) {
+  /** Archives a product. Products are never deleted; it can be restored from the Archive page. See ProductRemoval. */
+  async archiveProduct(id: string) {
     const existing = await productRepository.findById(id);
     if (!existing) {
       throw ApiError.notFound('Product not found');
     }
 
-    const removal = await this.getProductRemoval(id, existing.stock);
+    const removal = await this.getProductRemoval(id);
     if (removal.mode === 'blocked') {
-      const orders = removal.openOrders === 1 ? '1 open order' : `${removal.openOrders} open orders`;
-      throw ApiError.conflict(
-        `This product is in ${orders}. It can be removed once they're delivered, or cancelled with any refund processed.`
-      );
+      throw ApiError.conflict(this.blockedProductMessage(removal.openOrders));
     }
 
-    if (removal.mode === 'in_stock') {
-      throw ApiError.conflict(
-        `This product still has ${existing.stock} in stock. Set its stock to 0 (sold out) before deleting it.`
-      );
-    }
-
-    if (removal.mode === 'archive') {
-      await adminRepository.deleteProduct(id, false);
-      return {
-        result: 'archived' as const,
-        message: "Archived: it's in past orders, so it's hidden from the store and kept in their history.",
-      };
-    }
-
-    await adminRepository.deleteProduct(id, true);
-    return { result: 'deleted' as const, message: 'Product deleted.' };
+    await adminRepository.archiveProduct(id);
+    return {
+      result: 'archived' as const,
+      message: "Archived: it's hidden from the store and on the Archive page, where you can restore it.",
+    };
   },
 
   /** The Orders list leaves archived orders out; `archived: true` lists only those, newest archived first. */

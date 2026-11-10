@@ -13,7 +13,7 @@ export const PATCH = withRole('ADMIN', async (req: NextRequest, { params }: any)
 
 export const DELETE = withRole('ADMIN', async (req: NextRequest, { params }: any) => {
   try {
-    return await adminController.deleteProduct(req, params);
+    return await adminController.archiveProduct(req, params);
   } catch (error) {
     return handleError(error);
   }

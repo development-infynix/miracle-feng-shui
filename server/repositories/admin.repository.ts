@@ -204,12 +204,9 @@ export const adminRepository = {
   },
 
   /** Orders that contain the product and are still open (see `openOrder`), plus every order line that names it. */
-  async countProductOrders(productId: string, openOrder: Prisma.OrderWhereInput) {
-    const [openOrders, orderItems] = await Promise.all([
-      prisma.order.count({ where: { AND: [openOrder, { items: { some: { productId } } }] } }),
-      prisma.orderItem.count({ where: { productId } }),
-    ]);
-    return { openOrders, orderItems };
+  /** How many open orders (by `openOrder`) contain the product. */
+  async countOpenProductOrders(productId: string, openOrder: Prisma.OrderWhereInput) {
+    return prisma.order.count({ where: { AND: [openOrder, { items: { some: { productId } } }] } });
   },
 
   async createProduct(data: CreateProductInput) {
@@ -308,11 +305,8 @@ export const adminRepository = {
     });
   },
 
-  async deleteProduct(id: string, hardDelete = false) {
-    if (hardDelete) {
-      return prisma.product.delete({ where: { id } });
-    }
-    // Soft delete by default
+  /** Hides the product from the store and moves it to the Archive page. Products are never deleted. */
+  async archiveProduct(id: string) {
     return prisma.product.update({
       where: { id },
       data: { isActive: false },
