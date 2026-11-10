@@ -149,3 +149,70 @@ describe('moderating reviews', () => {
     expect(save).toHaveBeenLastCalledWith('r1', null, 'admin-1');
   });
 });
+
+describe('taken-down reviews, for their author', () => {
+  const hiddenOwn = (fields: Record<string, unknown> = {}) => ({
+    id: 'r1',
+    rating: 2,
+    comment: 'Call me on 98...',
+    hiddenAt: new Date(),
+    hiddenReason: 'PERSONAL_DETAILS',
+    hiddenNote: 'private admin note',
+    appealedAt: null,
+    ...fields,
+  });
+
+  it('shows the author their hidden review with the reason, never the private note', async () => {
+    vi.spyOn(productRepository, 'findBySlugOrId').mockResolvedValue({ id: 'prod-1' } as any);
+    vi.spyOn(reviewRepository, 'findByUserAndProduct').mockResolvedValue(hiddenOwn() as any);
+
+    const result: any = await reviewService.eligibility('user-1', 'prod-1');
+
+    expect(result).toMatchObject({ canReview: false, reason: 'hidden' });
+    expect(result.hiddenReview).toMatchObject({ reasonCode: 'PERSONAL_DETAILS', because: expect.stringContaining('personal details'), appeal: null });
+    expect(JSON.stringify(result)).not.toContain('private admin note');
+  });
+
+  it('lets the author delete their own review for good', async () => {
+    vi.spyOn(productRepository, 'findBySlugOrId').mockResolvedValue({ id: 'prod-1' } as any);
+    vi.spyOn(reviewRepository, 'findByUserAndProduct').mockResolvedValue(hiddenOwn() as any);
+    const del = vi.spyOn(reviewRepository, 'deleteOwn').mockResolvedValue(true);
+
+    await expect(reviewService.deleteOwn('user-1', 'prod-1')).resolves.toEqual({ deleted: true });
+    expect(del).toHaveBeenCalledWith('r1', 'user-1');
+  });
+
+  it('takes one request to look again per take-down', async () => {
+    vi.spyOn(productRepository, 'findBySlugOrId').mockResolvedValue({ id: 'prod-1' } as any);
+    vi.spyOn(reviewRepository, 'findByUserAndProduct').mockResolvedValue(hiddenOwn() as any);
+    const appeal = vi.spyOn(reviewRepository, 'appeal').mockResolvedValueOnce(true).mockResolvedValueOnce(false);
+
+    await reviewService.appeal('user-1', 'prod-1', 'It was about the product');
+    expect(appeal).toHaveBeenCalledWith('r1', 'user-1', 'It was about the product');
+    await expect(reviewService.appeal('user-1', 'prod-1', 'Again')).rejects.toMatchObject({ statusCode: 409 });
+  });
+
+  it('refuses a request on a review that is showing', async () => {
+    vi.spyOn(productRepository, 'findBySlugOrId').mockResolvedValue({ id: 'prod-1' } as any);
+    vi.spyOn(reviewRepository, 'findByUserAndProduct').mockResolvedValue(hiddenOwn({ hiddenAt: null }) as any);
+    await expect(reviewService.appeal('user-1', 'prod-1', 'Please')).rejects.toMatchObject({ statusCode: 404 });
+  });
+
+  it('emails the author when the admin keeps it hidden, with the answer', async () => {
+    vi.spyOn(reviewRepository, 'findById').mockResolvedValue({ id: 'r1' } as any);
+    vi.spyOn(reviewRepository, 'declineAppeal').mockResolvedValue(true);
+    const notify = vi.spyOn(reviewService, 'notifyAuthor').mockImplementation(() => {});
+
+    await reviewService.declineAppeal('r1', 'It still includes a phone number.', 'admin-1');
+    expect(notify).toHaveBeenCalledWith('r1', { kind: 'kept_hidden', response: 'It still includes a phone number.' });
+  });
+
+  it('emails the author on take-down with the customer-facing reason', async () => {
+    vi.spyOn(reviewRepository, 'findById').mockResolvedValue({ id: 'r1', hiddenAt: null } as any);
+    vi.spyOn(reviewRepository, 'setHidden').mockResolvedValue(true);
+    const notify = vi.spyOn(reviewService, 'notifyAuthor').mockImplementation(() => {});
+
+    await reviewService.setHidden('r1', { hidden: true, reason: 'OFF_TOPIC', note: 'secret' }, 'admin-1');
+    expect(notify).toHaveBeenCalledWith('r1', { kind: 'hidden', because: "it wasn't about this product" });
+  });
+});

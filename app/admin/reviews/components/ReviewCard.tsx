@@ -47,6 +47,8 @@ export default function ReviewCard({ review, onRemoved, onChanged }: ReviewCardP
   const [note, setNote] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [answer, setAnswer] = useState('');
+  const appealOpen = hidden && Boolean(review.appealedAt) && !review.appealResolvedAt;
 
   const run = async (action: () => Promise<void>) => {
     setBusy(true);
@@ -79,6 +81,18 @@ export default function ReviewCard({ review, onRemoved, onChanged }: ReviewCardP
     void run(async () => {
       await send(`/api/admin/reviews/${review.id}`, 'PATCH', { hidden: true, reason, ...(note.trim() && { note: note.trim() }) });
       onRemoved(review.id, 'Review hidden from the store. It’s on the Archive page if you need it back.');
+    });
+  };
+
+  const keepHidden = () => {
+    if (answer.trim().length < 5) {
+      setError('Write a short answer for the customer.');
+      return;
+    }
+    void run(async () => {
+      const data = await send(`/api/admin/reviews/${review.id}/appeal`, 'POST', { response: answer.trim() });
+      onChanged({ ...review, appealResponse: data.appealResponse, appealResolvedAt: data.appealResolvedAt });
+      setAnswer('');
     });
   };
 
@@ -128,6 +142,38 @@ export default function ReviewCard({ review, onRemoved, onChanged }: ReviewCardP
             {review.hiddenBy ? ` by ${review.hiddenBy}` : ''}
           </span>
         </p>
+      )}
+
+      {hidden && review.appealedAt && (
+        <div className={`space-y-2 rounded-md border px-3 py-2 text-xs ${appealOpen ? 'border-amber-300 bg-amber-50' : 'border-gray-200 bg-gray-50'}`}>
+          <p className="font-semibold text-gray-900">
+            {appealOpen ? 'Customer asked us to look again' : 'Customer asked us to look again (answered)'}{' '}
+            <span className="font-normal text-gray-500">{day(review.appealedAt)}</span>
+          </p>
+          <p className="whitespace-pre-wrap break-words text-gray-800">“{review.appealMessage}”</p>
+          {review.appealResponse && (
+            <p className="text-gray-700">
+              <span className="font-semibold">Kept hidden. Your answer:</span> {review.appealResponse}
+            </p>
+          )}
+          {appealOpen && (
+            <div className="space-y-2 border-t border-amber-200 pt-2">
+              <p className="text-gray-700">Restore the review if they&rsquo;re right, or keep it hidden and tell them why. They see your answer and get an email.</p>
+              <textarea
+                aria-label="Answer to the customer (if keeping it hidden)"
+                placeholder="Answer to the customer, if keeping it hidden"
+                value={answer}
+                onChange={(e) => setAnswer(e.target.value)}
+                maxLength={500}
+                rows={2}
+                className="w-full rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-xs outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10"
+              />
+              <button type="button" onClick={keepHidden} disabled={busy} className={button}>
+                {busy ? 'Saving…' : 'Keep hidden and answer'}
+              </button>
+            </div>
+          )}
+        </div>
       )}
 
       {review.reply && mode !== 'reply' && (

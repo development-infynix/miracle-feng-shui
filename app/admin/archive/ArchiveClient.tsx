@@ -29,13 +29,15 @@ interface ArchiveClientProps {
   productTotal: number;
   /** Hidden reviews, one page at a time. */
   reviewPage: AdminReviewPage;
+  /** Hidden reviews whose author asked us to look again, not answered yet. */
+  openAppeals: number;
 }
 
 const day = (iso: string) =>
   new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' });
 const rupees = (n: number) => `₹${n.toLocaleString('en-IN')}`;
 
-export default function ArchiveClient({ tab: initialTab, orders: initialOrders, products: initialProducts, productTotal, reviewPage }: ArchiveClientProps) {
+export default function ArchiveClient({ tab: initialTab, orders: initialOrders, products: initialProducts, productTotal, reviewPage, openAppeals }: ArchiveClientProps) {
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [tab, setTab] = useState<Tab>(initialTab);
@@ -110,6 +112,9 @@ export default function ArchiveClient({ tab: initialTab, orders: initialOrders, 
             }`}
           >
             {t.label} <span className="ml-1 tabular-nums text-xs font-medium text-gray-500">{t.count}</span>
+            {t.id === 'reviews' && openAppeals > 0 && (
+              <span className="ml-1.5 rounded-full bg-amber-100 px-1.5 py-px text-[10px] font-bold text-amber-900">{openAppeals} to answer</span>
+            )}
           </button>
         ))}
       </div>
