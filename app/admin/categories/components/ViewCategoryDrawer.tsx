@@ -218,7 +218,7 @@ export default function ViewCategoryDrawer({
                     <dd className="font-medium text-stone-900">{category.activeCount}</dd>
                   </div>
                   <div className="grid grid-cols-[7rem_1fr] items-center gap-3 py-3 text-sm">
-                    <dt className="text-stone-500">Inactive products</dt>
+                    <dt className="text-stone-500">Archived products</dt>
                     <dd className="font-medium text-stone-900">{category.inactiveCount}</dd>
                   </div>
                   <div className="grid grid-cols-[7rem_1fr] items-center gap-3 py-3 text-sm">

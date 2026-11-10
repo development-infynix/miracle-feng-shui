@@ -98,3 +98,6 @@ export type UpdateOrderStatusInput = z.infer<typeof updateOrderStatusSchema>;
 
 /** Deactivate (active: false) or reactivate (active: true) a customer account. */
 export const setCustomerActiveSchema = z.object({ active: z.boolean() });
+
+/** Archive (archived: true) or restore (archived: false) a finished order. */
+export const setOrderArchivedSchema = z.object({ archived: z.boolean() });

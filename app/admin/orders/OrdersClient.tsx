@@ -196,10 +196,10 @@ export default function OrdersClient({ initialOrders, search = '', status: statu
             setViewOrder(updated);
             handleStatusSaved(updated);
           }}
-          onDeleted={(orderId) => {
+          onArchiveChanged={(orderId) => {
             setViewOrder(null);
             setOrders((prev) => prev.filter((o) => o.id !== orderId));
-            showToast('Order deleted.');
+            showToast('Order archived. Find it on the Archive page.');
             startTransition(() => router.refresh());
           }}
         />

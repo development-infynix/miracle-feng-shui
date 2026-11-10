@@ -90,6 +90,7 @@ describe('admin history view', () => {
         { id: 'e1', fromStatus: null, toStatus: 'PAID', actor: 'SYSTEM', note: 'Payment confirmed', createdAt: placedOn, changedBy: null },
         { id: 'e2', fromStatus: 'PAID', toStatus: 'SHIPPED', actor: 'ADMIN', note: null, createdAt: placedOn, changedBy: { name: 'Owner', email: 'o@x.com' } },
       ],
+      archiveEvents: [],
     } as any);
 
     const history = await adminService.getOrderHistory('o1');

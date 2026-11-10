@@ -63,6 +63,7 @@ model User {
   cart             Cart?
   favorites        Favorite[]
   orderStatusChanges OrderStatusEvent[]
+  orderArchiveChanges OrderArchiveEvent[]
   resetToken       String?   @unique
   resetTokenExpiry DateTime?
 
@@ -213,15 +214,20 @@ model Order {
   cancellationAllowed     Boolean       @default(true)
   /// When the order was marked Delivered; cleared if it's moved back. Reviews written after it are verified purchases.
   deliveredAt             DateTime?
+  /// Set when an admin archives the finished order: it leaves the admin Orders list for the Archive page.
+  /// Customers, invoices and revenue figures are unaffected. Null means not archived.
+  archivedAt              DateTime?
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
 
   items             OrderItem[]
   refunds           Refund[]
   statusEvents      OrderStatusEvent[]
+  archiveEvents     OrderArchiveEvent[]
 
   @@index([userId])
   @@index([status])
+  @@index([archivedAt])
   @@index([orderNumber])
 }
 
@@ -245,6 +251,21 @@ model OrderStatusEvent {
   changedBy   User?           @relation(fields: [changedById], references: [id], onDelete: SetNull)
   note        String?
   createdAt   DateTime        @default(now())
+
+  @@index([orderId, createdAt])
+}
+
+/// One row each time an admin archives or restores an order. Never edited. Shown in the admin order history only.
+model OrderArchiveEvent {
+  id          String   @id @default(cuid())
+  orderId     String
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  /// True for archived, false for restored.
+  archived    Boolean
+  /// Kept as null if that admin account is ever removed.
+  changedById String?
+  changedBy   User?    @relation(fields: [changedById], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
 
   @@index([orderId, createdAt])
 }

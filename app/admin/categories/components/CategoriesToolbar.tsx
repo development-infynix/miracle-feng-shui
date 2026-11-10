@@ -70,7 +70,7 @@ export default function CategoriesToolbar({ searchQuery, onSearchChange, onAdd, 
               <span className="font-bold text-gray-900">{stats.activeProducts}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-gray-500 font-medium">Inactive Products</span>
+              <span className="text-gray-500 font-medium">Archived Products</span>
               <span className="font-bold text-gray-900">{stats.inactiveProducts}</span>
             </div>
           </div>

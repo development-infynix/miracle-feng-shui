@@ -350,7 +350,8 @@ export const adminService = {
     return { result: 'deleted' as const, message: 'Product deleted.' };
   },
 
-  async getOrders(filters?: { status?: string; search?: string }) {
+  /** The Orders list leaves archived orders out; `archived: true` lists only those, newest archived first. */
+  async getOrders(filters?: { status?: string; search?: string; archived?: boolean }) {
     let statuses: OrderStatus[] | undefined;
     if (filters?.status && filters.status !== 'all') {
       const status = filters.status.toUpperCase().replace(/ /g, '_') as OrderStatus;
@@ -360,6 +361,7 @@ export const adminService = {
     const orders = await adminRepository.findAllOrders({
       statuses,
       search: filters?.search,
+      archived: filters?.archived,
     });
 
     return orders.map((o) => {
@@ -384,6 +386,7 @@ export const adminService = {
         paymentStatus: o.paymentStatus,
         cancellationAllowed: o.cancellationAllowed,
         cancellationReason: o.cancellationReason,
+        archivedAt: o.archivedAt ? o.archivedAt.toISOString() : null,
         refund: o.refunds[0]
           ? {
               id: o.refunds[0].id,
@@ -409,21 +412,56 @@ export const adminService = {
   async getOrderHistory(id: string) {
     const order = await adminRepository.findOrderHistory(id);
     if (!order) throw ApiError.notFound('Order not found');
-    return order.statusEvents.map((event) => ({
+    const statusChanges = order.statusEvents.map((event) => ({
       id: event.id,
       from: event.fromStatus ? uiOrderStatus(event.fromStatus) : null,
-      to: uiOrderStatus(event.toStatus),
+      to: uiOrderStatus(event.toStatus) as string,
       actor: event.actor,
       by: event.changedBy?.name || event.changedBy?.email || null,
       note: event.note,
       at: event.createdAt.toISOString(),
     }));
+    // Archiving isn't a status, so these sit between the status changes by time, labelled on their own.
+    const archiveChanges = order.archiveEvents.map((event) => ({
+      id: event.id,
+      from: null,
+      to: event.archived ? 'Archived' : 'Restored from archive',
+      actor: 'ADMIN' as const,
+      by: event.changedBy?.name || event.changedBy?.email || null,
+      note: null,
+      at: event.createdAt.toISOString(),
+    }));
+    return [...statusChanges, ...archiveChanges].sort((a, b) => a.at.localeCompare(b.at));
+  },
+
+  /**
+   * Moves a finished order to the Archive page, or back. Orders are never deleted: they're sales with
+   * GST invoices. Open orders (in progress, or cancelled and still owed a refund) can't be archived.
+   */
+  async setOrderArchived(id: string, archived: boolean, adminId?: string) {
+    const existing = await orderRepository.findById(id);
+    if (!existing) throw ApiError.notFound('Order not found');
+    if (Boolean(existing.archivedAt) === archived) {
+      throw ApiError.conflict(archived ? 'This order is already archived.' : "This order isn't archived.");
+    }
+    const done = await adminRepository.setOrderArchived(id, archived, adminId ?? null, OPEN_ORDER_WHERE);
+    if (!done) {
+      throw ApiError.conflict(
+        archived
+          ? "This order is still open. It can be archived once it's delivered, or cancelled with any refund processed."
+          : 'This order changed in the meantime. Reload and try again.'
+      );
+    }
+    return { id, archived };
   },
 
   async updateOrderStatus(id: string, input: UpdateOrderStatusInput, adminId?: string) {
     const existing = await orderRepository.findById(id);
     if (!existing) {
       throw ApiError.notFound('Order not found');
+    }
+    if (existing.archivedAt) {
+      throw ApiError.conflict('This order is archived. Restore it before changing its status.');
     }
 
     // Bought while the store didn't allow cancellation: the customer can't request it, so these two

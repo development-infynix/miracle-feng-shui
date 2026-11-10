@@ -70,6 +70,7 @@ export default function AdminLayout({
     { name: 'Categories', href: '/admin/categories', icon: 'fa-tags' },
     { name: 'Customer Users', href: '/admin/users', icon: 'fa-users' },
     { name: 'Customer Orders', href: '/admin/orders', icon: 'fa-cart-shopping' },
+    { name: 'Archive', href: '/admin/archive', icon: 'fa-box-archive' },
     { name: 'Live Storefront', href: '/', icon: 'fa-store', isExternal: true },
   ];
 

@@ -17,7 +17,8 @@ export default async function AdminProductsPage({
     pageSize,
     q: sp?.q,
     category: sp?.category,
-    status: 'all',
+    // Archived products live on the Archive page.
+    status: 'active',
   } as any);
 
   const stockStats = await adminService.getProductStockStats();
