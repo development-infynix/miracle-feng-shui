@@ -319,10 +319,11 @@ export const adminRepository = {
     });
   },
 
-  async findAllOrders(filters?: { statuses?: OrderStatus[]; search?: string }) {
+  /** Archived orders appear only when `archived` is true, and then only those. */
+  async findAllOrders(filters?: { statuses?: OrderStatus[]; search?: string; archived?: boolean }) {
     const where: Prisma.OrderWhereInput = {
-      orderNumber: { not: 'MFS-82914' },
       user: { role: 'CUSTOMER' },
+      archivedAt: filters?.archived ? { not: null } : null,
     };
 
     if (filters?.statuses?.length) {
@@ -349,7 +350,7 @@ export const adminRepository = {
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: filters?.archived ? { archivedAt: 'desc' } : { createdAt: 'desc' },
     });
   },
 
@@ -370,7 +371,28 @@ export const adminRepository = {
             changedBy: { select: { name: true, email: true } },
           },
         },
+        archiveEvents: {
+          orderBy: { createdAt: 'asc' },
+          select: { id: true, archived: true, createdAt: true, changedBy: { select: { name: true, email: true } } },
+        },
       },
+    });
+  },
+
+  /**
+   * Archives or restores one order and records who did it, in one step. Archiving only matches an order
+   * that isn't archived and isn't open (`openWhere`), so a status change racing it can't slip through.
+   * Returns false when nothing matched.
+   */
+  async setOrderArchived(id: string, archived: boolean, adminId: string | null, openWhere: Prisma.OrderWhereInput) {
+    return prisma.$transaction(async (tx) => {
+      const { count } = await tx.order.updateMany({
+        where: archived ? { id, archivedAt: null, NOT: openWhere } : { id, archivedAt: { not: null } },
+        data: { archivedAt: archived ? new Date() : null },
+      });
+      if (count === 0) return false;
+      await tx.orderArchiveEvent.create({ data: { orderId: id, archived, changedById: adminId } });
+      return true;
     });
   },
 

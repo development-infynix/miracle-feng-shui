@@ -38,8 +38,9 @@ export default function ViewProductDrawer({ open, product, categories, loading, 
   if (!open || !product) return null;
 
   const name = product.name || product.title || 'Untitled Product';
-  // Active: sold normally. Paused: shown in the store as unavailable, can't be bought, stock kept. Inactive: hidden.
-  const statusLabel = product.isActive === false ? 'Inactive' : product.isPaused ? 'Paused' : 'Active';
+  // Active: sold normally. Paused: shown in the store as unavailable, can't be bought, stock kept.
+  // Archived (stored as isActive false): hidden from the store and listed on the admin Archive page.
+  const statusLabel = product.isActive === false ? 'Archived' : product.isPaused ? 'Paused' : 'Active';
   const images: string[] = Array.isArray(product.images) && product.images.length > 0 ? product.images : [];
   const badges = [
     product.bestseller ? 'Bestseller' : null,
@@ -134,14 +135,7 @@ export default function ViewProductDrawer({ open, product, categories, loading, 
       if (!res.ok) { setError(data?.error || 'Failed to remove product.'); setConfirmDelete(false); return; }
       refreshProducts();
       setConfirmDelete(false);
-      if (data?.data?.result === 'archived') {
-        // Archived products stay in the admin list, hidden from the store, so show the updated record.
-        try {
-          const detail = await fetch(`/api/admin/products/${product.id}/detail`).then((r) => r.json());
-          onSaved?.(detail?.success ? detail.data : undefined);
-        } catch { onSaved?.(); }
-        return;
-      }
+      // Deleted or archived, it leaves the Products list either way; archived ones are on the Archive page.
       onClose(); onDeleted?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete product.');
@@ -316,7 +310,7 @@ export default function ViewProductDrawer({ open, product, categories, loading, 
                             {([
                               ['active', 'Active'],
                               ['paused', 'Paused'],
-                              ['inactive', 'Inactive'],
+                              ['inactive', 'Archived'],
                             ] as const).map(([value, label]) => (
                               <button
                                 key={value}
@@ -334,7 +328,7 @@ export default function ViewProductDrawer({ open, product, categories, loading, 
                             {form.status === 'paused'
                               ? "Paused: shown in the store as currently unavailable and can't be bought. Stock is kept."
                               : form.status === 'inactive'
-                                ? 'Inactive: hidden from the store.'
+                                ? 'Archived: hidden from the store and moved to the Archive page.'
                                 : 'Active: visible in the store and can be bought.'}
                           </span>
                         </dd>
@@ -435,7 +429,7 @@ export default function ViewProductDrawer({ open, product, categories, loading, 
               {removal?.mode === 'archive' ? (
                 <>
                   <p className="text-sm font-medium text-stone-900">Archive {name}?</p>
-                  <p className="mt-1 mb-3 max-w-sm text-sm text-stone-600">It&apos;s in past orders, so it can&apos;t be deleted. Archiving hides it from the store and keeps it in those orders and their invoices. You can make it active again later.</p>
+                  <p className="mt-1 mb-3 max-w-sm text-sm text-stone-600">It&apos;s in past orders, so it can&apos;t be deleted. Archiving hides it from the store and moves it to the Archive page, and keeps it in those orders and their invoices. You can restore it from there.</p>
                 </>
               ) : (
                 <>

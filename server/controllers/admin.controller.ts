@@ -7,6 +7,7 @@ import {
   updateProductSchema,
   updateOrderStatusSchema,
   setCustomerActiveSchema,
+  setOrderArchivedSchema,
 } from '../validators/admin.validator';
 import { apiResponse } from '../utils/apiResponse';
 
@@ -78,6 +79,11 @@ export const adminController = {
     const input = updateOrderStatusSchema.parse(body);
     const order = await adminService.updateOrderStatus(params.id, input, adminId);
     return apiResponse.ok(order);
+  },
+
+  async setOrderArchived(req: NextRequest, params: { id: string }, adminId?: string) {
+    const { archived } = setOrderArchivedSchema.parse(await req.json());
+    return apiResponse.ok(await adminService.setOrderArchived(params.id, archived, adminId));
   },
 
   async setCustomerActive(req: NextRequest, params: { id: string }) {

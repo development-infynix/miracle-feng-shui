@@ -157,12 +157,12 @@ export function TopProductsPanel({ products, periodDays }: { products: Dashboard
   );
 }
 
-/** Whether the catalog is ready to sell: what's live, paused or hidden, and what's running out. */
+/** Whether the catalog is ready to sell: what's live, paused or archived, and what's running out. */
 export function CatalogPanel({ catalog }: { catalog: DashboardData['catalog'] }) {
   const counts = [
     { label: 'Live', value: catalog.activeProducts, style: 'text-gray-900' },
     { label: 'Paused', value: catalog.pausedProducts, style: catalog.pausedProducts > 0 ? 'text-[#B45309]' : 'text-gray-900' },
-    { label: 'Hidden', value: catalog.inactiveProducts, style: 'text-gray-900' },
+    { label: 'Archived', value: catalog.inactiveProducts, style: 'text-gray-900' },
     { label: 'Out of stock', value: catalog.outOfStock, style: catalog.outOfStock > 0 ? 'text-[#B91C1C]' : 'text-gray-900' },
   ];
 

@@ -6,13 +6,14 @@ import OrderRefundPanel from './OrderRefundPanel';
 import OrderHistory from './OrderHistory';
 import CancelReasonDialog from './CancelReasonDialog';
 import { LuX } from 'react-icons/lu';
-import { OrderItemData } from '../types';
+import { OrderItemData, isOrderOpen } from '../types';
 
 interface ViewOrderDrawerProps {
   order: OrderItemData;
   onClose: () => void;
   onSaved: (updated: OrderItemData) => void;
-  onDeleted: (orderId: string) => void;
+  /** Called after the order is archived (true) or restored (false). */
+  onArchiveChanged: (orderId: string, archived: boolean) => void;
 }
 
 const inputClass =
@@ -22,12 +23,17 @@ const labelClass = 'block text-xs font-semibold text-stone-500 mb-1.5';
 
 const STATUS_OPTIONS = ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancellation Requested', 'Cancellation Approved', 'Cancelled'] as const;
 
-export default function ViewOrderDrawer({ order, onClose, onSaved, onDeleted }: ViewOrderDrawerProps) {
+const archivedOn = (iso: string) =>
+  new Date(iso).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' });
+
+export default function ViewOrderDrawer({ order, onClose, onSaved, onArchiveChanged }: ViewOrderDrawerProps) {
   const [status, setStatus] = useState(order.status);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [confirmDelete, setConfirmDelete] = useState(false);
-  const [deleting, setDeleting] = useState(false);
+  const [confirmArchive, setConfirmArchive] = useState(false);
+  const [archiving, setArchiving] = useState(false);
+  const archived = Boolean(order.archivedAt);
+  const open = isOrderOpen(order);
 
   const [askReason, setAskReason] = useState(false);
 
@@ -63,18 +69,23 @@ export default function ViewOrderDrawer({ order, onClose, onSaved, onDeleted }: 
     }
   };
 
-  const handleDelete = async () => {
-    setDeleting(true);
+  // Archive a finished order, or restore an archived one. Orders are never deleted.
+  const setArchived = async (next: boolean) => {
+    setArchiving(true);
     setError('');
     try {
-      const res = await fetch(`/api/admin/orders/${order.id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/admin/orders/${order.id}/archive`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ archived: next }),
+      });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok || !data.success) throw new Error(data.error || 'Failed to delete order.');
-      onDeleted(order.id);
+      if (!res.ok || !data.success) throw new Error(data.error || (next ? 'Failed to archive order.' : 'Failed to restore order.'));
+      onArchiveChanged(order.id, next);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete order.');
-      setConfirmDelete(false);
-      setDeleting(false);
+      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
+      setConfirmArchive(false);
+      setArchiving(false);
     }
   };
 
@@ -128,6 +139,12 @@ export default function ViewOrderDrawer({ order, onClose, onSaved, onDeleted }: 
                   {order.paymentMethod} · {order.paymentStatus}
                 </dd>
               </div>
+              {order.archivedAt && (
+                <div className="grid grid-cols-[7rem_1fr] items-center gap-3 py-3 text-sm">
+                  <dt className="text-stone-500">Archived</dt>
+                  <dd className="font-medium text-stone-900">{archivedOn(order.archivedAt)}</dd>
+                </div>
+              )}
             </dl>
           </section>
 
@@ -208,7 +225,8 @@ export default function ViewOrderDrawer({ order, onClose, onSaved, onDeleted }: 
               id="order-status"
               value={status}
               onChange={(e) => chooseStatus(e.target.value as typeof status)}
-              disabled={saving}
+              disabled={saving || archived}
+              title={archived ? 'Restore the order to change its status' : undefined}
               className={`${inputClass} h-10 min-w-0 w-full disabled:opacity-60`}
             >
               {STATUS_OPTIONS.filter(
@@ -233,13 +251,42 @@ export default function ViewOrderDrawer({ order, onClose, onSaved, onDeleted }: 
             )}
           </div>
 
-          <button
-            type="button"
-            onClick={() => setConfirmDelete(true)}
-            className="inline-flex h-10 shrink-0 items-center justify-center rounded-md bg-red-600 px-3 sm:px-4 text-sm font-medium text-white transition-colors hover:bg-red-700"
-          >
-            Delete
-          </button>
+          {archived ? (
+            <button
+              type="button"
+              onClick={() => void setArchived(false)}
+              disabled={archiving}
+              className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-md bg-stone-900 px-3 sm:px-4 text-sm font-medium text-white transition-colors hover:bg-stone-700 disabled:opacity-60"
+            >
+              <i aria-hidden="true" className="fa-solid fa-rotate-left text-xs" />
+              {archiving ? 'Restoring…' : 'Restore'}
+            </button>
+          ) : open ? (
+            // A disabled button gets no hover or focus, so the wrapper carries the tooltip.
+            <span tabIndex={0} aria-describedby="archive-blocked-reason" className="group relative inline-flex shrink-0 cursor-not-allowed rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-stone-400">
+              <button type="button" disabled className="pointer-events-none inline-flex h-10 items-center justify-center gap-2 rounded-md bg-stone-200 px-3 sm:px-4 text-sm font-medium text-stone-500">
+                <i aria-hidden="true" className="fa-solid fa-box-archive text-xs" />
+                Archive
+              </button>
+              <span
+                id="archive-blocked-reason"
+                role="tooltip"
+                className="pointer-events-none invisible absolute bottom-full right-0 z-20 mb-2 w-64 rounded-md bg-stone-900 px-3 py-2 text-left text-xs leading-relaxed text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:visible group-hover:opacity-100 group-focus:visible group-focus:opacity-100"
+              >
+                Still open. It can be archived once it&rsquo;s delivered, or cancelled with any refund processed.
+                <span aria-hidden="true" className="absolute right-6 top-full h-0 w-0 border-x-[6px] border-t-[6px] border-x-transparent border-t-stone-900" />
+              </span>
+            </span>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setConfirmArchive(true)}
+              className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-md border border-stone-300 bg-white px-3 sm:px-4 text-sm font-medium text-stone-800 transition-colors hover:bg-stone-100"
+            >
+              <i aria-hidden="true" className="fa-solid fa-box-archive text-xs" />
+              Archive
+            </button>
+          )}
         </footer>
 
         <CancelReasonDialog
@@ -252,23 +299,22 @@ export default function ViewOrderDrawer({ order, onClose, onSaved, onDeleted }: 
         />
 
         <Alert
-          open={confirmDelete}
-          tone="danger"
-          title="Delete this order?"
-          description={`"${order.orderNumber}" will be permanently removed. This action cannot be undone.`}
-          onClose={() => setConfirmDelete(false)}
+          open={confirmArchive}
+          title="Archive this order?"
+          description={`"${order.orderNumber}" moves from Orders to the Archive page. The customer still sees it, its invoice still works, and it still counts in revenue. You can restore it any time.`}
+          onClose={() => setConfirmArchive(false)}
           actions={[
             {
               label: 'Cancel',
-              onClick: () => setConfirmDelete(false),
+              onClick: () => setConfirmArchive(false),
               variant: 'default',
-              disabled: deleting,
+              disabled: archiving,
             },
             {
-              label: deleting ? 'Deleting...' : 'Delete',
-              onClick: handleDelete,
-              variant: 'danger',
-              disabled: deleting,
+              label: archiving ? 'Archiving…' : 'Archive',
+              onClick: () => void setArchived(true),
+              variant: 'primary',
+              disabled: archiving,
             },
           ]}
         />

@@ -70,7 +70,7 @@ export default function CategoryCard({ category, onView }: CategoryCardProps) {
           </span>
           {category.inactiveCount > 0 && (
             <span className="text-[10.5px] text-gray-500 whitespace-nowrap block leading-tight">
-              {category.inactiveCount} inactive
+              {category.inactiveCount} archived
             </span>
           )}
         </div>

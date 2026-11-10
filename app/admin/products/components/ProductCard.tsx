@@ -32,7 +32,7 @@ export default function ProductCard({ product, onView }: ProductCardProps) {
           onError={() => setImageFailed(true)}
         />
         {prod.isActive === false ? (
-          <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[9px] font-bold bg-[#040404] text-white">Inactive</span>
+          <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[9px] font-bold bg-[#040404] text-white">Archived</span>
         ) : prod.isPaused ? (
           <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-50 text-amber-800 border border-amber-200">Paused</span>
         ) : null}
