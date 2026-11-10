@@ -12,7 +12,12 @@ type ProductReview = {
   productVariation?: string;
   /** The author had this product delivered from the shop before writing the review. */
   verifiedPurchase?: boolean;
+  /** The store's public reply, if any. */
+  reply?: { text: string; date: string } | null;
 };
+
+/** Only customers who've had the product delivered can review it, once. */
+type ReviewEligibility = { canReview: boolean; reason: 'already_reviewed' | 'not_delivered' | null };
 
 type ReviewsPage = {
   items: ProductReview[];
@@ -243,6 +248,20 @@ export function ProductReviewList({ state, productId, signedIn, guest, onSignIn 
   const { reviews, total, hasMore, loading, failed, loadMore, retry, addReview } = state;
   const [writing, setWriting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [eligibility, setEligibility] = useState<ReviewEligibility | null>(null);
+
+  // Signed-in customers only see the review button once we know they've received this product.
+  useEffect(() => {
+    if (!signedIn) return;
+    const controller = new AbortController();
+    fetch(`/api/products/${encodeURIComponent(productId)}/reviews/eligibility`, { signal: controller.signal })
+      .then((res) => res.json())
+      .then((json) => {
+        if (json?.success) setEligibility(json.data);
+      })
+      .catch(() => {});
+    return () => controller.abort();
+  }, [productId, signedIn]);
 
   const reviewAction = writing ? (
     <ReviewForm
@@ -262,10 +281,16 @@ export function ProductReviewList({ state, productId, signedIn, guest, onSignIn 
     <button type="button" onClick={onSignIn} className={`h-12 cursor-pointer bg-ink-fill px-6 transition-colors hover:shadow-[0_8px_22px_rgba(231,169,59,0.45)] ${focusRing}`}>
       <span className="font-geist text-[15px] font-semibold text-white">{t('product.login_to_review', 'Login to add review')}</span>
     </button>
-  ) : signedIn ? (
+  ) : signedIn && eligibility?.canReview ? (
     <button type="button" onClick={() => setWriting(true)} className={`h-12 cursor-pointer bg-ink-fill px-6 transition-colors hover:shadow-[0_8px_22px_rgba(231,169,59,0.45)] ${focusRing}`}>
       <span className="font-geist text-[15px] font-semibold text-white">{t('product.add_review', 'Add review')}</span>
     </button>
+  ) : signedIn && eligibility ? (
+    <p className="font-geist text-[14px] text-ink-muted">
+      {eligibility.reason === 'already_reviewed'
+        ? t('product.review_already', "You've reviewed this product.")
+        : t('product.review_buyers_only', 'Only customers who have received this product can review it.')}
+    </p>
   ) : null;
 
   if (loading && total === null) {
@@ -328,6 +353,15 @@ export function ProductReviewList({ state, productId, signedIn, guest, onSignIn 
               </div>
               {review.productVariation && <p className="font-geist text-[12px] text-ink-muted">{review.productVariation}</p>}
               <p className="whitespace-pre-line font-geist text-[15px] leading-relaxed text-ink">{review.comment}</p>
+              {review.reply && (
+                <div className="mt-2 border-l-2 border-ink/30 bg-ink/10 px-3 py-2.5">
+                  <p className="font-geist text-[12px] font-semibold text-ink">
+                    {t('product.review_store_reply', 'Response from Miracle Feng Shui')}
+                    <span className="ml-2 font-normal tabular-nums text-ink-muted">{review.reply.date}</span>
+                  </p>
+                  <p className="mt-1 whitespace-pre-line font-geist text-[14px] leading-relaxed text-ink">{review.reply.text}</p>
+                </div>
+              )}
             </li>
           ))}
         </ul>

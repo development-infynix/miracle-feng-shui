@@ -349,7 +349,11 @@ export default function ViewProductDrawer({ open, product, categories, loading, 
                       ['Category', product.category || '-'],
                       ['Maker', product.maker || '-'],
                       ['Rating', ratingValue > 0 ? ratingValue + ' stars' : 'No rating yet'],
-                      ['Reviews', String(product.reviewCount ?? 0)],
+                      ['Reviews', (
+                        <a key="reviews" href={`/admin/reviews?product=${encodeURIComponent(product.id)}`} className="underline underline-offset-2 hover:text-stone-600">
+                          {product.reviewCount ?? 0} shown · manage
+                        </a>
+                      )],
                       ['Stock', `${product.stock ?? 50} in stock`],
                       ['Show stock left', product.showStockLeft ? 'Yes' : 'No'],
                       ['Free shipping', product.freeShipping ? 'Yes' : 'No'],

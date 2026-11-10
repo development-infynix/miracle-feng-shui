@@ -65,11 +65,87 @@ describe('reviewService.create', () => {
   it('saves the review without touching the product rating', async () => {
     vi.spyOn(productRepository, 'findBySlugOrId').mockResolvedValue({ id: 'prod-1', ratingAvg: 4.9 } as any);
     vi.spyOn(reviewRepository, 'findByUserAndProduct').mockResolvedValue(null);
+    vi.spyOn(reviewRepository, 'hasDelivery').mockResolvedValue(true);
     const create = vi.spyOn(reviewRepository, 'create').mockResolvedValue(review as any);
 
     await reviewService.create('user-1', 'prod-1', { rating: 1, comment: 'Not for me' } as any);
 
     expect(create).toHaveBeenCalledTimes(1);
     expect(productRepository).not.toHaveProperty('updateRating');
+  });
+});
+
+describe('only buyers can review', () => {
+  it('refuses a customer who has not had the product delivered', async () => {
+    vi.spyOn(productRepository, 'findBySlugOrId').mockResolvedValue({ id: 'prod-1' } as any);
+    vi.spyOn(reviewRepository, 'findByUserAndProduct').mockResolvedValue(null);
+    vi.spyOn(reviewRepository, 'hasDelivery').mockResolvedValue(false);
+    const create = vi.spyOn(reviewRepository, 'create');
+
+    await expect(reviewService.create('user-1', 'prod-1', { rating: 1, comment: 'Bad' } as any)).rejects.toMatchObject({ statusCode: 403 });
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it('tells the shop whether to offer the review form', async () => {
+    vi.spyOn(productRepository, 'findBySlugOrId').mockResolvedValue({ id: 'prod-1' } as any);
+    const existing = vi.spyOn(reviewRepository, 'findByUserAndProduct').mockResolvedValue(null);
+    const delivered = vi.spyOn(reviewRepository, 'hasDelivery').mockResolvedValue(false);
+
+    await expect(reviewService.eligibility('user-1', 'prod-1')).resolves.toEqual({ canReview: false, reason: 'not_delivered' });
+    delivered.mockResolvedValue(true);
+    await expect(reviewService.eligibility('user-1', 'prod-1')).resolves.toEqual({ canReview: true, reason: null });
+    existing.mockResolvedValue({ id: 'r1' } as any);
+    await expect(reviewService.eligibility('user-1', 'prod-1')).resolves.toEqual({ canReview: false, reason: 'already_reviewed' });
+  });
+
+  it('shows the store reply with the review', () => {
+    const formatted = reviewService.formatReview({ ...review, reply: 'Sorry, sending a new one', repliedAt: new Date('2026-11-05') });
+    expect(formatted.reply).toMatchObject({ text: 'Sorry, sending a new one' });
+    expect(reviewService.formatReview(review).reply).toBeNull();
+  });
+});
+
+describe('moderating reviews', () => {
+  it('hides a review with its reason and who did it, without deleting it', async () => {
+    vi.spyOn(reviewRepository, 'findById').mockResolvedValue({ id: 'r1', hiddenAt: null, reply: null } as any);
+    const save = vi.spyOn(reviewRepository, 'setHidden').mockResolvedValue(true);
+
+    await reviewService.setHidden('r1', { hidden: true, reason: 'SPAM', note: 'link to another shop' }, 'admin-1');
+
+    expect(save).toHaveBeenCalledWith('r1', { reason: 'SPAM', note: 'link to another shop' }, 'admin-1');
+    expect(reviewRepository).not.toHaveProperty('delete');
+  });
+
+  it('restores a hidden review', async () => {
+    vi.spyOn(reviewRepository, 'findById').mockResolvedValue({ id: 'r1', hiddenAt: new Date(), reply: null } as any);
+    const save = vi.spyOn(reviewRepository, 'setHidden').mockResolvedValue(true);
+
+    await reviewService.setHidden('r1', { hidden: false }, 'admin-1');
+    expect(save).toHaveBeenCalledWith('r1', null, 'admin-1');
+  });
+
+  it('says so when the review is already in that state', async () => {
+    vi.spyOn(reviewRepository, 'findById').mockResolvedValue({ id: 'r1', hiddenAt: new Date(), reply: null } as any);
+    vi.spyOn(reviewRepository, 'setHidden').mockResolvedValue(false);
+
+    await expect(reviewService.setHidden('r1', { hidden: true, reason: 'SPAM' }, 'admin-1')).rejects.toMatchObject({ statusCode: 409 });
+  });
+
+  it('has no "negative" or rating-based reason to hide a review', async () => {
+    const { setReviewHiddenSchema, REVIEW_HIDE_REASONS } = await import('@/server/validators/review.validator');
+    expect(REVIEW_HIDE_REASONS).not.toContain('NEGATIVE');
+    expect(setReviewHiddenSchema.safeParse({ hidden: true, reason: 'NEGATIVE' }).success).toBe(false);
+    expect(setReviewHiddenSchema.safeParse({ hidden: true, reason: 'OTHER' }).success).toBe(false);
+    expect(setReviewHiddenSchema.safeParse({ hidden: true, reason: 'OTHER', note: 'duplicate' }).success).toBe(true);
+  });
+
+  it('saves a reply, and an empty one removes it', async () => {
+    vi.spyOn(reviewRepository, 'findById').mockResolvedValue({ id: 'r1', hiddenAt: null, reply: 'old' } as any);
+    const save = vi.spyOn(reviewRepository, 'setReply').mockResolvedValue({ id: 'r1', reply: null, repliedAt: null });
+
+    await reviewService.setReply('r1', '  Thanks!  ', 'admin-1');
+    expect(save).toHaveBeenLastCalledWith('r1', 'Thanks!', 'admin-1');
+    await reviewService.setReply('r1', '   ', 'admin-1');
+    expect(save).toHaveBeenLastCalledWith('r1', null, 'admin-1');
   });
 });

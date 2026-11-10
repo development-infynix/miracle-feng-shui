@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 import { canResizeImage } from '@/lib/images';
 import ViewOrderDrawer from '../orders/components/ViewOrderDrawer';
 import type { OrderItemData } from '../orders/types';
+import ReviewCard from '../reviews/components/ReviewCard';
+import type { AdminReview, AdminReviewPage } from '../reviews/types';
 
 export interface ArchivedProduct {
   id: string;
@@ -16,7 +18,8 @@ export interface ArchivedProduct {
   stock: number;
 }
 
-type Tab = 'orders' | 'products';
+export type ArchiveTab = 'orders' | 'products' | 'reviews';
+type Tab = ArchiveTab;
 
 interface ArchiveClientProps {
   tab: Tab;
@@ -24,24 +27,28 @@ interface ArchiveClientProps {
   products: ArchivedProduct[];
   /** All archived products, which can be more than the first page shown. */
   productTotal: number;
+  /** Hidden reviews, one page at a time. */
+  reviewPage: AdminReviewPage;
 }
 
 const day = (iso: string) =>
   new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' });
 const rupees = (n: number) => `₹${n.toLocaleString('en-IN')}`;
 
-export default function ArchiveClient({ tab: initialTab, orders: initialOrders, products: initialProducts, productTotal }: ArchiveClientProps) {
+export default function ArchiveClient({ tab: initialTab, orders: initialOrders, products: initialProducts, productTotal, reviewPage }: ArchiveClientProps) {
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [tab, setTab] = useState<Tab>(initialTab);
   const [orders, setOrders] = useState(initialOrders);
   const [products, setProducts] = useState(initialProducts);
+  const [reviews, setReviews] = useState<AdminReview[]>(reviewPage.items);
   const [viewOrder, setViewOrder] = useState<OrderItemData | null>(null);
   const [restoringId, setRestoringId] = useState<string | null>(null);
   const [message, setMessage] = useState<{ text: string; error?: boolean } | null>(null);
 
   useEffect(() => setOrders(initialOrders), [initialOrders]);
   useEffect(() => setProducts(initialProducts), [initialProducts]);
+  useEffect(() => setReviews(reviewPage.items), [reviewPage.items]);
   useEffect(() => {
     if (!message) return;
     const timer = setTimeout(() => setMessage(null), 3500);
@@ -50,7 +57,7 @@ export default function ArchiveClient({ tab: initialTab, orders: initialOrders, 
 
   const chooseTab = (next: Tab) => {
     setTab(next);
-    router.replace(next === 'products' ? '/admin/archive?tab=products' : '/admin/archive', { scroll: false });
+    router.replace(next === 'orders' ? '/admin/archive' : `/admin/archive?tab=${next}`, { scroll: false });
   };
 
   const restoreProduct = async (product: ArchivedProduct) => {
@@ -76,6 +83,7 @@ export default function ArchiveClient({ tab: initialTab, orders: initialOrders, 
   const tabs: { id: Tab; label: string; count: number }[] = [
     { id: 'orders', label: 'Orders', count: orders.length },
     { id: 'products', label: 'Products', count: Math.max(productTotal - (initialProducts.length - products.length), 0) },
+    { id: 'reviews', label: 'Reviews', count: Math.max(reviewPage.total - (reviewPage.items.length - reviews.length), 0) },
   ];
 
   return (
@@ -83,7 +91,7 @@ export default function ArchiveClient({ tab: initialTab, orders: initialOrders, 
       <div>
         <h1 className="text-lg font-bold text-gray-900">Archive</h1>
         <p className="mt-0.5 text-xs text-gray-500">
-          Finished orders and retired products, kept for their history and invoices. Nothing here is deleted; restore anything to bring it back.
+          Finished orders, retired products and hidden reviews, kept for their history. Nothing here is deleted; restore anything to bring it back.
         </p>
       </div>
 
@@ -141,6 +149,49 @@ export default function ArchiveClient({ tab: initialTab, orders: initialOrders, 
                 </li>
               ))}
             </ul>
+          )}
+        </section>
+      ) : tab === 'reviews' ? (
+        <section id="archive-panel-reviews" role="tabpanel" aria-labelledby="archive-tab-reviews">
+          {reviews.length === 0 ? (
+            <p className="rounded-2xl border border-gray-100 bg-white p-10 text-center text-sm text-gray-500">
+              No hidden reviews. Hide a review from the Reviews page and it comes here, where you can restore it.
+            </p>
+          ) : (
+            <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-200 bg-white">
+              {reviews.map((review) => (
+                <li key={review.id}>
+                  <ReviewCard
+                    review={review}
+                    onChanged={(updated) => setReviews((prev) => prev.map((r) => (r.id === updated.id ? updated : r)))}
+                    onRemoved={(id, text) => {
+                      setReviews((prev) => prev.filter((r) => r.id !== id));
+                      setMessage({ text });
+                      startTransition(() => router.refresh());
+                    }}
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
+          {reviewPage.totalPages > 1 && (
+            <nav aria-label="Hidden review pages" className="mt-2 flex items-center justify-between text-xs text-gray-600">
+              <span>
+                Page {reviewPage.page} of {reviewPage.totalPages}
+              </span>
+              <span className="flex gap-3">
+                {reviewPage.page > 1 && (
+                  <a href={`/admin/archive?tab=reviews&page=${reviewPage.page - 1}`} className="font-medium underline-offset-2 hover:underline">
+                    Previous
+                  </a>
+                )}
+                {reviewPage.page < reviewPage.totalPages && (
+                  <a href={`/admin/archive?tab=reviews&page=${reviewPage.page + 1}`} className="font-medium underline-offset-2 hover:underline">
+                    Next
+                  </a>
+                )}
+              </span>
+            </nav>
           )}
         </section>
       ) : (
