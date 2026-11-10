@@ -52,6 +52,7 @@ describe('Verified Purchase on reviews', () => {
   it('marks a brand-new review straight away when it qualifies', async () => {
     vi.spyOn(productRepository, 'findBySlugOrId').mockResolvedValue({ id: 'p1' } as any);
     vi.spyOn(reviewRepository, 'findByUserAndProduct').mockResolvedValue(null);
+    vi.spyOn(reviewRepository, 'hasDelivery').mockResolvedValue(true);
     vi.spyOn(reviewRepository, 'create').mockResolvedValue(review('asha', '2026-11-09') as any);
     vi.spyOn(reviewRepository, 'findDeliveries').mockResolvedValue([{ userId: 'asha', deliveredAt: new Date('2026-11-02') }]);
 

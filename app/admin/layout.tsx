@@ -67,6 +67,7 @@ export default function AdminLayout({
   const navItems = [
     { name: 'Dashboard', href: '/admin', icon: 'fa-gauge-high', exact: true },
     { name: 'Products Catalog', href: '/admin/products', icon: 'fa-boxes-stacked' },
+    { name: 'Reviews', href: '/admin/reviews', icon: 'fa-star' },
     { name: 'Categories', href: '/admin/categories', icon: 'fa-tags' },
     { name: 'Customer Users', href: '/admin/users', icon: 'fa-users' },
     { name: 'Customer Orders', href: '/admin/orders', icon: 'fa-cart-shopping' },

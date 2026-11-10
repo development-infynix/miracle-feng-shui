@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { createReviewSchema, reviewListQuerySchema } from '../validators/review.validator';
+import { createReviewSchema, reviewListQuerySchema, reviewReplySchema, setReviewHiddenSchema } from '../validators/review.validator';
 import { reviewService } from '../services/review.service';
 import { apiResponse } from '../utils/apiResponse';
 import { handleError } from '../middlewares/handleError';
@@ -15,6 +15,33 @@ export const reviewController = {
       });
       const reviews = await reviewService.listByProduct(productId, page);
       return apiResponse.ok(reviews);
+    } catch (error) {
+      return handleError(error);
+    }
+  },
+
+  async eligibility(user: AuthenticatedUser, context: { params: Promise<{ id?: string; slug?: string }> }) {
+    try {
+      const resolved = await context.params;
+      return apiResponse.ok(await reviewService.eligibility(user.id, (resolved.slug || resolved.id)!));
+    } catch (error) {
+      return handleError(error);
+    }
+  },
+
+  async setHidden(req: NextRequest, id: string, adminId?: string) {
+    try {
+      const input = setReviewHiddenSchema.parse(await req.json());
+      return apiResponse.ok(await reviewService.setHidden(id, input, adminId));
+    } catch (error) {
+      return handleError(error);
+    }
+  },
+
+  async setReply(req: NextRequest, id: string, adminId?: string) {
+    try {
+      const { reply } = reviewReplySchema.parse(await req.json());
+      return apiResponse.ok(await reviewService.setReply(id, reply, adminId));
     } catch (error) {
       return handleError(error);
     }

@@ -64,6 +64,7 @@ model User {
   favorites        Favorite[]
   orderStatusChanges OrderStatusEvent[]
   orderArchiveChanges OrderArchiveEvent[]
+  reviewModerations   ReviewEvent[]
   resetToken       String?   @unique
   resetTokenExpiry DateTime?
 
@@ -339,12 +340,54 @@ model Review {
   rating           Int
   comment          String
   productVariation String?
+  /// Set when an admin hides the review: it leaves the store and the Reviews page for the Archive. Null means shown.
+  hiddenAt         DateTime?
+  hiddenReason     ReviewHideReason?
+  hiddenNote       String?
+  /// The store's public reply, shown under the review.
+  reply            String?
+  repliedAt        DateTime?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
+  events           ReviewEvent[]
+
   @@unique([userId, productId])
-  @@index([productId])
+  @@index([productId, hiddenAt])
   @@index([userId])
+}
+
+/// Why a review was hidden. About what it says, never how many stars it gave.
+enum ReviewHideReason {
+  ABUSIVE
+  SPAM
+  PERSONAL_DETAILS
+  OFF_TOPIC
+  NOT_GENUINE
+  OTHER
+}
+
+enum ReviewEventAction {
+  HIDDEN
+  RESTORED
+  REPLIED
+  REPLY_REMOVED
+}
+
+/// One row per admin action on a review. Never edited.
+model ReviewEvent {
+  id          String            @id @default(cuid())
+  reviewId    String
+  review      Review            @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  action      ReviewEventAction
+  reason      ReviewHideReason?
+  note        String?
+  /// Kept as null if that admin account is ever removed.
+  changedById String?
+  changedBy   User?             @relation(fields: [changedById], references: [id], onDelete: SetNull)
+  createdAt   DateTime          @default(now())
+
+  @@index([reviewId, createdAt])
 }
 
 /// Store-wide settings, kept in a single row (id 1).

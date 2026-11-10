@@ -4,8 +4,9 @@ import { ProductQueryInput } from '../validators/product.validator';
 import { ApiError } from '../utils/ApiError';
 
 /** Prisma include for a product's exact review count. The Review table is the only source of it. */
+/** Shown reviews only: hidden ones are on the admin Archive page and don't count in the store. */
 export const productReviewCount = {
-  _count: { select: { reviews: true } },
+  _count: { select: { reviews: { where: { hiddenAt: null } } } },
 } as const;
 
 /** Only what a product card shows. A product's full details load when it's opened. */

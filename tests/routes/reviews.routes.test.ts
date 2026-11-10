@@ -5,7 +5,7 @@ const getServerSession = vi.hoisted(() => vi.fn());
 const db = vi.hoisted(() => ({
   product: { findFirst: vi.fn(), update: vi.fn() },
   review: { findUnique: vi.fn(), create: vi.fn() },
-  orderItem: { findMany: vi.fn().mockResolvedValue([]) },
+  orderItem: { findMany: vi.fn().mockResolvedValue([]), count: vi.fn() },
 }));
 
 vi.mock('next-auth', () => ({ getServerSession }));
@@ -29,6 +29,8 @@ describe('POST /api/products/[slug]/reviews', () => {
     getServerSession.mockResolvedValue({ user: { id: 'u1', name: 'Asha', role: 'CUSTOMER' } });
     db.product.findFirst.mockResolvedValue({ id: 'p1', ratingAvg: 4.9 });
     db.review.findUnique.mockResolvedValue(null);
+    // The customer has had this product delivered, so they can review it.
+    db.orderItem.count.mockResolvedValue(1);
     db.review.create.mockResolvedValue({
       id: 'r1',
       rating: 5,
@@ -59,6 +61,16 @@ describe('POST /api/products/[slug]/reviews', () => {
       comment: 'Lovely piece',
     });
     expect(db.product.update).not.toHaveBeenCalled();
+  });
+
+  it('refuses a customer who has not had this product delivered, whatever the rating', async () => {
+    db.orderItem.count.mockResolvedValue(0);
+
+    for (const rating of [1, 5]) {
+      const res = await post({ rating, comment: 'Never bought it' });
+      expect(res.status).toBe(403);
+    }
+    expect(db.review.create).not.toHaveBeenCalled();
   });
 
   it('rejects a second review of the same product', async () => {
