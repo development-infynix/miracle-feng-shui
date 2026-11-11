@@ -2,13 +2,31 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('@/lib/prisma', () => ({ default: {}, prisma: {} }));
 
-import { notificationService, orderChangeNotice, refundNotice, reviewNotice, type OrderChange } from '@/server/services/notification.service';
+import {
+  notificationService,
+  orderChangeNotice,
+  orderConfirmedNotice,
+  refundNotice,
+  refundStartedNotice,
+  reviewNotice,
+  type OrderChange,
+} from '@/server/services/notification.service';
 import { notificationRepository } from '@/server/repositories/notification.repository';
 
 const change = (from: OrderChange['from'], to: OrderChange['to'], extra: Partial<OrderChange> = {}) =>
   orderChangeNotice({ orderNumber: 'MFS-AB12', from, to, paidOnline: true, ...extra });
 
 describe('order notices', () => {
+  it('confirms the order, with what was paid or what to pay on delivery', () => {
+    expect(orderConfirmedNotice('MFS-AB12', 149900, false)).toEqual({
+      kind: 'ORDER',
+      title: 'Order MFS-AB12 is confirmed',
+      body: "Thanks for your order! We've received your payment of ₹1,499.00. We'll let you know when it ships.",
+      link: '/profile?tab=orders&order=MFS-AB12',
+    });
+    expect(orderConfirmedNotice('MFS-AB12', 149900, true).body).toContain('pay ₹1,499.00 on delivery');
+  });
+
   it('tells the customer when it ships, with real tracking only', () => {
     expect(change('PROCESSING', 'SHIPPED')).toMatchObject({ kind: 'ORDER', title: 'Order MFS-AB12 has shipped', body: "It's on its way to you." });
     expect(change('PROCESSING', 'SHIPPED', { courier: 'DTDC', trackingNumber: 'D123' })?.body).toContain('DTDC D123');
@@ -54,6 +72,11 @@ describe('review and refund notices', () => {
 
   it('shows the refunded amount in rupees', () => {
     expect(refundNotice('MFS-AB12', 49950).body).toContain('₹499.50');
+    expect(refundStartedNotice('MFS-AB12', 49950)).toMatchObject({
+      kind: 'REFUND',
+      title: "We've started your refund",
+      link: '/profile?tab=orders&order=MFS-AB12',
+    });
   });
 });
 

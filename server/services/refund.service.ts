@@ -3,7 +3,7 @@ import { orderRepository } from '../repositories/order.repository';
 import { refundRepository, RazorpayRefundState } from '../repositories/refund.repository';
 import { ApiError } from '../utils/ApiError';
 import { orderService } from './order.service';
-import { notificationService, refundNotice } from './notification.service';
+import { notificationService, refundNotice, refundStartedNotice } from './notification.service';
 
 const CANCELLED_STATUSES = ['CANCELLATION_APPROVED', 'CANCELLED'];
 // An approval may still be waiting on Razorpay until this long has passed.
@@ -116,7 +116,10 @@ export const refundService = {
         speed: 'normal',
         notes: { refundId: refund.id, orderNumber: order.orderNumber },
       });
-      await applyState(refund.id, stateOf(sent.status), sent.id);
+      const state = stateOf(sent.status);
+      // Razorpay has it. If it's already processed, applyState sends "on its way" instead.
+      if (state === 'pending') notificationService.notify(order.userId, refundStartedNotice(order.orderNumber, refund.amountPaise));
+      await applyState(refund.id, state, sent.id);
       return adminResult(orderId);
     } catch (error: any) {
       if (razorpayRefused(error)) {

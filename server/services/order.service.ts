@@ -7,6 +7,7 @@ import { CreateOrderInput } from '../validators/order.validator';
 import { ApiError } from '../utils/ApiError';
 import { OrderStatus, PaymentMethod } from '@/app/generated/prisma/client';
 import { emailService } from './email.service';
+import { notificationService, orderConfirmedNotice } from './notification.service';
 import { customerTimeline } from './orderTimeline';
 import { settingsService } from './settings.service';
 
@@ -247,6 +248,7 @@ export const orderService = {
 
     const fullOrder = await orderRepository.findById(order.id);
     const formatted = this.formatOrder(fullOrder);
+    notificationService.notify(userId, orderConfirmedNotice(order.orderNumber, Math.round(calculatedTotal * 100), true));
 
     // Send order confirmation email asynchronously
     emailService
