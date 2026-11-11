@@ -93,7 +93,10 @@ export const reviewService = {
     return { deleted: true };
   },
 
-  /** Tells the author in the app and by email. Never blocks or fails the admin's action. */
+  /**
+   * Tells the author by email, and in the app for a restore only (a take-down shows on the product
+   * page). Never blocks or fails the admin's action.
+   */
   notifyAuthor(reviewId: string, notice: ReviewNotice) {
     void reviewRepository
       .findForNotice(reviewId)

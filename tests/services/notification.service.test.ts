@@ -60,14 +60,14 @@ describe('order notices', () => {
 });
 
 describe('review and refund notices', () => {
-  it('says why a review was taken down and links to the product', () => {
-    expect(reviewNotice('Wealth Bowl', 'p1', { kind: 'hidden', because: 'it shared personal details' })).toEqual({
+  it("doesn't notify a take-down (the author sees it on the product), only a restore", () => {
+    expect(reviewNotice('Wealth Bowl', 'p1', { kind: 'hidden', because: 'it shared personal details' })).toBeNull();
+    expect(reviewNotice('Wealth Bowl', 'p1', { kind: 'restored' })).toEqual({
       kind: 'REVIEW',
-      title: 'Your review was taken down',
-      body: 'Your review of Wealth Bowl was taken down because it shared personal details.',
+      title: 'Your review is back',
+      body: 'Your review of Wealth Bowl is showing again.',
       link: '/shop?product=p1',
     });
-    expect(reviewNotice('Wealth Bowl', 'p1', { kind: 'restored' }).title).toBe('Your review is back');
   });
 
   it('shows the refunded amount in rupees', () => {

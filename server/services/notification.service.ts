@@ -74,18 +74,18 @@ export function orderChangeNotice(change: OrderChange): NewNotification | null {
   return null;
 }
 
-/** What to tell the author when their review is taken down or restored. */
-export function reviewNotice(productTitle: string, productId: string, notice: ReviewNotice): NewNotification {
-  const link = productLink(productId);
-  if (notice.kind === 'hidden') {
-    return {
-      kind: 'REVIEW',
-      title: 'Your review was taken down',
-      body: `Your review of ${productTitle} was taken down because ${notice.because}.`,
-      link,
-    };
-  }
-  return { kind: 'REVIEW', title: 'Your review is back', body: `Your review of ${productTitle} is showing again.`, link };
+/**
+ * What to tell the author in the app about their review. Only a restore: a take-down isn't a
+ * notification, because the author sees it (and why) on the product page, and gets an email.
+ */
+export function reviewNotice(productTitle: string, productId: string, notice: ReviewNotice): NewNotification | null {
+  if (notice.kind === 'hidden') return null;
+  return {
+    kind: 'REVIEW',
+    title: 'Your review is back',
+    body: `Your review of ${productTitle} is showing again.`,
+    link: productLink(productId),
+  };
 }
 
 const rupees = (amountPaise: number) =>
