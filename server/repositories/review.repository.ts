@@ -34,14 +34,6 @@ export const reviewRepository = {
     return { items, total };
   },
 
-  /** Whether this customer has had this product delivered, from an order that's still Delivered. */
-  async hasDelivery(userId: string, productId: string) {
-    const count = await prisma.orderItem.count({
-      where: { productId, order: { userId, status: 'DELIVERED', deliveredAt: { not: null } } },
-    });
-    return count > 0;
-  },
-
   /** Deliveries for many (customer, product) pairs at once, for the admin list's Verified Purchase badges. */
   async findDeliveriesFor(pairs: { userId: string; productId: string }[]) {
     if (pairs.length === 0) return [];

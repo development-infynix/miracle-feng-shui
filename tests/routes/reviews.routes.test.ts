@@ -5,7 +5,7 @@ const getServerSession = vi.hoisted(() => vi.fn());
 const db = vi.hoisted(() => ({
   product: { findFirst: vi.fn(), update: vi.fn() },
   review: { findUnique: vi.fn(), create: vi.fn() },
-  orderItem: { findMany: vi.fn().mockResolvedValue([]), count: vi.fn() },
+  orderItem: { findMany: vi.fn().mockResolvedValue([]) },
 }));
 
 vi.mock('next-auth', () => ({ getServerSession }));
@@ -29,10 +29,10 @@ describe('POST /api/products/[slug]/reviews', () => {
     getServerSession.mockResolvedValue({ user: { id: 'u1', name: 'Asha', role: 'CUSTOMER' } });
     db.product.findFirst.mockResolvedValue({ id: 'p1', ratingAvg: 4.9 });
     db.review.findUnique.mockResolvedValue(null);
-    // The customer has had this product delivered, so they can review it.
-    db.orderItem.count.mockResolvedValue(1);
+    db.orderItem.findMany.mockResolvedValue([]);
     db.review.create.mockResolvedValue({
       id: 'r1',
+      userId: 'u1',
       rating: 5,
       comment: 'Lovely piece',
       createdAt: new Date('2026-11-04T00:00:00Z'),
@@ -63,14 +63,21 @@ describe('POST /api/products/[slug]/reviews', () => {
     expect(db.product.update).not.toHaveBeenCalled();
   });
 
-  it('refuses a customer who has not had this product delivered, whatever the rating', async () => {
-    db.orderItem.count.mockResolvedValue(0);
+  it("saves a review from a customer who hasn't bought it, without Verified Purchase", async () => {
+    db.orderItem.findMany.mockResolvedValue([]);
 
-    for (const rating of [1, 5]) {
-      const res = await post({ rating, comment: 'Never bought it' });
-      expect(res.status).toBe(403);
-    }
-    expect(db.review.create).not.toHaveBeenCalled();
+    const res = await post({ rating: 3, comment: 'Never bought it' });
+
+    expect(res.status).toBe(201);
+    expect((await res.json()).data.verifiedPurchase).toBe(false);
+  });
+
+  it('marks it Verified Purchase when the product was delivered to them before the review', async () => {
+    db.orderItem.findMany.mockResolvedValue([{ order: { userId: 'u1', deliveredAt: new Date('2026-11-01T00:00:00Z') } }]);
+
+    const res = await post({ rating: 5, comment: 'Lovely piece' });
+
+    expect((await res.json()).data.verifiedPurchase).toBe(true);
   });
 
   it('rejects a second review of the same product', async () => {
