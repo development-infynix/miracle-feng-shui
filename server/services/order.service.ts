@@ -47,9 +47,6 @@ export const orderService = {
       ? `Delivered on ${deliveredOn.toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}`
       : `Arriving ${deliveryStart.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}–${deliveryEnd.toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}`;
 
-    const digitsOnly = (order.orderNumber || order.id || '').replace(/[^0-9]/g, '') || '984210984';
-    const trackingNumber = order.trackingNumber || `IND${digitsOnly.padEnd(9, '0').slice(0, 9)}IN`;
-
     const requestedCancellation = Boolean(order.cancellationRequestedAt);
     // An unpaid online order has nothing to review: it closes by itself when the customer pays again.
     // Orders bought while the store didn't allow cancellation never offer it.
@@ -121,9 +118,7 @@ export const orderService = {
           : order.paymentMethod || 'Online Payment',
       paymentStatus: order.paymentStatus || (order.paymentMethod === 'COD' ? 'Pending (COD)' : 'Paid'),
       status: order.status,
-      courier: order.courier || 'BlueDart Express',
-      trackingNumber,
-      // Only what's really been recorded. The values above fall back to placeholders when nothing is.
+      // Only what's really been recorded: no tracking is shown until the store adds a real number.
       paymentId: order.razorpayPaymentId || null,
       tracking: order.trackingNumber ? { courier: order.courier || null, number: order.trackingNumber } : null,
       canCancel,
