@@ -20,7 +20,7 @@ type ProductReview = {
 /** Only customers who've had the product delivered can review it, once. */
 type ReviewEligibility = {
   canReview: boolean;
-  reason: 'already_reviewed' | 'not_delivered' | 'hidden' | null;
+  reason: 'already_reviewed' | 'hidden' | null;
   /** The customer's own review, when the store has taken it down. Only they see it. */
   hiddenReview?: HiddenReview;
 };
@@ -256,7 +256,7 @@ export function ProductReviewList({ state, productId, signedIn, guest, onSignIn 
   const [submitted, setSubmitted] = useState(false);
   const [eligibility, setEligibility] = useState<ReviewEligibility | null>(null);
 
-  // Signed-in customers only see the review button once we know they've received this product.
+  // Signed-in customers see the review button once we know they haven't already reviewed this product.
   useEffect(() => {
     if (!signedIn) return;
     const controller = new AbortController();
@@ -297,12 +297,8 @@ export function ProductReviewList({ state, productId, signedIn, guest, onSignIn 
     <button type="button" onClick={() => setWriting(true)} className={`h-12 cursor-pointer bg-ink-fill px-6 transition-colors hover:shadow-[0_8px_22px_rgba(231,169,59,0.45)] ${focusRing}`}>
       <span className="font-geist text-[15px] font-semibold text-white">{t('product.add_review', 'Add review')}</span>
     </button>
-  ) : signedIn && eligibility ? (
-    <p className="font-geist text-[14px] text-ink-muted">
-      {eligibility.reason === 'already_reviewed'
-        ? t('product.review_already', "You've reviewed this product.")
-        : t('product.review_buyers_only', 'Only customers who have received this product can review it.')}
-    </p>
+  ) : signedIn && eligibility?.reason === 'already_reviewed' ? (
+    <p className="font-geist text-[14px] text-ink-muted">{t('product.review_already', "You've reviewed this product.")}</p>
   ) : null;
 
   if (loading && total === null) {

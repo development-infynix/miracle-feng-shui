@@ -22,8 +22,6 @@ const productUrl = (productId: string) =>
 export const REVIEW_PAGE_SIZE = 20;
 export const ADMIN_REVIEW_PAGE_SIZE = 20;
 
-export const ONLY_BUYERS_CAN_REVIEW = 'Only customers who have received this product can review it.';
-
 export const reviewService = {
   /**
    * A review is a verified purchase when its author had this product delivered from this shop before
@@ -58,8 +56,8 @@ export const reviewService = {
   },
 
   /**
-   * Whether this customer can review this product: only once it's been delivered to them, and once.
-   * Applies the same way whatever they'd say, so it isn't a filter on negative reviews.
+   * Whether this customer can review this product: any signed-in customer, once per product.
+   * Whether it's a Verified Purchase is worked out separately (markVerified).
    */
   async eligibility(userId: string, productIdentifier: string) {
     const product = await productRepository.findBySlugOrId(productIdentifier);
@@ -80,9 +78,6 @@ export const reviewService = {
     }
     if (own) {
       return { canReview: false, reason: 'already_reviewed' as const };
-    }
-    if (!(await reviewRepository.hasDelivery(userId, product.id))) {
-      return { canReview: false, reason: 'not_delivered' as const };
     }
     return { canReview: true, reason: null };
   },
@@ -148,10 +143,7 @@ export const reviewService = {
       throw ApiError.conflict('You have already submitted a review for this product');
     }
 
-    if (!(await reviewRepository.hasDelivery(userId, product.id))) {
-      throw ApiError.forbidden(ONLY_BUYERS_CAN_REVIEW);
-    }
-
+    // Any signed-in customer can review. Only those who had it delivered first get Verified Purchase.
     // Reviews don't change a product's rating. Admins set the rating themselves.
     const review = await reviewRepository.create(userId, product.id, input);
 

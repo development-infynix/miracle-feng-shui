@@ -65,7 +65,6 @@ describe('reviewService.create', () => {
   it('saves the review without touching the product rating', async () => {
     vi.spyOn(productRepository, 'findBySlugOrId').mockResolvedValue({ id: 'prod-1', ratingAvg: 4.9 } as any);
     vi.spyOn(reviewRepository, 'findByUserAndProduct').mockResolvedValue(null);
-    vi.spyOn(reviewRepository, 'hasDelivery').mockResolvedValue(true);
     const create = vi.spyOn(reviewRepository, 'create').mockResolvedValue(review as any);
 
     await reviewService.create('user-1', 'prod-1', { rating: 1, comment: 'Not for me' } as any);
@@ -75,24 +74,22 @@ describe('reviewService.create', () => {
   });
 });
 
-describe('only buyers can review', () => {
-  it('refuses a customer who has not had the product delivered', async () => {
+describe('who can review', () => {
+  it('lets a customer review without buying, and marks it not verified', async () => {
     vi.spyOn(productRepository, 'findBySlugOrId').mockResolvedValue({ id: 'prod-1' } as any);
     vi.spyOn(reviewRepository, 'findByUserAndProduct').mockResolvedValue(null);
-    vi.spyOn(reviewRepository, 'hasDelivery').mockResolvedValue(false);
-    const create = vi.spyOn(reviewRepository, 'create');
+    vi.spyOn(reviewRepository, 'findDeliveries').mockResolvedValue([]);
+    const create = vi.spyOn(reviewRepository, 'create').mockResolvedValue(review as any);
 
-    await expect(reviewService.create('user-1', 'prod-1', { rating: 1, comment: 'Bad' } as any)).rejects.toMatchObject({ statusCode: 403 });
-    expect(create).not.toHaveBeenCalled();
+    const created = await reviewService.create('user-1', 'prod-1', { rating: 4, comment: 'Saw it at a friend’s' } as any);
+    expect(create).toHaveBeenCalledTimes(1);
+    expect(created.verifiedPurchase).toBe(false);
   });
 
-  it('tells the shop whether to offer the review form', async () => {
+  it('offers the review form once per product, bought or not', async () => {
     vi.spyOn(productRepository, 'findBySlugOrId').mockResolvedValue({ id: 'prod-1' } as any);
     const existing = vi.spyOn(reviewRepository, 'findByUserAndProduct').mockResolvedValue(null);
-    const delivered = vi.spyOn(reviewRepository, 'hasDelivery').mockResolvedValue(false);
 
-    await expect(reviewService.eligibility('user-1', 'prod-1')).resolves.toEqual({ canReview: false, reason: 'not_delivered' });
-    delivered.mockResolvedValue(true);
     await expect(reviewService.eligibility('user-1', 'prod-1')).resolves.toEqual({ canReview: true, reason: null });
     existing.mockResolvedValue({ id: 'r1' } as any);
     await expect(reviewService.eligibility('user-1', 'prod-1')).resolves.toEqual({ canReview: false, reason: 'already_reviewed' });
