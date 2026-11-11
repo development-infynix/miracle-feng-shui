@@ -4,12 +4,24 @@ import React, { useCallback, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useLocale } from '@/context/CurrencyContext';
 import SignOutRow from './SignOutRow';
-import { headerFocus, headerIconButton, useDismiss } from './useDismiss';
+import { headerBadge, headerFocus, headerIconButton, useDismiss } from './useDismiss';
 
 const row = `flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[15px] text-[#222222] hover:bg-[#F5F5F1] cursor-pointer ${headerFocus}`;
 
-/** The signed-in customer's avatar: a dropdown with their name, orders, profile and Sign out. */
-export default function NavAccountMenu({ name, email, onSignOut }: { name: string; email: string; onSignOut: () => Promise<boolean> }) {
+/** The signed-in customer's avatar: a dropdown with their name, notifications, orders, profile and Sign out. */
+export default function NavAccountMenu({
+  name,
+  email,
+  unread,
+  onOpenNotifications,
+  onSignOut,
+}: {
+  name: string;
+  email: string;
+  unread: number;
+  onOpenNotifications: () => void;
+  onSignOut: () => Promise<boolean>;
+}) {
   const { t } = useLocale();
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -22,7 +34,11 @@ export default function NavAccountMenu({ name, email, onSignOut }: { name: strin
       <button
         ref={triggerRef}
         type="button"
-        aria-label={t('nav.account_menu', 'Account menu')}
+        aria-label={
+          unread > 0
+            ? `${t('nav.account_menu', 'Account menu')}, ${t('notifications.unread_count', '{count} unread').replace('{count}', String(unread))}`
+            : t('nav.account_menu', 'Account menu')
+        }
         aria-expanded={open}
         aria-controls="header-account-panel"
         onClick={() => setOpen((v) => !v)}
@@ -31,6 +47,11 @@ export default function NavAccountMenu({ name, email, onSignOut }: { name: strin
         <span aria-hidden="true" className="flex h-8 w-8 items-center justify-center rounded-full bg-[#222222] text-[13px] font-bold text-white">
           {name.charAt(0).toUpperCase() || '?'}
         </span>
+        {unread > 0 && (
+          <span aria-hidden="true" className={headerBadge}>
+            {unread > 99 ? '99+' : unread}
+          </span>
+        )}
       </button>
 
       {open && (
@@ -44,6 +65,23 @@ export default function NavAccountMenu({ name, email, onSignOut }: { name: strin
             {email && <p className="truncate text-[13px] text-[#595959]">{email}</p>}
           </div>
           <div className="py-1">
+            <button
+              type="button"
+              onClick={() => {
+                close();
+                onOpenNotifications();
+              }}
+              className={row}
+            >
+              <i aria-hidden="true" className="fa-regular fa-bell w-4 text-center text-[#595959]" />
+              <span className="flex-1">{t('notifications.title', 'Notifications')}</span>
+              {unread > 0 && (
+                <span className="inline-flex h-[20px] min-w-[20px] items-center justify-center rounded-full bg-etsy-orange px-1.5 text-[12px] font-bold leading-none text-white tabular-nums">
+                  {unread > 99 ? '99+' : unread}
+                  <span className="sr-only"> {t('notifications.unread', 'unread')}</span>
+                </span>
+              )}
+            </button>
             <Link href="/profile?tab=orders" onClick={close} className={row}>
               <i aria-hidden="true" className="fa-regular fa-calendar-check w-4 text-center text-[#595959]" />
               {t('nav.my_orders', 'My orders')}

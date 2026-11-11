@@ -35,7 +35,8 @@ export async function middleware(req: NextRequest) {
       pathname.startsWith('/api/cart') ||
       pathname.startsWith('/api/orders') ||
       pathname.startsWith('/api/favorites') ||
-      pathname.startsWith('/api/addresses'));
+      pathname.startsWith('/api/addresses') ||
+      pathname.startsWith('/api/notifications'));
 
   // Admin route protection: must have an authenticated session with role === 'ADMIN'.
   if (isAdminRoute) {
@@ -84,5 +85,6 @@ export const config = {
     '/api/orders/:path*',
     '/api/favorites/:path*',
     '/api/addresses/:path*',
+    '/api/notifications/:path*',
   ],
 };

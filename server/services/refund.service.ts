@@ -3,6 +3,7 @@ import { orderRepository } from '../repositories/order.repository';
 import { refundRepository, RazorpayRefundState } from '../repositories/refund.repository';
 import { ApiError } from '../utils/ApiError';
 import { orderService } from './order.service';
+import { notificationService, refundNotice } from './notification.service';
 
 const CANCELLED_STATUSES = ['CANCELLATION_APPROVED', 'CANCELLED'];
 // An approval may still be waiting on Razorpay until this long has passed.
@@ -44,6 +45,12 @@ function formatRefund(refund: Awaited<ReturnType<typeof refundRepository.findLat
     failureReason: refund.failureReason,
     stockReturned: refund.stockReturned,
   };
+}
+
+/** Records Razorpay's answer, and tells the customer once, when the money has really gone back. */
+async function applyState(...args: Parameters<typeof refundRepository.applyRazorpayState>) {
+  const processed = await refundRepository.applyRazorpayState(...args);
+  if (processed) notificationService.notify(processed.userId, refundNotice(processed.orderNumber, processed.amountPaise));
 }
 
 async function adminResult(orderId: string, notice?: string) {
@@ -109,7 +116,7 @@ export const refundService = {
         speed: 'normal',
         notes: { refundId: refund.id, orderNumber: order.orderNumber },
       });
-      await refundRepository.applyRazorpayState(refund.id, stateOf(sent.status), sent.id);
+      await applyState(refund.id, stateOf(sent.status), sent.id);
       return adminResult(orderId);
     } catch (error: any) {
       if (razorpayRefused(error)) {
@@ -145,7 +152,7 @@ export const refundService = {
       (item) => item.id === refund.razorpayRefundId || refundIdFromNotes(item) === refund.id
     );
     if (found) {
-      await refundRepository.applyRazorpayState(refund.id, stateOf(found.status), found.id, found.error_description);
+      await applyState(refund.id, stateOf(found.status), found.id, found.error_description);
     } else if (!refund.razorpayRefundId && Date.now() - refund.updatedAt.getTime() > UNCONFIRMED_AFTER_MS) {
       await refundRepository.markFailed(refund.id, 'Razorpay has no record of this refund, so no money moved. You can try again.');
     }
@@ -180,6 +187,6 @@ export const refundService = {
       if (!refund) return;
     }
 
-    await refundRepository.applyRazorpayState(refund.id, state, entity.id, entity.error_description);
+    await applyState(refund.id, state, entity.id, entity.error_description);
   },
 };

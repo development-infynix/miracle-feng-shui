@@ -204,7 +204,7 @@ export const reviewRepository = {
   async findForNotice(id: string) {
     return prisma.review.findUnique({
       where: { id },
-      select: { user: { select: { name: true, email: true } }, product: { select: { id: true, title: true } } },
+      select: { user: { select: { id: true, name: true, email: true } }, product: { select: { id: true, title: true } } },
     });
   },
 

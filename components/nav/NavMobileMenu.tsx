@@ -13,6 +13,8 @@ const row = `flex w-full items-center justify-between gap-3 rounded-xl px-3 py-3
 interface NavMobileMenuProps {
   open: boolean;
   signedIn: boolean;
+  unread: number;
+  onOpenNotifications: () => void;
   onClose: () => void;
   onSignIn: () => void;
   /** Resolves true once the server has ended the session. */
@@ -20,7 +22,7 @@ interface NavMobileMenuProps {
 }
 
 /** Phones: a panel from the left with every category, then the account links. */
-export default function NavMobileMenu({ open, signedIn, onClose, onSignIn, onSignOut }: NavMobileMenuProps) {
+export default function NavMobileMenu({ open, signedIn, unread, onOpenNotifications, onClose, onSignIn, onSignOut }: NavMobileMenuProps) {
   const { categoriesList } = useStore();
   const { language, t } = useLocale();
   const panelRef = useRef<HTMLDivElement>(null);
@@ -81,6 +83,22 @@ export default function NavMobileMenu({ open, signedIn, onClose, onSignIn, onSig
 
           {signedIn ? (
             <>
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onOpenNotifications();
+                }}
+                className={row}
+              >
+                {t('notifications.title', 'Notifications')}
+                {unread > 0 && (
+                  <span className="inline-flex h-[20px] min-w-[20px] items-center justify-center rounded-full bg-etsy-orange px-1.5 text-[12px] font-bold leading-none text-white tabular-nums">
+                    {unread > 99 ? '99+' : unread}
+                    <span className="sr-only"> {t('notifications.unread', 'unread')}</span>
+                  </span>
+                )}
+              </button>
               <Link href="/profile?tab=orders" onClick={onClose} className={row}>
                 {t('nav.my_orders', 'My orders')}
               </Link>

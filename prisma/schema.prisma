@@ -65,6 +65,7 @@ model User {
   orderStatusChanges OrderStatusEvent[]
   orderArchiveChanges OrderArchiveEvent[]
   reviewModerations   ReviewEvent[]
+  notifications       Notification[]
   resetToken       String?   @unique
   resetTokenExpiry DateTime?
 
@@ -405,4 +406,27 @@ model StoreSettings {
   cancellationAllowed Boolean  @default(true)
   updatedById         String?
   updatedAt           DateTime @updatedAt
+}
+
+/// What a notification is about. Picks its icon; add a value for each new kind of alert.
+enum NotificationKind {
+  ORDER
+  REFUND
+  REVIEW
+}
+
+/// An in-app message to a customer, shown in the Notifications drawer. Clearing deletes it.
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind      NotificationKind
+  title     String
+  body      String
+  /// Where tapping it goes, such as the order list or a product. Null when there's nowhere to go.
+  link      String?
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  @@index([userId, createdAt])
 }

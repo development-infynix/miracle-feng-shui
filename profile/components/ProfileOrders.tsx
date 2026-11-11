@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useLocale } from '@/context/CurrencyContext';
 import { downloadStandaloneTaxInvoice } from '@/lib/invoice';
 import { ProductLink } from '@/shop/components/ProductDrawerProvider';
@@ -140,7 +141,7 @@ function OrderCard({
   };
 
   return (
-    <li className="rounded-lg bg-white">
+    <li id={`order-${order.id}`} className="scroll-mt-28 rounded-lg bg-white">
       <div className="space-y-2 border-b border-[#E1E3DF] p-4 sm:px-6">
         <div className="flex items-start justify-between gap-x-6">
           <div className="min-w-0">
@@ -362,6 +363,21 @@ export default function ProfileOrders() {
     void load(controller.signal);
     return () => controller.abort();
   }, [load]);
+
+  // A link with ?order= (from a notification) opens that order's details. It's used once, so a
+  // refresh doesn't open it again. An order that isn't in the list just leaves the list showing.
+  const wantedOrder = useSearchParams().get('order');
+  useEffect(() => {
+    if (!orders || !wantedOrder) return;
+    const match = orders.find((order) => order.orderNumber === wantedOrder || order.id === wantedOrder);
+    if (match) {
+      setDetails({ id: match.id, open: true });
+      document.getElementById(`order-${match.id}`)?.scrollIntoView({ block: 'start' });
+    }
+    const url = new URL(window.location.href);
+    url.searchParams.delete('order');
+    window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}`);
+  }, [orders, wantedOrder]);
 
   if (failed && !orders) {
     return (

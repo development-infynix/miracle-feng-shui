@@ -8,6 +8,7 @@ import { refundService } from '@/server/services/refund.service';
 import { refundRepository } from '@/server/repositories/refund.repository';
 import { orderRepository } from '@/server/repositories/order.repository';
 import { orderService } from '@/server/services/order.service';
+import { notificationService } from '@/server/services/notification.service';
 
 const ORDER: any = {
   id: 'o1',
@@ -42,7 +43,7 @@ beforeEach(() => {
   vi.spyOn(refundRepository, 'findLatestForOrder').mockResolvedValue(REFUND);
   vi.spyOn(refundRepository, 'findOpenForOrder').mockResolvedValue(REFUND);
   vi.spyOn(refundRepository, 'claimForApproval').mockResolvedValue(true);
-  vi.spyOn(refundRepository, 'applyRazorpayState').mockResolvedValue(undefined);
+  vi.spyOn(refundRepository, 'applyRazorpayState').mockResolvedValue(null);
   vi.spyOn(refundRepository, 'markFailed').mockResolvedValue(undefined);
 });
 
@@ -254,5 +255,30 @@ describe('refund webhooks', () => {
   it('ignores other refund events', async () => {
     await refundService.handleWebhook('refund.speed_changed', entity);
     expect(refundRepository.applyRazorpayState).not.toHaveBeenCalled();
+  });
+});
+
+describe('telling the customer about a refund', () => {
+  const entity = { id: 'rfnd_1', payment_id: 'pay_1', amount: 49950 };
+
+  beforeEach(() => {
+    vi.spyOn(orderRepository, 'findByRazorpayPaymentId').mockResolvedValue(ORDER);
+    vi.spyOn(refundRepository, 'findByRazorpayId').mockResolvedValue(REFUND);
+  });
+
+  it('notifies once the money has really gone back', async () => {
+    const notify = vi.spyOn(notificationService, 'notify').mockImplementation(() => {});
+    vi.spyOn(refundRepository, 'applyRazorpayState').mockResolvedValue({ userId: 'owner', orderNumber: 'MFS-1', amountPaise: 49950 });
+    await refundService.handleWebhook('refund.processed', entity);
+    expect(notify).toHaveBeenCalledWith('owner', expect.objectContaining({ kind: 'REFUND', link: '/profile?tab=orders&order=MFS-1' }));
+    expect(notify.mock.calls[0][1]?.body).toContain('MFS-1');
+  });
+
+  it('stays quiet for a pending, failed or repeated event', async () => {
+    const notify = vi.spyOn(notificationService, 'notify').mockImplementation(() => {});
+    await refundService.handleWebhook('refund.created', entity);
+    await refundService.handleWebhook('refund.failed', entity);
+    await refundService.handleWebhook('refund.processed', entity);
+    expect(notify).not.toHaveBeenCalled();
   });
 });

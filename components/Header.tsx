@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { usePathname } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
 import { useCart } from '@/context/CartContext';
@@ -16,6 +17,10 @@ import NavAccountMenu from '@/components/nav/NavAccountMenu';
 import NavMobileMenu from '@/components/nav/NavMobileMenu';
 import RegionSwitcher from '@/components/nav/RegionSwitcher';
 import { headerBadge, headerFocus, headerIconButton, headerTextButton } from '@/components/nav/useDismiss';
+import { useUnreadNotifications } from '@/components/notifications/useNotifications';
+
+// The drawer's code only downloads the first time it's opened.
+const NotificationsDrawer = dynamic(() => import('@/components/notifications/NotificationsDrawer'), { ssr: false });
 
 /**
  * The site header, in a marketplace layout: brand, Categories (every category), a search bar whose
@@ -37,6 +42,15 @@ function SiteHeader({ navCategories, pathname }: { navCategories: NavCategory[];
   const { language, t } = useLocale();
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  // Mounted once first opened, then kept so it can slide out when closed.
+  const [notificationsMounted, setNotificationsMounted] = useState(false);
+  const { unread, setUnread } = useUnreadNotifications(userLoggedIn);
+  const openNotifications = useCallback(() => {
+    setNotificationsMounted(true);
+    setNotificationsOpen(true);
+  }, []);
+  const closeNotifications = useCallback(() => setNotificationsOpen(false), []);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isRegisterMode, setIsRegisterMode] = useState(false);
   const [authError, setAuthError] = useState('');
@@ -125,7 +139,7 @@ function SiteHeader({ navCategories, pathname }: { navCategories: NavCategory[];
         <i aria-hidden="true" className="fa-solid fa-cart-shopping text-[20px]" />
         {count > 0 && <span className={headerBadge}>{count}</span>}
       </Link>
-      <NavAccountMenu name={userName} email={userEmail} onSignOut={handleSignOut} />
+      <NavAccountMenu name={userName} email={userEmail} unread={unread} onOpenNotifications={openNotifications} onSignOut={handleSignOut} />
     </div>
   ) : status === 'loading' ? (
     <span aria-hidden="true" className="h-11 w-20" />
@@ -190,7 +204,19 @@ function SiteHeader({ navCategories, pathname }: { navCategories: NavCategory[];
         )}
       </header>
 
-      <NavMobileMenu open={menuOpen} signedIn={userLoggedIn} onClose={closeMenu} onSignIn={openSignIn} onSignOut={handleSignOut} />
+      <NavMobileMenu
+        open={menuOpen}
+        signedIn={userLoggedIn}
+        unread={unread}
+        onOpenNotifications={openNotifications}
+        onClose={closeMenu}
+        onSignIn={openSignIn}
+        onSignOut={handleSignOut}
+      />
+
+      {userLoggedIn && notificationsMounted && (
+        <NotificationsDrawer open={notificationsOpen} onClose={closeNotifications} onUnreadChange={setUnread} />
+      )}
 
       <AuthModal
         open={showAuthModal}
