@@ -88,8 +88,33 @@ export function reviewNotice(productTitle: string, productId: string, notice: Re
   return { kind: 'REVIEW', title: 'Your review is back', body: `Your review of ${productTitle} is showing again.`, link };
 }
 
+const rupees = (amountPaise: number) =>
+  (amountPaise / 100).toLocaleString('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 });
+
+/** Sent once, when the order is placed: paid online, or placed as cash on delivery. */
+export function orderConfirmedNotice(orderNumber: string, totalPaise: number, cashOnDelivery: boolean): NewNotification {
+  return {
+    kind: 'ORDER',
+    title: `Order ${orderNumber} is confirmed`,
+    body: cashOnDelivery
+      ? `Thanks for your order! Please pay ${rupees(totalPaise)} on delivery. We'll let you know when it ships.`
+      : `Thanks for your order! We've received your payment of ${rupees(totalPaise)}. We'll let you know when it ships.`,
+    link: orderLink(orderNumber),
+  };
+}
+
+/** Sent when the store sends the refund to Razorpay; refundNotice follows once the money has gone back. */
+export function refundStartedNotice(orderNumber: string, amountPaise: number): NewNotification {
+  return {
+    kind: 'REFUND',
+    title: "We've started your refund",
+    body: `We've started a refund of ${rupees(amountPaise)} for order ${orderNumber}. We'll let you know once it's on its way.`,
+    link: orderLink(orderNumber),
+  };
+}
+
 export function refundNotice(orderNumber: string, amountPaise: number): NewNotification {
-  const amount = (amountPaise / 100).toLocaleString('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 });
+  const amount = rupees(amountPaise);
   return {
     kind: 'REFUND',
     title: 'Your refund is on its way',

@@ -7,6 +7,7 @@ import { productRepository } from '../repositories/product.repository';
 import { userRepository } from '../repositories/user.repository';
 import { orderService } from './order.service';
 import { emailService } from './email.service';
+import { notificationService, orderConfirmedNotice } from './notification.service';
 import { refundService } from './refund.service';
 import { settingsService } from './settings.service';
 import { CreatePaymentOrderInput, VerifyPaymentInput } from '../validators/payment.validator';
@@ -31,9 +32,13 @@ async function paymentAmountMatches(razorpayOrderId: string, paymentId: string) 
     : false;
 }
 
+/** Runs once per paid order (only for the call that created it): the email and the notification. */
 async function sendPaidOrderEmail(orderId: string) {
   const order = await orderRepository.findById(orderId);
   const formatted = orderService.formatOrder(order);
+  if (order) {
+    notificationService.notify(order.userId, orderConfirmedNotice(order.orderNumber, Math.round(order.total * 100), false));
+  }
   emailService
     .sendOrderConfirmationEmail({
       orderNumber: formatted.orderNumber,

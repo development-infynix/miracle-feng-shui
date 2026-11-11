@@ -7,6 +7,7 @@ import { cartRepository } from '@/server/repositories/cart.repository';
 import { productRepository } from '@/server/repositories/product.repository';
 import { userRepository } from '@/server/repositories/user.repository';
 import { emailService } from '@/server/services/email.service';
+import { notificationService } from '@/server/services/notification.service';
 import { settingsService } from '@/server/services/settings.service';
 
 const createRazorpayOrder = vi.hoisted(() => vi.fn());
@@ -50,15 +51,21 @@ describe('PaymentService', () => {
       vi.spyOn(checkoutSessionRepository, 'completePayment').mockResolvedValue({ orderId: 'o1', created: true });
       vi.spyOn(orderRepository, 'findById').mockResolvedValue(paidOrder);
       vi.spyOn(emailService, 'sendOrderConfirmationEmail').mockResolvedValue({ success: true });
+      vi.spyOn(notificationService, 'notify').mockImplementation(() => {});
     });
 
-    it('writes the paid order and emails the customer', async () => {
+    it('writes the paid order, emails the customer and notifies them', async () => {
       const verified = await verify();
 
       expect(checkoutSessionRepository.completePayment).toHaveBeenCalledWith('order_1', 'pay_1');
       expect(verified.status).toBe('PAID');
       expect(verified.paymentStatus).toBe('PAID');
       expect(emailService.sendOrderConfirmationEmail).toHaveBeenCalledTimes(1);
+      expect(notificationService.notify).toHaveBeenCalledTimes(1);
+      expect(notificationService.notify).toHaveBeenCalledWith(
+        'user-1',
+        expect.objectContaining({ title: 'Order MFS-1 is confirmed', link: '/profile?tab=orders&order=MFS-1' })
+      );
     });
 
     it('writes nothing when the signature is wrong', async () => {
@@ -83,10 +90,11 @@ describe('PaymentService', () => {
       expect(checkoutSessionRepository.completePayment).not.toHaveBeenCalled();
     });
 
-    it('does not email again when the webhook already wrote the order', async () => {
+    it('does not email or notify again when the webhook already wrote the order', async () => {
       vi.spyOn(checkoutSessionRepository, 'completePayment').mockResolvedValue({ orderId: 'o1', created: false });
       await verify();
       expect(emailService.sendOrderConfirmationEmail).not.toHaveBeenCalled();
+      expect(notificationService.notify).not.toHaveBeenCalled();
     });
   });
 

@@ -150,6 +150,21 @@ describe('approving a refund', () => {
     expect(refundRepository.applyRazorpayState).toHaveBeenCalledWith('r1', 'pending', 'rfnd_1');
   });
 
+  it('tells the customer the refund has started once Razorpay takes it', async () => {
+    const notify = vi.spyOn(notificationService, 'notify').mockImplementation(() => {});
+    razorpayMock.payments.refund.mockResolvedValue({ id: 'rfnd_1', status: 'pending' });
+    await refundService.approveRefund('o1', 'admin');
+    expect(notify).toHaveBeenCalledWith('owner', expect.objectContaining({ kind: 'REFUND', title: "We've started your refund" }));
+    expect(notify.mock.calls[0][1]?.body).toContain('₹499.50');
+  });
+
+  it("doesn't say it started when Razorpay refused it", async () => {
+    const notify = vi.spyOn(notificationService, 'notify').mockImplementation(() => {});
+    razorpayMock.payments.refund.mockRejectedValue({ statusCode: 400, error: { description: 'No' } });
+    await refundService.approveRefund('o1', 'admin');
+    expect(notify).not.toHaveBeenCalled();
+  });
+
   it('never calls Razorpay when another approval won', async () => {
     vi.spyOn(refundRepository, 'claimForApproval').mockResolvedValue(false);
     await expect(refundService.approveRefund('o1', 'admin')).rejects.toThrow('already being processed');
