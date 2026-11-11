@@ -158,7 +158,6 @@ describe('taken-down reviews, for their author', () => {
     hiddenAt: new Date(),
     hiddenReason: 'PERSONAL_DETAILS',
     hiddenNote: 'private admin note',
-    appealedAt: null,
     ...fields,
   });
 
@@ -169,7 +168,7 @@ describe('taken-down reviews, for their author', () => {
     const result: any = await reviewService.eligibility('user-1', 'prod-1');
 
     expect(result).toMatchObject({ canReview: false, reason: 'hidden' });
-    expect(result.hiddenReview).toMatchObject({ reasonCode: 'PERSONAL_DETAILS', because: expect.stringContaining('personal details'), appeal: null });
+    expect(result.hiddenReview).toMatchObject({ reasonCode: 'PERSONAL_DETAILS', because: expect.stringContaining('personal details') });
     expect(JSON.stringify(result)).not.toContain('private admin note');
   });
 
@@ -180,31 +179,6 @@ describe('taken-down reviews, for their author', () => {
 
     await expect(reviewService.deleteOwn('user-1', 'prod-1')).resolves.toEqual({ deleted: true });
     expect(del).toHaveBeenCalledWith('r1', 'user-1');
-  });
-
-  it('takes one request to look again per take-down', async () => {
-    vi.spyOn(productRepository, 'findBySlugOrId').mockResolvedValue({ id: 'prod-1' } as any);
-    vi.spyOn(reviewRepository, 'findByUserAndProduct').mockResolvedValue(hiddenOwn() as any);
-    const appeal = vi.spyOn(reviewRepository, 'appeal').mockResolvedValueOnce(true).mockResolvedValueOnce(false);
-
-    await reviewService.appeal('user-1', 'prod-1', 'It was about the product');
-    expect(appeal).toHaveBeenCalledWith('r1', 'user-1', 'It was about the product');
-    await expect(reviewService.appeal('user-1', 'prod-1', 'Again')).rejects.toMatchObject({ statusCode: 409 });
-  });
-
-  it('refuses a request on a review that is showing', async () => {
-    vi.spyOn(productRepository, 'findBySlugOrId').mockResolvedValue({ id: 'prod-1' } as any);
-    vi.spyOn(reviewRepository, 'findByUserAndProduct').mockResolvedValue(hiddenOwn({ hiddenAt: null }) as any);
-    await expect(reviewService.appeal('user-1', 'prod-1', 'Please')).rejects.toMatchObject({ statusCode: 404 });
-  });
-
-  it('emails the author when the admin keeps it hidden, with the answer', async () => {
-    vi.spyOn(reviewRepository, 'findById').mockResolvedValue({ id: 'r1' } as any);
-    vi.spyOn(reviewRepository, 'declineAppeal').mockResolvedValue(true);
-    const notify = vi.spyOn(reviewService, 'notifyAuthor').mockImplementation(() => {});
-
-    await reviewService.declineAppeal('r1', 'It still includes a phone number.', 'admin-1');
-    expect(notify).toHaveBeenCalledWith('r1', { kind: 'kept_hidden', response: 'It still includes a phone number.' });
   });
 
   it('emails the author on take-down with the customer-facing reason', async () => {

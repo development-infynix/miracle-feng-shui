@@ -1,8 +1,6 @@
 import { NextRequest } from 'next/server';
 import {
   createReviewSchema,
-  declineAppealSchema,
-  reviewAppealSchema,
   reviewListQuerySchema,
   reviewReplySchema,
   setReviewHiddenSchema,
@@ -40,25 +38,6 @@ export const reviewController = {
     try {
       const resolved = await context.params;
       return apiResponse.ok(await reviewService.deleteOwn(user.id, (resolved.slug || resolved.id)!));
-    } catch (error) {
-      return handleError(error);
-    }
-  },
-
-  async appeal(req: NextRequest, user: AuthenticatedUser, context: { params: Promise<{ id?: string; slug?: string }> }) {
-    try {
-      const resolved = await context.params;
-      const { message } = reviewAppealSchema.parse(await req.json());
-      return apiResponse.ok(await reviewService.appeal(user.id, (resolved.slug || resolved.id)!, message));
-    } catch (error) {
-      return handleError(error);
-    }
-  },
-
-  async declineAppeal(req: NextRequest, id: string, adminId?: string) {
-    try {
-      const { response } = declineAppealSchema.parse(await req.json());
-      return apiResponse.ok(await reviewService.declineAppeal(id, response, adminId));
     } catch (error) {
       return handleError(error);
     }

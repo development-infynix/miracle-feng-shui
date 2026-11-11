@@ -345,10 +345,10 @@ model Review {
   hiddenAt         DateTime?
   hiddenReason     ReviewHideReason?
   hiddenNote       String?
-  /// The author's request to look again at a hidden review: one per take-down, cleared when it's hidden again or restored.
+  /// No longer used: the "look again" request was removed 2026-11-11. Kept so the deployed app, which still reads
+  /// them, doesn't break; drop these four columns in a migration once it's redeployed.
   appealMessage    String?
   appealedAt       DateTime?
-  /// The admin's answer when the review stays hidden. Shown to the author.
   appealResponse   String?
   appealResolvedAt DateTime?
   /// The store's public reply, shown under the review.

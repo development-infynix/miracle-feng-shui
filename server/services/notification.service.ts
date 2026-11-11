@@ -74,7 +74,7 @@ export function orderChangeNotice(change: OrderChange): NewNotification | null {
   return null;
 }
 
-/** What to tell the author when their review is taken down, restored, or kept down. */
+/** What to tell the author when their review is taken down or restored. */
 export function reviewNotice(productTitle: string, productId: string, notice: ReviewNotice): NewNotification {
   const link = productLink(productId);
   if (notice.kind === 'hidden') {
@@ -85,15 +85,7 @@ export function reviewNotice(productTitle: string, productId: string, notice: Re
       link,
     };
   }
-  if (notice.kind === 'restored') {
-    return { kind: 'REVIEW', title: 'Your review is back', body: `Your review of ${productTitle} is showing again.`, link };
-  }
-  return {
-    kind: 'REVIEW',
-    title: 'Your review stays taken down',
-    body: `We looked again at your review of ${productTitle}: ${notice.response}`,
-    link,
-  };
+  return { kind: 'REVIEW', title: 'Your review is back', body: `Your review of ${productTitle} is showing again.`, link };
 }
 
 export function refundNotice(orderNumber: string, amountPaise: number): NewNotification {
