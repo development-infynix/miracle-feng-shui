@@ -66,7 +66,7 @@ export const reviewService = {
     if (!product) throw ApiError.notFound('Product not found');
     const own = await reviewRepository.findByUserAndProduct(userId, product.id);
     if (own?.hiddenAt) {
-      // Only its author sees a hidden review, with why and what they can do about it.
+      // Only its author sees a hidden review, with why. They can delete it and write a new one.
       return {
         canReview: false,
         reason: 'hidden' as const,
@@ -75,14 +75,6 @@ export const reviewService = {
           comment: own.comment,
           reasonCode: own.hiddenReason ?? 'OTHER',
           because: CUSTOMER_HIDE_REASON[own.hiddenReason ?? 'OTHER'],
-          appeal: own.appealedAt
-            ? {
-                message: own.appealMessage ?? '',
-                sentAt: own.appealedAt.toISOString(),
-                response: own.appealResponse,
-                answeredAt: own.appealResolvedAt?.toISOString() ?? null,
-              }
-            : null,
         },
       };
     }
@@ -104,18 +96,6 @@ export const reviewService = {
       throw ApiError.notFound("You haven't reviewed this product.");
     }
     return { deleted: true };
-  },
-
-  /** The author of a hidden review asks the store to look again. One request per take-down. */
-  async appeal(userId: string, productIdentifier: string, message: string) {
-    const product = await productRepository.findBySlugOrId(productIdentifier);
-    if (!product) throw ApiError.notFound('Product not found');
-    const own = await reviewRepository.findByUserAndProduct(userId, product.id);
-    if (!own?.hiddenAt) throw ApiError.notFound('There is no taken-down review of yours on this product.');
-    if (!(await reviewRepository.appeal(own.id, userId, message))) {
-      throw ApiError.conflict("You've already asked us to look again at this review.");
-    }
-    return { sentAt: new Date().toISOString() };
   },
 
   /** Tells the author in the app and by email. Never blocks or fails the admin's action. */
@@ -213,10 +193,6 @@ export const reviewService = {
           hiddenReason: r.hiddenReason,
           hiddenNote: r.hiddenNote,
           hiddenBy: hiddenBy ? hiddenBy.name || hiddenBy.email : null,
-          appealMessage: r.appealMessage,
-          appealedAt: r.appealedAt?.toISOString() ?? null,
-          appealResponse: r.appealResponse,
-          appealResolvedAt: r.appealResolvedAt?.toISOString() ?? null,
         };
       }),
       total,
@@ -237,17 +213,6 @@ export const reviewService = {
     }
     this.notifyAuthor(id, hide ? { kind: 'hidden', because: CUSTOMER_HIDE_REASON[hide.reason] } : { kind: 'restored' });
     return { id, hidden: input.hidden };
-  },
-
-  /** Keeps a hidden review hidden and answers the author's request to look again. */
-  async declineAppeal(id: string, response: string, adminId?: string) {
-    const existing = await reviewRepository.findById(id);
-    if (!existing) throw ApiError.notFound('Review not found');
-    if (!(await reviewRepository.declineAppeal(id, response, adminId ?? null))) {
-      throw ApiError.conflict('There is no open request to answer on this review.');
-    }
-    this.notifyAuthor(id, { kind: 'kept_hidden', response });
-    return { id, appealResponse: response, appealResolvedAt: new Date().toISOString() };
   },
 
   /** Sets the store's public reply under a review. An empty reply removes it. */

@@ -9,7 +9,6 @@ export type HiddenReview = {
   reasonCode: string;
   /** English fallback for the reason, e.g. "it wasn't about this product". */
   because: string;
-  appeal: { message: string; sentAt: string; response: string | null; answeredAt: string | null } | null;
 };
 
 const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#222222]';
@@ -28,23 +27,20 @@ function Stars({ rating }: { rating: number }) {
 
 /**
  * The author's own taken-down review. Only they see it: blurred, with why it was taken down,
- * and the choice to delete it (and write a new one) or ask the store to look again.
+ * and the choice to delete it and write a new one.
  */
 export default function HiddenReviewNotice({
   productId,
   review,
   onDeleted,
-  onAppealed,
 }: {
   productId: string;
   review: HiddenReview;
   onDeleted: () => void;
-  onAppealed: (appeal: NonNullable<HiddenReview['appeal']>) => void;
 }) {
-  const { t, language } = useLocale();
+  const { t } = useLocale();
   const [open, setOpen] = useState(false);
-  const [mode, setMode] = useState<'idle' | 'appeal' | 'delete'>('idle');
-  const [message, setMessage] = useState('');
+  const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const titleId = useId();
@@ -53,7 +49,7 @@ export default function HiddenReviewNotice({
 
   const close = useCallback(() => {
     setOpen(false);
-    setMode('idle');
+    setConfirming(false);
     setError('');
     openerRef.current?.focus();
   }, []);
@@ -69,39 +65,12 @@ export default function HiddenReviewNotice({
   }, [open, close]);
 
   const because = t(`product.review_hidden_reason_${review.reasonCode.toLowerCase()}`, review.because);
-  const when = (iso: string) =>
-    new Date(iso).toLocaleDateString(language === 'ar' ? 'ar' : 'en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-  const base = `/api/products/${encodeURIComponent(productId)}/reviews/mine`;
-
-  const sendAppeal = async () => {
-    if (message.trim().length < 5) {
-      setError(t('product.review_appeal_too_short', 'Tell us a little more (at least 5 characters).'));
-      return;
-    }
-    setBusy(true);
-    setError('');
-    try {
-      const res = await fetch(`${base}/appeal`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: message.trim() }),
-      });
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok || !json.success) throw new Error(json.details?.[0]?.message || json.error);
-      onAppealed({ message: message.trim(), sentAt: json.data.sentAt, response: null, answeredAt: null });
-      setMode('idle');
-    } catch (err) {
-      setError((err instanceof Error && err.message) || t('product.review_action_failed', 'Something went wrong. Please try again.'));
-    } finally {
-      setBusy(false);
-    }
-  };
 
   const deleteReview = async () => {
     setBusy(true);
     setError('');
     try {
-      const res = await fetch(base, { method: 'DELETE' });
+      const res = await fetch(`/api/products/${encodeURIComponent(productId)}/reviews/mine`, { method: 'DELETE' });
       const json = await res.json().catch(() => ({}));
       if (!res.ok || !json.success) throw new Error(json.error);
       setOpen(false);
@@ -157,50 +126,13 @@ export default function HiddenReviewNotice({
               <p className="mt-1 whitespace-pre-line break-words text-[14px] leading-relaxed text-[#222222]">{review.comment}</p>
             </div>
 
-            {review.appeal && (
-              <div className="mt-4 space-y-1 text-[14px] leading-relaxed text-[#222222]">
-                <p className="font-semibold">
-                  {t('product.review_appeal_sent', 'You asked us to look again on {date}.').replace('{date}', when(review.appeal.sentAt))}
-                </p>
-                {review.appeal.response ? (
-                  <p>
-                    <span className="font-semibold">{t('product.review_appeal_answer', 'Our answer:')}</span> {review.appeal.response}
-                  </p>
-                ) : (
-                  <p className="text-[#595959]">{t('product.review_appeal_waiting', "We'll answer here and by email.")}</p>
-                )}
-              </div>
-            )}
-
             {error && (
               <p role="alert" className="mt-3 text-[14px] text-[#8F1610]">
                 {error}
               </p>
             )}
 
-            {mode === 'appeal' ? (
-              <div className="mt-4 space-y-2">
-                <label htmlFor={`${titleId}-appeal`} className="block text-[13px] font-semibold text-[#222222]">
-                  {t('product.review_appeal_label', 'Why should we look again?')}
-                </label>
-                <textarea
-                  id={`${titleId}-appeal`}
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  maxLength={500}
-                  rows={4}
-                  className="w-full rounded-lg border border-[#222222]/25 px-3 py-2 text-[15px] text-[#222222] outline-none focus:border-[#222222]"
-                />
-                <div className="flex flex-wrap gap-2">
-                  <button type="button" onClick={() => void sendAppeal()} disabled={busy} className={primary}>
-                    {busy ? t('product.review_sending', 'Sending…') : t('product.review_appeal_send', 'Send')}
-                  </button>
-                  <button type="button" onClick={() => { setMode('idle'); setError(''); }} className={secondary}>
-                    {t('product.review_cancel', 'Cancel')}
-                  </button>
-                </div>
-              </div>
-            ) : mode === 'delete' ? (
+            {confirming ? (
               <div className="mt-4 space-y-2">
                 <p className="text-[14px] text-[#222222]">
                   {t('product.review_delete_confirm', 'Delete your review for good? You can then write a new one.')}
@@ -209,19 +141,14 @@ export default function HiddenReviewNotice({
                   <button type="button" onClick={() => void deleteReview()} disabled={busy} className={`${primary} bg-[#8F1610] hover:bg-[#6E110C]`}>
                     {busy ? t('product.review_deleting', 'Deleting…') : t('product.review_delete', 'Delete my review')}
                   </button>
-                  <button type="button" onClick={() => setMode('idle')} className={secondary}>
+                  <button type="button" onClick={() => setConfirming(false)} className={secondary}>
                     {t('product.review_cancel', 'Cancel')}
                   </button>
                 </div>
               </div>
             ) : (
               <div className="mt-5 flex flex-wrap gap-2">
-                {!review.appeal && (
-                  <button type="button" onClick={() => setMode('appeal')} className={primary}>
-                    {t('product.review_appeal', 'Ask us to look again')}
-                  </button>
-                )}
-                <button type="button" onClick={() => setMode('delete')} className={secondary}>
+                <button type="button" onClick={() => setConfirming(true)} className={secondary}>
                   {t('product.review_delete', 'Delete my review')}
                 </button>
               </div>

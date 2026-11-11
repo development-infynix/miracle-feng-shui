@@ -50,9 +50,6 @@ describe('review and refund notices', () => {
       link: '/shop?product=p1',
     });
     expect(reviewNotice('Wealth Bowl', 'p1', { kind: 'restored' }).title).toBe('Your review is back');
-    expect(reviewNotice('Wealth Bowl', 'p1', { kind: 'kept_hidden', response: 'It still has a phone number.' }).body).toContain(
-      'It still has a phone number.'
-    );
   });
 
   it('shows the refunded amount in rupees', () => {

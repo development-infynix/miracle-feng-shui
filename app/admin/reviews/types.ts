@@ -28,11 +28,6 @@ export interface AdminReview {
   hiddenReason: ReviewHideReason | null;
   hiddenNote: string | null;
   hiddenBy: string | null;
-  /** The customer's request to look again at this hidden review, and the admin's answer if it stays hidden. */
-  appealMessage: string | null;
-  appealedAt: string | null;
-  appealResponse: string | null;
-  appealResolvedAt: string | null;
 }
 
 export interface AdminReviewPage {

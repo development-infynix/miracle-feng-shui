@@ -292,9 +292,6 @@ export function ProductReviewList({ state, productId, signedIn, guest, onSignIn 
       productId={productId}
       review={eligibility.hiddenReview}
       onDeleted={() => setEligibility({ canReview: true, reason: null })}
-      onAppealed={(appeal) =>
-        setEligibility((current) => (current?.hiddenReview ? { ...current, hiddenReview: { ...current.hiddenReview, appeal } } : current))
-      }
     />
   ) : signedIn && eligibility?.canReview ? (
     <button type="button" onClick={() => setWriting(true)} className={`h-12 cursor-pointer rounded-lg bg-[#222222] px-6 transition-colors hover:bg-black ${focusRing}`}>

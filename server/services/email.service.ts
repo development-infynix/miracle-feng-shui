@@ -355,10 +355,7 @@ class EmailService {
 const escapeHtml = (text: string) =>
   text.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c] as string);
 
-export type ReviewNotice =
-  | { kind: 'hidden'; because: string }
-  | { kind: 'restored' }
-  | { kind: 'kept_hidden'; response: string };
+export type ReviewNotice = { kind: 'hidden'; because: string } | { kind: 'restored' };
 
 /** Tells a customer what happened to their review. Never includes the admin's private note. */
 export async function sendReviewNoticeEmail(
@@ -374,12 +371,8 @@ export async function sendReviewNoticeEmail(
   const body =
     notice.kind === 'hidden'
       ? `Your review of <strong>${product}</strong> has been taken down from our store because ${escapeHtml(notice.because)}.<br /><br />
-         On the product page you can see your review, delete it and write a new one, or ask us to look again.`
-      : notice.kind === 'restored'
-        ? `We've looked again, and your review of <strong>${product}</strong> is showing in our store again. Thank you for your patience.`
-        : `We've looked again at your review of <strong>${product}</strong>, and it will stay hidden.<br /><br />
-           <em>${escapeHtml(notice.response)}</em><br /><br />
-           You can still delete it and write a new one from the product page.`;
+         On the product page you can see your review, and delete it to write a new one.`
+      : `Your review of <strong>${product}</strong> is showing in our store again. Thank you for your patience.`;
 
   const html = `<!DOCTYPE html><html><head><meta charset="utf-8" /><title>${escapeHtml(subject)}</title></head>
     <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #FAF9F5; margin: 0; padding: 32px 16px; color: #222222;">

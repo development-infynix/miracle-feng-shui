@@ -21,16 +21,6 @@ export const setReviewHiddenSchema = z.discriminatedUnion('hidden', [
 ]);
 export type SetReviewHiddenInput = z.infer<typeof setReviewHiddenSchema>;
 
-/** The author's request to look again at their hidden review. */
-export const reviewAppealSchema = z.object({
-  message: z.string().trim().min(5, 'Tell us a little more (at least 5 characters).').max(500),
-});
-
-/** The admin's answer when a hidden review stays hidden. Shown to the author. */
-export const declineAppealSchema = z.object({
-  response: z.string().trim().min(5, 'Write a short answer for the customer.').max(500),
-});
-
 /** The store's public reply. Empty removes it. */
 export const reviewReplySchema = z.object({ reply: z.string().trim().max(1000) });
 
