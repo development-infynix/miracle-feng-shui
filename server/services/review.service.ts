@@ -3,6 +3,7 @@ import { productRepository } from '../repositories/product.repository';
 import { AdminReviewQuery, CreateReviewInput, SetReviewHiddenInput } from '../validators/review.validator';
 import { ApiError } from '../utils/ApiError';
 import { emailService, sendReviewNoticeEmail, ReviewNotice } from './email.service';
+import { notificationService, reviewNotice } from './notification.service';
 import type { ReviewHideReason } from '@/app/generated/prisma/client';
 
 /** How each hide reason reads to the customer ("…taken down because {this}"). Never the admin's private note. */
@@ -117,12 +118,14 @@ export const reviewService = {
     return { sentAt: new Date().toISOString() };
   },
 
-  /** Tells the author by email. Never blocks or fails the admin's action. */
+  /** Tells the author in the app and by email. Never blocks or fails the admin's action. */
   notifyAuthor(reviewId: string, notice: ReviewNotice) {
     void reviewRepository
       .findForNotice(reviewId)
       .then((r) => {
-        if (!r?.user?.email) return;
+        if (!r) return;
+        notificationService.notify(r.user?.id, reviewNotice(r.product.title, r.product.id, notice));
+        if (!r.user?.email) return;
         return sendReviewNoticeEmail(emailService, {
           email: r.user.email,
           name: r.user.name,

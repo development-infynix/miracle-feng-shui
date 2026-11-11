@@ -13,6 +13,8 @@ interface NavMobileMenuProps {
   open: boolean;
   categories: NavCategory[];
   signedIn: boolean;
+  unread: number;
+  onOpenNotifications: () => void;
   favoritesCount: number;
   cartCount: number;
   onClose: () => void;
@@ -33,6 +35,8 @@ export default function NavMobileMenu({
   open,
   categories,
   signedIn,
+  unread,
+  onOpenNotifications,
   favoritesCount,
   cartCount,
   onClose,
@@ -106,6 +110,22 @@ export default function NavMobileMenu({
                 <span className={indexLabel}>{t("nav.favorites", "Favorites")}</span>
                 {favoritesCount > 0 && <span className={navBadge}>{favoritesCount}</span>}
               </Link>
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onOpenNotifications();
+                }}
+                className={indexRow}
+              >
+                <span className={indexLabel}>{t("notifications.title", "Notifications")}</span>
+                {unread > 0 && (
+                  <span className={navBadge}>
+                    {unread > 99 ? "99+" : unread}
+                    <span className="sr-only"> {t("notifications.unread", "unread")}</span>
+                  </span>
+                )}
+              </button>
               <Link href="/profile?tab=orders" onClick={onClose} className={indexRow}>
                 <span className={indexLabel}>{t("nav.my_orders", "My orders")}</span>
               </Link>

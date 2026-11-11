@@ -8,6 +8,7 @@ import {
   UpdateOrderStatusInput,
 } from '../validators/admin.validator';
 import { ApiError } from '../utils/ApiError';
+import { notificationService, orderChangeNotice } from './notification.service';
 import { OrderStatus, Prisma } from '@/app/generated/prisma/client';
 
 const CUSTOMER_LIST_PAGE_SIZE = 20;
@@ -491,6 +492,20 @@ export const adminService = {
         ? null
         : { fromStatus: existing.status as OrderStatus, adminId: adminId ?? null, note: input.note || null };
     const updated = await adminRepository.updateOrderStatus(id, input.status as OrderStatus, deliveredAt, change);
+    if (change) {
+      notificationService.notify(
+        updated.userId,
+        orderChangeNotice({
+          orderNumber: updated.orderNumber,
+          from: change.fromStatus,
+          to: updated.status,
+          note: change.note,
+          paidOnline: updated.paymentMethod === 'RAZORPAY' && updated.paymentStatus === 'PAID',
+          trackingNumber: updated.trackingNumber,
+          courier: updated.courier,
+        })
+      );
+    }
     const addr = (updated.shippingAddress as any) || {};
     return {
       id: updated.id,

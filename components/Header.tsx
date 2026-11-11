@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { useCart } from "@/context/CartContext";
@@ -21,6 +22,10 @@ import {
   navLabelActive,
   useDismiss,
 } from "@/components/nav/navUi";
+import { useUnreadNotifications } from "@/components/notifications/useNotifications";
+
+// The drawer's code only downloads the first time it's opened.
+const NotificationsDrawer = dynamic(() => import("@/components/notifications/NotificationsDrawer"), { ssr: false });
 
 const mobileIcon = `relative flex h-10 w-10 items-center justify-center rounded-full cursor-pointer ${navFocus}`;
 
@@ -50,6 +55,15 @@ function SiteHeader({
 
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  // Mounted once first opened, then kept so it can slide out when closed.
+  const [notificationsMounted, setNotificationsMounted] = useState(false);
+  const { unread, setUnread } = useUnreadNotifications(userLoggedIn);
+  const openNotifications = useCallback(() => {
+    setNotificationsMounted(true);
+    setNotificationsOpen(true);
+  }, []);
+  const closeNotifications = useCallback(() => setNotificationsOpen(false), []);
   const [searchOpen, setSearchOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isRegisterMode, setIsRegisterMode] = useState(false);
@@ -305,6 +319,8 @@ function SiteHeader({
                 <NavAccountMenu
                   name={userName}
                   email={userEmail}
+                  unread={unread}
+                  onOpenNotifications={openNotifications}
                   onSignOut={handleSignOut}
                 />
               </span>
@@ -314,12 +330,22 @@ function SiteHeader({
             <button
               ref={mobileTriggerRef}
               type="button"
-              aria-label={t("nav.menu", "Menu")}
+              aria-label={
+                userLoggedIn && unread > 0
+                  ? `${t("nav.menu", "Menu")}, ${t("notifications.unread_count", "{count} unread").replace("{count}", String(unread))}`
+                  : t("nav.menu", "Menu")
+              }
               aria-expanded={mobileMenuOpen}
               aria-controls="nav-mobile-menu"
               onClick={() => setMobileMenuOpen((prev) => !prev)}
-              className={`-mr-1.5 flex h-10 w-10 items-center justify-center rounded-full cursor-pointer md:hidden ${navFocus}`}
+              className={`relative -mr-1.5 flex h-10 w-10 items-center justify-center rounded-full cursor-pointer md:hidden ${navFocus}`}
             >
+              {/* Phones have no avatar in the bar, so the unread count sits on the menu, which holds Notifications. */}
+              {userLoggedIn && unread > 0 && !mobileMenuOpen && (
+                <span aria-hidden="true" className={`${navBadge} absolute -right-0.5 -top-0.5`}>
+                  {unread > 99 ? "99+" : unread}
+                </span>
+              )}
               <span aria-hidden="true" className="relative block h-3 w-5">
                 <span
                   className={`absolute left-0 h-[2px] w-5 rounded-full bg-ink transition-transform duration-200 motion-reduce:transition-none ${mobileMenuOpen ? "top-[5px] rotate-45" : "top-0"}`}
@@ -338,6 +364,8 @@ function SiteHeader({
           open={mobileMenuOpen}
           categories={navCategories}
           signedIn={userLoggedIn}
+          unread={unread}
+          onOpenNotifications={openNotifications}
           favoritesCount={favorites.length}
           cartCount={userLoggedIn ? count : 0}
           onClose={closeMobileMenu}
@@ -346,6 +374,10 @@ function SiteHeader({
           onSignOut={handleSignOut}
         />
       </div>
+
+      {userLoggedIn && notificationsMounted && (
+        <NotificationsDrawer open={notificationsOpen} onClose={closeNotifications} onUnreadChange={setUnread} />
+      )}
 
       {!onShopPage && (
         <GeneralSearchModal

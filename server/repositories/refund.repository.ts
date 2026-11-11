@@ -109,6 +109,7 @@ export const refundRepository = {
    * Records what Razorpay says about a refund. Events can repeat or arrive out of order, so a
    * finished refund never moves backwards. Stock and the payment status only change once
    * the money has really gone back.
+   * Returns who to tell when this call is the one that marks the refund processed, otherwise null.
    */
   async applyRazorpayState(
     id: string,
@@ -122,7 +123,7 @@ export const refundRepository = {
           where: { id, status: 'PROCESSING' },
           data: { razorpayRefundId },
         });
-        return;
+        return null;
       }
 
       if (state === 'failed') {
@@ -134,14 +135,14 @@ export const refundRepository = {
             failureReason: failureReason || 'Razorpay could not complete this refund.',
           },
         });
-        return;
+        return null;
       }
 
       const { count } = await tx.refund.updateMany({
         where: { id, status: { not: 'PROCESSED' } },
         data: { status: 'PROCESSED', razorpayRefundId, failureReason: null },
       });
-      if (count === 0) return;
+      if (count === 0) return null;
 
       const refund = await tx.refund.findUniqueOrThrow({
         where: { id },
@@ -168,6 +169,7 @@ export const refundRepository = {
       if (refundedPaise >= Math.round(refund.order.total * 100)) {
         await tx.order.update({ where: { id: refund.orderId }, data: { paymentStatus: 'REFUNDED' } });
       }
+      return { userId: refund.order.userId, orderNumber: refund.order.orderNumber, amountPaise: refund.amountPaise };
     });
   },
 };
