@@ -18,7 +18,10 @@ export const SUPPORT_EMAIL = 'care@miraclefengshui.com';
 
 interface OrderItem {
   id: string;
-  productId: string;
+  /** Null once the product is deleted for good. */
+  productId: string | null;
+  /** False once the product is archived or deleted: the line keeps its photo and title but links nowhere. */
+  available?: boolean;
   title?: string;
   name?: string;
   productName?: string;
@@ -243,33 +246,52 @@ function OrderCard({
       <ul className="list-none divide-y divide-ink/15 px-4 sm:px-5">
         {order.items.map((item, index) => {
           const title = item.title || item.name || item.productName || '';
-          const productRef = item.productId || item.slug;
+          // An archived or deleted product has nothing to open, so its line shows without links.
+          const productRef = item.available === false ? null : item.productId || item.slug;
+          const photoClass = 'block overflow-hidden bg-[#E2DDD1]';
+          const photo = (
+            <img
+              src={item.image || FALLBACK_IMAGE}
+              alt=""
+              className="aspect-square w-full object-cover"
+              onError={(e) => {
+                const image = e.currentTarget;
+                if (!image.src.endsWith(FALLBACK_IMAGE)) image.src = FALLBACK_IMAGE;
+              }}
+            />
+          );
           return (
             <li key={item.id || index} className="grid grid-cols-[64px_minmax(0,1fr)] items-center gap-3 py-4 sm:grid-cols-[72px_minmax(0,1fr)_auto] sm:gap-4">
-              <ProductLink product={productRef} aria-hidden="true" tabIndex={-1} className="block overflow-hidden bg-[#E2DDD1]">
-                <img
-                  src={item.image || FALLBACK_IMAGE}
-                  alt=""
-                  className="aspect-square w-full object-cover"
-                  onError={(e) => {
-                    const image = e.currentTarget;
-                    if (!image.src.endsWith(FALLBACK_IMAGE)) image.src = FALLBACK_IMAGE;
-                  }}
-                />
-              </ProductLink>
-              <div className="min-w-0">
-                <ProductLink product={productRef} className={`group block w-fit ${focusRing}`}>
-                  <span className="line-clamp-2 font-geist text-[15px] font-semibold leading-snug text-ink transition-colors group-hover:text-logo-purple">
-                    {title}
-                  </span>
+              {productRef ? (
+                <ProductLink product={productRef} aria-hidden="true" tabIndex={-1} className={photoClass}>
+                  {photo}
                 </ProductLink>
+              ) : (
+                <div className={photoClass}>{photo}</div>
+              )}
+              <div className="min-w-0">
+                {productRef ? (
+                  <ProductLink product={productRef} className={`group block w-fit ${focusRing}`}>
+                    <span className="line-clamp-2 font-geist text-[15px] font-semibold leading-snug text-ink transition-colors group-hover:text-logo-purple">
+                      {title}
+                    </span>
+                  </ProductLink>
+                ) : (
+                  <span className="line-clamp-2 font-geist text-[15px] font-semibold leading-snug text-ink">{title}</span>
+                )}
                 <p className="mt-0.5 font-geist text-[13px] tabular-nums text-ink-muted">
                   {formatPrice(item.price * (item.quantity || 1))} · {t('profile.qty', 'Qty')} {item.quantity || 1}
                 </p>
               </div>
-              <ProductLink product={productRef} className={`${action} col-span-2 border-ink-fill bg-ink-fill transition-shadow duration-300 hover:shadow-[0_8px_22px_rgba(231,169,59,0.45)] sm:col-span-1`}>
-                <span className={`${actionLabel} text-stone`}>{t('cart.view_item', 'View item')}</span>
-              </ProductLink>
+              {productRef ? (
+                <ProductLink product={productRef} className={`${action} col-span-2 border-ink-fill bg-ink-fill transition-shadow duration-300 hover:shadow-[0_8px_22px_rgba(231,169,59,0.45)] sm:col-span-1`}>
+                  <span className={`${actionLabel} text-stone`}>{t('cart.view_item', 'View item')}</span>
+                </ProductLink>
+              ) : (
+                <p className="col-span-2 font-geist text-[13px] text-ink-muted sm:col-span-1">
+                  {t('profile.item_unavailable', 'No longer available')}
+                </p>
+              )}
             </li>
           );
         })}

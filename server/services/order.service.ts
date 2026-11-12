@@ -137,6 +137,8 @@ export const orderService = {
         return {
           id: item.id,
           productId: item.productId,
+          // False once the product is archived or deleted for good: the line then has nothing to open.
+          available: Boolean(prod && prod.isActive),
           productName: item.title || prod?.title || 'Feng Shui Sacred Item',
           title: item.title || prod?.title || 'Feng Shui Sacred Item',
           name: item.title || prod?.title || 'Feng Shui Sacred Item',

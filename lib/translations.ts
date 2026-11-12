@@ -529,6 +529,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'cart.view_favorites': "View",
     'cart.undo': "Undo",
     'cart.view_item': "View item",
+    'profile.item_unavailable': "No longer available",
     'cart.view_short': "View",
 
     // Checkout
@@ -1125,6 +1126,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'cart.view_favorites': "عرض",
     'cart.undo': "تراجع",
     'cart.view_item': "عرض القطعة",
+    'profile.item_unavailable': "لم يعد متوفراً",
     'cart.view_short': "عرض",
 
     // Checkout
