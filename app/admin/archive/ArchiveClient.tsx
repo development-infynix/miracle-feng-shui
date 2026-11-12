@@ -4,6 +4,7 @@ import React, { useEffect, useState, useTransition } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { canResizeImage } from '@/lib/images';
+import Alert from '@/app/components/alert';
 import ViewOrderDrawer from '../orders/components/ViewOrderDrawer';
 import type { OrderItemData } from '../orders/types';
 import ReviewCard from '../reviews/components/ReviewCard';
@@ -48,6 +49,8 @@ export default function ArchiveClient({ tab: initialTab, orders: initialOrders, 
   const [viewOrder, setViewOrder] = useState<OrderItemData | null>(null);
   const [restoringId, setRestoringId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  // The product whose delete is waiting for confirmation.
+  const [confirmDelete, setConfirmDelete] = useState<ArchivedProduct | null>(null);
   // Read once per render of the list; the dates are days apart, so a stale clock doesn't matter.
   const [now] = useState(() => Date.now());
   const [message, setMessage] = useState<{ text: string; error?: boolean } | null>(null);
@@ -87,11 +90,6 @@ export default function ArchiveClient({ tab: initialTab, orders: initialOrders, 
   };
 
   const deleteProduct = async (product: ArchivedProduct) => {
-    const ok = window.confirm(
-      `Delete "${product.name}" for good?\n\nIts reviews and photos are removed, and it can't be restored. ` +
-        'Past orders keep their own copy of its name, price and photo, so invoices stay the same.'
-    );
-    if (!ok) return;
     setDeletingId(product.id);
     try {
       const res = await fetch(`/api/admin/products/${product.id}/permanent`, { method: 'DELETE' });
@@ -104,6 +102,7 @@ export default function ArchiveClient({ tab: initialTab, orders: initialOrders, 
       setMessage({ text: err instanceof Error ? err.message : "Couldn't delete the product.", error: true });
     } finally {
       setDeletingId(null);
+      setConfirmDelete(null);
     }
   };
 
@@ -258,7 +257,7 @@ export default function ArchiveClient({ tab: initialTab, orders: initialOrders, 
                     {canDelete && (
                       <button
                         type="button"
-                        onClick={() => void deleteProduct(product)}
+                        onClick={() => setConfirmDelete(product)}
                         disabled={busy}
                         aria-label={`Delete ${product.name} for good`}
                         className="inline-flex h-9 shrink-0 cursor-pointer items-center gap-2 rounded-md border border-red-200 bg-white px-3 text-xs font-medium text-red-700 transition-colors hover:bg-red-50 disabled:cursor-wait disabled:opacity-60"
@@ -287,6 +286,34 @@ export default function ArchiveClient({ tab: initialTab, orders: initialOrders, 
           )}
         </section>
       )}
+
+      <Alert
+        open={confirmDelete !== null}
+        tone="danger"
+        title={confirmDelete ? `Delete “${confirmDelete.name}” for good?` : 'Delete for good?'}
+        description="This can't be undone."
+        onClose={() => !deletingId && setConfirmDelete(null)}
+        actions={[
+          { label: 'Keep it', onClick: () => setConfirmDelete(null), variant: 'default', disabled: Boolean(deletingId) },
+          {
+            label: deletingId ? 'Deleting…' : 'Delete for good',
+            onClick: () => confirmDelete && void deleteProduct(confirmDelete),
+            variant: 'danger',
+            disabled: Boolean(deletingId),
+          },
+        ]}
+      >
+        <div className="space-y-2 text-xs leading-relaxed text-stone-700">
+          <p>
+            <span className="font-semibold text-stone-900">Removed:</span> the product, its reviews, favourites and cart entries,
+            and its photos where nothing else uses them.
+          </p>
+          <p>
+            <span className="font-semibold text-stone-900">Kept:</span> past orders and invoices, with their own copy of its name,
+            price and photo. Customers see it there as no longer available.
+          </p>
+        </div>
+      </Alert>
 
       {viewOrder && (
         <ViewOrderDrawer
