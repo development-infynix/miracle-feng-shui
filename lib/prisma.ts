@@ -25,7 +25,15 @@ const globalForPrisma = globalThis as unknown as PrismaGlobalState;
 
 function instantiatePrismaClient(): { client: PrismaClient; url: string } {
   const connectionString = getDirectUrl();
-  const adapter = new PrismaPg({ connectionString });
+  const adapter = new PrismaPg({
+    connectionString,
+    // Give up on a connection that can't be opened, instead of hanging on the OS timeout.
+    connectionTimeoutMillis: 10_000,
+    // Close idle connections before the network quietly drops them, and keep open ones alive.
+    idleTimeoutMillis: 30_000,
+    keepAlive: true,
+    keepAliveInitialDelayMillis: 10_000,
+  });
   const client = new PrismaClient({
     adapter,
     log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
@@ -37,18 +45,18 @@ function instantiatePrismaClient(): { client: PrismaClient; url: string } {
  * Force disconnects current Prisma instance and re-initializes connection
  * upon database credentials/host rotation.
  */
-export async function resetPrismaClient(): Promise<PrismaClient> {
-  if (globalForPrisma.prismaInstance) {
-    try {
-      await globalForPrisma.prismaInstance.$disconnect();
-    } catch (err) {
-      console.warn('Prisma disconnect during rotation warning:', err);
-    }
-  }
+export async function resetPrismaClient(failed?: PrismaClient): Promise<PrismaClient> {
+  const old = globalForPrisma.prismaInstance;
+  // Many requests fail together when the connection drops. Only the first replaces the client;
+  // the rest retry on the one it made.
+  if (failed && old && old !== failed) return old;
 
   const { client, url } = instantiatePrismaClient();
   globalForPrisma.prismaInstance = client;
   globalForPrisma.activeUrl = url;
+  if (old) {
+    old.$disconnect().catch((err) => console.warn('Prisma disconnect during rotation warning:', err));
+  }
   return client;
 }
 
@@ -71,8 +79,11 @@ export function getPrismaClient(): PrismaClient {
   return globalForPrisma.prismaInstance!;
 }
 
+// Network errors from the pg driver, passed through as the Prisma error's code.
+const NETWORK_ERROR_CODES = ['ETIMEDOUT', 'ECONNRESET', 'ECONNREFUSED', 'EPIPE', 'ENOTFOUND', 'EAI_AGAIN'];
+
 // Check DB rotation connection error codes
-function isDbRotationOrConnectionError(error: any): boolean {
+export function isDbRotationOrConnectionError(error: any): boolean {
   if (!error) return false;
   const msg = String(error.message || error).toLowerCase();
   const code = error?.code;
@@ -81,6 +92,8 @@ function isDbRotationOrConnectionError(error: any): boolean {
     code === 'P1002' || // Database server timed out
     code === 'P1008' || // Operations timed out
     code === 'P1017' || // Server has closed the connection
+    NETWORK_ERROR_CODES.includes(code) ||
+    msg.includes('connection timeout') ||
     msg.includes('connection terminated') ||
     msg.includes('connection closed') ||
     msg.includes('admin shutdown') ||
@@ -106,7 +119,7 @@ export const prisma = new Proxy({} as PrismaClient, {
             return result.catch(async (err: any) => {
               if (isDbRotationOrConnectionError(err)) {
                 console.warn('DB Rotation/Connection error detected. Reconnecting Prisma Client...');
-                const newClient = await resetPrismaClient();
+                const newClient = await resetPrismaClient(activeClient);
                 const retryValue = (newClient as any)[prop];
                 return retryValue.apply(newClient, args);
               }
