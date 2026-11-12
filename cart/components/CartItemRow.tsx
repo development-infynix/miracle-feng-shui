@@ -103,7 +103,7 @@ export default function CartItemRow({ item, removing = false, onQuantityChange, 
             </p>
           ) : paused ? (
             <p className="mt-1 font-outfit text-[13px] font-medium text-[#8F1610]">
-              {t('cart.paused_note', "Paused for now. It stays in your cart but won't be included at checkout.")}
+              {t('cart.paused_note', "Unavailable now. It stays in your cart but won't be included at checkout.")}
             </p>
           ) : outOfStock ? (
             <p className="mt-1 font-outfit text-[13px] font-medium text-[#8F1610]">
