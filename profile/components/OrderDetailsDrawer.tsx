@@ -3,6 +3,7 @@
 import React, { useRef } from 'react';
 import { useLocale } from '@/context/CurrencyContext';
 import { useGlassModal } from '@/home/components/useGlassModal';
+import { ProductLink } from '@/shop/components/ProductDrawerProvider';
 import OrderTimeline from './OrderTimeline';
 import type { CustomerOrder } from './ProfileOrders';
 import { focusRing, primaryButton, primaryLabel } from './profileUi';
