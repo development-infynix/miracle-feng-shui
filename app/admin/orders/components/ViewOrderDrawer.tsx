@@ -120,6 +120,43 @@ export default function ViewOrderDrawer({ order, onClose, onSaved, onArchiveChan
           )}
 
           <section>
+            <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-stone-500">Items</h4>
+            <div className="space-y-2">
+              {order.items.map((it: any) => (
+                <div
+                  key={it.id}
+                  className="flex items-center justify-between gap-3 rounded-lg border border-stone-200 bg-white px-3 py-2.5 text-sm"
+                >
+                  <div className="flex min-w-0 items-center gap-3">
+                    {(it.image || it.product?.images?.[0]) && (
+                      <img
+                        src={it.image || it.product?.images?.[0]}
+                        alt=""
+                        className="h-12 w-12 flex-shrink-0 rounded-md border border-stone-200 object-cover"
+                      />
+                    )}
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-stone-900" title={it.productName || it.title}>
+                        {it.productName || it.title}
+                      </p>
+                      <p className="text-xs text-stone-500">× {it.quantity}</p>
+                    </div>
+                  </div>
+                  <span className="font-semibold tabular-nums text-stone-900">
+                    ₹{(it.price * it.quantity).toLocaleString('en-IN')}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 flex items-center justify-between border-t border-stone-200 pt-3 text-sm">
+              <span className="text-stone-500">Total</span>
+              <span className="font-bold text-stone-900">
+                ₹{order.totalAmount.toLocaleString('en-IN')}
+              </span>
+            </div>
+          </section>
+
+          <section>
             <dl className="divide-y divide-stone-100 rounded-lg border border-stone-200 bg-white px-4">
               <div className="grid grid-cols-[7rem_1fr] items-center gap-3 py-3 text-sm">
                 <dt className="text-stone-500">Order</dt>
@@ -173,34 +210,6 @@ export default function ViewOrderDrawer({ order, onClose, onSaved, onArchiveChan
                 {order.phone} · {order.email}
               </p>
             </address>
-          </section>
-
-          <section>
-            <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-stone-500">Items</h4>
-            <div className="space-y-2">
-              {order.items.map((it) => (
-                <div
-                  key={it.id}
-                  className="flex items-center justify-between gap-3 rounded-lg border border-stone-200 bg-white px-3 py-2.5 text-sm"
-                >
-                  <div className="min-w-0">
-                    <p className="truncate font-medium text-stone-900" title={it.productName}>
-                      {it.productName}
-                    </p>
-                    <p className="text-xs text-stone-500">× {it.quantity}</p>
-                  </div>
-                  <span className="font-semibold tabular-nums text-stone-900">
-                    ₹{(it.price * it.quantity).toLocaleString('en-IN')}
-                  </span>
-                </div>
-              ))}
-            </div>
-            <div className="mt-3 flex items-center justify-between border-t border-stone-200 pt-3 text-sm">
-              <span className="text-stone-500">Total</span>
-              <span className="font-bold text-stone-900">
-                ₹{order.totalAmount.toLocaleString('en-IN')}
-              </span>
-            </div>
           </section>
 
           <section>
