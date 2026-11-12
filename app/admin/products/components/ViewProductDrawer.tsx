@@ -116,13 +116,16 @@ export default function ViewProductDrawer({ open, product, categories, loading, 
     }
   };
 
-  // Products are never deleted, only archived; an open order blocks that (see adminService.archiveProduct).
-  const removal: { mode: 'blocked' | 'archive'; openOrders: number } | undefined = product?.removal;
+  // Removing archives; an open order or a payment in progress blocks that (see adminService.archiveProduct).
+  // Deleting for good happens later, from the Archive page.
+  const removal: { mode: 'blocked' | 'archive'; openOrders: number; paymentsInProgress?: number } | undefined = product?.removal;
   const archived = product?.isActive === false;
   const blockedReason =
-    removal?.mode === 'blocked'
-      ? `In ${removal.openOrders === 1 ? '1 open order' : `${removal.openOrders} open orders`}. It can be archived once they're delivered, or cancelled with any refund processed.`
-      : '';
+    removal?.mode !== 'blocked'
+      ? ''
+      : removal.openOrders > 0
+        ? `In ${removal.openOrders === 1 ? '1 open order' : `${removal.openOrders} open orders`}. It can be archived once they're delivered, or cancelled with any refund processed.`
+        : "A customer is paying for it right now. It can be archived once the payment settles.";
 
   const handleDelete = async () => {
     if (!product?.id) return;

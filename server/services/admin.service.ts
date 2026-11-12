@@ -10,6 +10,8 @@ import {
 import { ApiError } from '../utils/ApiError';
 import { notificationService, orderChangeNotice } from './notification.service';
 import { OrderStatus, Prisma } from '@/app/generated/prisma/client';
+import { KEEP_SESSION_MS } from '../repositories/checkout-session.repository';
+import { deleteFromS3, objectKeyFromUrl } from '@/lib/s3';
 
 const CUSTOMER_LIST_PAGE_SIZE = 20;
 
@@ -40,11 +42,24 @@ export const OPEN_ORDER_WHERE: Prisma.OrderWhereInput = {
 };
 
 /**
- * What removing a product does. Products are never deleted, so a removal can always be undone from the Archive page.
- * - blocked: it's in an open order, so it stays until that order is delivered or cancelled;
+ * What removing a product does. Removing archives it, which can always be undone from the Archive page.
+ * - blocked: it's in an open order or someone is paying for it, so it stays until that's finished;
  * - archive: it's hidden from the store and moved to the Archive page, keeping its stock, reviews and order history.
  */
-export type ProductRemoval = { mode: 'blocked' | 'archive'; openOrders: number };
+export type ProductRemoval = { mode: 'blocked' | 'archive'; openOrders: number; paymentsInProgress: number };
+
+/**
+ * An archived product can be deleted for good this long after it was archived. Archiving takes it out of
+ * the store, so by then nobody can add it to a cart, and any payment or order already under way has settled.
+ */
+export const PRODUCT_DELETE_WAIT_DAYS = 14;
+const PRODUCT_DELETE_WAIT_MS = PRODUCT_DELETE_WAIT_DAYS * 24 * 60 * 60 * 1000;
+
+/** When an archived product can be deleted for good. */
+export const productDeletableAt = (archivedAt: Date) => new Date(archivedAt.getTime() + PRODUCT_DELETE_WAIT_MS);
+
+const dayLabel = (date: Date) =>
+  date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' });
 
 const customerListRange = (page: number) => ({
   skip: (page - 1) * CUSTOMER_LIST_PAGE_SIZE,
@@ -153,10 +168,12 @@ export const adminService = {
 
     const byProduct = new Map<string, DashboardTopProduct>();
     for (const item of raw.soldItems) {
-      const row = byProduct.get(item.productId) ?? { productId: item.productId, title: item.title, image: item.image, units: 0, revenue: 0 };
+      // A product deleted for good has no id left, so its sales group under the title they were sold as.
+      const key = item.productId ?? `deleted:${item.title}`;
+      const row = byProduct.get(key) ?? { productId: key, title: item.title, image: item.image, units: 0, revenue: 0 };
       row.units += item.quantity;
       row.revenue += item.price * item.quantity;
-      byProduct.set(item.productId, row);
+      byProduct.set(key, row);
     }
     const topProducts = [...byProduct.values()]
       .sort((a, b) => b.units - a.units || b.revenue - a.revenue)
@@ -268,6 +285,8 @@ export const adminService = {
       stock: p.stock,
       isActive: p.isActive,
       isPaused: p.isPaused,
+      archivedAt: p.archivedAt ? p.archivedAt.toISOString() : null,
+      deletableAt: p.archivedAt ? productDeletableAt(p.archivedAt).toISOString() : null,
     };
   },
 
@@ -295,13 +314,20 @@ export const adminService = {
   },
 
   async getProductRemoval(id: string): Promise<ProductRemoval> {
-    const openOrders = await adminRepository.countOpenProductOrders(id, OPEN_ORDER_WHERE);
-    return openOrders > 0 ? { mode: 'blocked', openOrders } : { mode: 'archive', openOrders: 0 };
+    const [openOrders, paymentsInProgress] = await Promise.all([
+      adminRepository.countOpenProductOrders(id, OPEN_ORDER_WHERE),
+      adminRepository.countCheckoutsWithProduct(id, new Date(Date.now() - KEEP_SESSION_MS)),
+    ]);
+    const mode = openOrders > 0 || paymentsInProgress > 0 ? 'blocked' : 'archive';
+    return { mode, openOrders, paymentsInProgress };
   },
 
-  blockedProductMessage(openOrders: number) {
-    const orders = openOrders === 1 ? '1 open order' : `${openOrders} open orders`;
-    return `This product is in ${orders}. It can be archived once they're delivered, or cancelled with any refund processed.`;
+  blockedProductMessage(removal: ProductRemoval, action = 'archived') {
+    if (removal.openOrders > 0) {
+      const orders = removal.openOrders === 1 ? '1 open order' : `${removal.openOrders} open orders`;
+      return `This product is in ${orders}. It can be ${action} once they're delivered, or cancelled with any refund processed.`;
+    }
+    return "A customer started paying for this product in the last few days and the payment hasn't settled yet. Try again later.";
   },
 
   async createProduct(input: CreateProductInput) {
@@ -318,10 +344,13 @@ export const adminService = {
     // Archiving through the status picker follows the same rule as the Archive button.
     if (input.isActive === false && existing.isActive !== false) {
       const removal = await this.getProductRemoval(id);
-      if (removal.mode === 'blocked') throw ApiError.conflict(this.blockedProductMessage(removal.openOrders));
+      if (removal.mode === 'blocked') throw ApiError.conflict(this.blockedProductMessage(removal));
     }
 
-    const product = await adminRepository.updateProduct(id, input);
+    // Archiving starts the two weeks before it can be deleted; restoring clears them.
+    const archivedAt =
+      input.isActive === false && existing.isActive !== false ? new Date() : input.isActive === true ? null : undefined;
+    const product = await adminRepository.updateProduct(id, input, archivedAt);
     return this.formatAdminProduct(product);
   },
 
@@ -334,14 +363,55 @@ export const adminService = {
 
     const removal = await this.getProductRemoval(id);
     if (removal.mode === 'blocked') {
-      throw ApiError.conflict(this.blockedProductMessage(removal.openOrders));
+      throw ApiError.conflict(this.blockedProductMessage(removal));
     }
 
     await adminRepository.archiveProduct(id);
     return {
       result: 'archived' as const,
-      message: "Archived: it's hidden from the store and on the Archive page, where you can restore it.",
+      message: `Archived: it's hidden from the store and on the Archive page, where you can restore it, or delete it for good after ${PRODUCT_DELETE_WAIT_DAYS} days.`,
     };
+  },
+
+  /**
+   * Deletes an archived product for good, once it has been archived for PRODUCT_DELETE_WAIT_DAYS and
+   * nothing is still under way for it. Its reviews, favourites and cart rows go with it. Past orders
+   * keep their own title, price and photo, so invoices and order history don't change. Its photos are
+   * removed from storage unless an order or another product still shows them. This can't be undone.
+   */
+  async deleteProductPermanently(id: string, now = new Date()) {
+    const existing = await productRepository.findById(id);
+    if (!existing) throw ApiError.notFound('Product not found');
+    if (existing.isActive || !existing.archivedAt) {
+      throw ApiError.conflict('Only an archived product can be deleted. Archive it first.');
+    }
+    const deletableAt = productDeletableAt(existing.archivedAt);
+    if (deletableAt > now) {
+      throw ApiError.conflict(`This product can be deleted from ${dayLabel(deletableAt)}, two weeks after it was archived.`);
+    }
+
+    const removal = await this.getProductRemoval(id);
+    if (removal.mode === 'blocked') throw ApiError.conflict(this.blockedProductMessage(removal, 'deleted'));
+
+    const deleted = await adminRepository.deleteArchivedProduct(id, new Date(now.getTime() - PRODUCT_DELETE_WAIT_MS));
+    if (!deleted) throw ApiError.conflict('This product was restored or changed just now. Refresh and try again.');
+
+    await this.removeUnusedImages([...existing.images, existing.makerAvatar ?? '']);
+    return { result: 'deleted' as const, message: `${existing.title} was deleted for good.` };
+  },
+
+  /** Removes these photos from storage when nothing shows them any more. A failure only leaves an unused file behind. */
+  async removeUnusedImages(urls: string[]) {
+    for (const url of new Set(urls)) {
+      const key = objectKeyFromUrl(url);
+      if (!key) continue;
+      try {
+        if (await adminRepository.isImageInUse(url)) continue;
+        await deleteFromS3(key);
+      } catch (err) {
+        console.error(`[Products] Couldn't remove unused image ${key}:`, err instanceof Error ? err.message : err);
+      }
+    }
   },
 
   /** The Orders list leaves archived orders out; `archived: true` lists only those, newest archived first. */

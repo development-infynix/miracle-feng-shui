@@ -180,6 +180,7 @@ export const adminRepository = {
         discount: true,
         stock: true,
         isActive: true,
+        archivedAt: true,
         category: {
           select: { id: true, name: true, slug: true },
         },
@@ -207,6 +208,36 @@ export const adminRepository = {
   /** How many open orders (by `openOrder`) contain the product. */
   async countOpenProductOrders(productId: string, openOrder: Prisma.OrderWhereInput) {
     return prisma.order.count({ where: { AND: [openOrder, { items: { some: { productId } } }] } });
+  },
+
+  /** Customers paying for this product right now: checkouts not yet confirmed and not yet expired (`since`). */
+  async countCheckoutsWithProduct(productId: string, since: Date) {
+    return prisma.checkoutSession.count({
+      where: { createdAt: { gte: since }, items: { array_contains: [{ productId }] } },
+    });
+  },
+
+  /**
+   * Deletes an archived product for good. Its cart rows, favourites and reviews go with it; order lines
+   * keep their own title, price and photo and lose only the link. Only matches a product that is still
+   * archived and was archived before `archivedBefore`, so a restore racing it can't be lost.
+   */
+  async deleteArchivedProduct(id: string, archivedBefore: Date) {
+    const { count } = await prisma.product.deleteMany({
+      where: { id, isActive: false, archivedAt: { lte: archivedBefore } },
+    });
+    return count > 0;
+  },
+
+  /** Whether anything still shows this image: an order line, a product, a maker or a category. */
+  async isImageInUse(url: string) {
+    const [orderLines, products, makers, categories] = await Promise.all([
+      prisma.orderItem.count({ where: { image: url } }),
+      prisma.product.count({ where: { images: { has: url } } }),
+      prisma.product.count({ where: { makerAvatar: url } }),
+      prisma.category.count({ where: { image: url } }),
+    ]);
+    return orderLines + products + makers + categories > 0;
   },
 
   async createProduct(data: CreateProductInput) {
@@ -248,6 +279,7 @@ export const adminRepository = {
         personalizationPrompt: data.personalizationPrompt ?? data.personalizationInstruction ?? null,
         inDemandCount: data.inDemandCount ?? 0,
         isActive: data.isActive ?? true,
+        archivedAt: data.isActive === false ? new Date() : null,
         isPaused: data.isPaused ?? false,
         isFeatured: data.isFeatured ?? false,
         showStockLeft: data.showStockLeft ?? false,
@@ -261,7 +293,8 @@ export const adminRepository = {
     });
   },
 
-  async updateProduct(id: string, data: UpdateProductInput) {
+  /** `archivedAt` is set by the service when the product is archived or restored, and left alone otherwise. */
+  async updateProduct(id: string, data: UpdateProductInput, archivedAt?: Date | null) {
     const categoryIdentifier = data.categoryId || data.category;
     const resolvedCategoryId = categoryIdentifier
       ? await resolveCategoryId(categoryIdentifier)
@@ -292,6 +325,7 @@ export const adminRepository = {
         personalizationPrompt: data.personalizationPrompt ?? data.personalizationInstruction,
         inDemandCount: data.inDemandCount,
         isActive: data.isActive,
+        archivedAt,
         isPaused: data.isPaused,
         isFeatured: data.isFeatured,
         showStockLeft: data.showStockLeft,
@@ -305,11 +339,11 @@ export const adminRepository = {
     });
   },
 
-  /** Hides the product from the store and moves it to the Archive page. Products are never deleted. */
+  /** Hides the product from the store and moves it to the Archive page, where it can be restored or, later, deleted. */
   async archiveProduct(id: string) {
     return prisma.product.update({
       where: { id },
-      data: { isActive: false },
+      data: { isActive: false, archivedAt: new Date() },
     });
   },
 

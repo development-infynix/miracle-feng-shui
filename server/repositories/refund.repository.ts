@@ -156,7 +156,9 @@ export const refundRepository = {
       });
       if (returning > 0) {
         for (const item of refund.order.items) {
-          await tx.product.update({
+          // A product deleted for good has nowhere to return stock to.
+          if (!item.productId) continue;
+          await tx.product.updateMany({
             where: { id: item.productId },
             data: { stock: { increment: item.quantity } },
           });

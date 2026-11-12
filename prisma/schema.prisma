@@ -138,6 +138,8 @@ model Product {
   isActive              Boolean     @default(true)
   /// Visible in the store but can't be bought, e.g. while it can't be made. Stock is kept.
   isPaused              Boolean     @default(false)
+  /// When it was archived (isActive false). It can be deleted for good two weeks after this. Null while active.
+  archivedAt            DateTime?
   ratingAvg             Float       @default(0.0)
   ratingCount           Int         @default(0)
   createdAt             DateTime    @default(now())
@@ -318,8 +320,9 @@ model OrderItem {
   id                  String   @id @default(cuid())
   orderId             String
   order               Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  productId           String
-  product             Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
+  /// Null once the product is deleted for good. The order line keeps its own title, price and photo.
+  productId           String?
+  product             Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
   title               String
   price               Float
   quantity            Int
