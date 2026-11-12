@@ -16,6 +16,9 @@ export interface ArchivedProduct {
   price: number;
   category: string;
   stock: number;
+  archivedAt: string | null;
+  /** When it can be deleted for good: two weeks after it was archived. */
+  deletableAt: string | null;
 }
 
 export type ArchiveTab = 'orders' | 'products' | 'reviews';
@@ -44,6 +47,9 @@ export default function ArchiveClient({ tab: initialTab, orders: initialOrders, 
   const [reviews, setReviews] = useState<AdminReview[]>(reviewPage.items);
   const [viewOrder, setViewOrder] = useState<OrderItemData | null>(null);
   const [restoringId, setRestoringId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  // Read once per render of the list; the dates are days apart, so a stale clock doesn't matter.
+  const [now] = useState(() => Date.now());
   const [message, setMessage] = useState<{ text: string; error?: boolean } | null>(null);
 
   useEffect(() => setOrders(initialOrders), [initialOrders]);
@@ -80,6 +86,27 @@ export default function ArchiveClient({ tab: initialTab, orders: initialOrders, 
     }
   };
 
+  const deleteProduct = async (product: ArchivedProduct) => {
+    const ok = window.confirm(
+      `Delete "${product.name}" for good?\n\nIts reviews and photos are removed, and it can't be restored. ` +
+        'Past orders keep their own copy of its name, price and photo, so invoices stay the same.'
+    );
+    if (!ok) return;
+    setDeletingId(product.id);
+    try {
+      const res = await fetch(`/api/admin/products/${product.id}/permanent`, { method: 'DELETE' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) throw new Error(data.error || "Couldn't delete the product.");
+      setProducts((prev) => prev.filter((p) => p.id !== product.id));
+      setMessage({ text: data.data?.message || `${product.name} was deleted for good.` });
+      startTransition(() => router.refresh());
+    } catch (err) {
+      setMessage({ text: err instanceof Error ? err.message : "Couldn't delete the product.", error: true });
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   const tabs: { id: Tab; label: string; count: number }[] = [
     { id: 'orders', label: 'Orders', count: orders.length },
     { id: 'products', label: 'Products', count: Math.max(productTotal - (initialProducts.length - products.length), 0) },
@@ -91,7 +118,7 @@ export default function ArchiveClient({ tab: initialTab, orders: initialOrders, 
       <div>
         <h1 className="text-lg font-bold text-gray-900">Archive</h1>
         <p className="mt-0.5 text-xs text-gray-500">
-          Finished orders, retired products and hidden reviews, kept for their history. Nothing here is deleted; restore anything to bring it back.
+          Finished orders, retired products and hidden reviews, kept for their history. Restore anything to bring it back. Products can be deleted for good two weeks after they&apos;re archived.
         </p>
       </div>
 
@@ -204,6 +231,9 @@ export default function ArchiveClient({ tab: initialTab, orders: initialOrders, 
             <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-200 bg-white">
               {products.map((product) => {
                 const image = product.images?.[0];
+                const deletableAt = product.deletableAt ? new Date(product.deletableAt) : null;
+                const canDelete = deletableAt !== null && deletableAt.getTime() <= now;
+                const busy = restoringId === product.id || deletingId === product.id;
                 return (
                   <li key={product.id} className="flex items-center gap-3 px-4 py-3 text-xs text-gray-700">
                     <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md bg-gray-100">
@@ -218,11 +248,29 @@ export default function ArchiveClient({ tab: initialTab, orders: initialOrders, 
                       <p className="truncate text-gray-500">
                         {product.category} · {rupees(product.price)} · {product.stock} in stock
                       </p>
+                      {product.archivedAt && (
+                        <p className="truncate text-gray-500">
+                          Archived {day(product.archivedAt)}
+                          {deletableAt && !canDelete ? ` · can be deleted from ${day(deletableAt.toISOString())}` : ''}
+                        </p>
+                      )}
                     </div>
+                    {canDelete && (
+                      <button
+                        type="button"
+                        onClick={() => void deleteProduct(product)}
+                        disabled={busy}
+                        aria-label={`Delete ${product.name} for good`}
+                        className="inline-flex h-9 shrink-0 cursor-pointer items-center gap-2 rounded-md border border-red-200 bg-white px-3 text-xs font-medium text-red-700 transition-colors hover:bg-red-50 disabled:cursor-wait disabled:opacity-60"
+                      >
+                        <i aria-hidden="true" className="fa-solid fa-trash-can text-[11px]" />
+                        {deletingId === product.id ? 'Deleting…' : 'Delete'}
+                      </button>
+                    )}
                     <button
                       type="button"
                       onClick={() => void restoreProduct(product)}
-                      disabled={restoringId === product.id}
+                      disabled={busy}
                       aria-label={`Restore ${product.name}`}
                       className="inline-flex h-9 shrink-0 cursor-pointer items-center gap-2 rounded-md border border-gray-300 bg-white px-3 text-xs font-medium text-gray-800 transition-colors hover:bg-gray-100 disabled:cursor-wait disabled:opacity-60"
                     >

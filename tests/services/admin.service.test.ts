@@ -1,9 +1,19 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { adminService, IN_PROGRESS_ORDER_STATUSES, OPEN_ORDER_WHERE } from '@/server/services/admin.service';
+import * as s3 from '@/lib/s3';
 import { adminRepository } from '@/server/repositories/admin.repository';
 import { productRepository } from '@/server/repositories/product.repository';
 
+// Real key parsing, no real storage calls.
+vi.mock('@/lib/s3', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/s3')>()),
+  deleteFromS3: vi.fn(),
+}));
+
 describe('adminService.archiveProduct', () => {
+  beforeEach(() => {
+    vi.spyOn(adminRepository, 'countCheckoutsWithProduct').mockResolvedValue(0);
+  });
   afterEach(() => {
     vi.restoreAllMocks();
   });
@@ -33,9 +43,31 @@ describe('adminService.archiveProduct', () => {
     expect(archiveSpy).toHaveBeenCalledWith('prod-1');
   });
 
-  it('never deletes a product for good, not even one that was never ordered', () => {
-    expect(adminRepository).not.toHaveProperty('deleteProduct');
-    expect(adminService).not.toHaveProperty('deleteProduct');
+  it('refuses while a customer is paying for the product', async () => {
+    const archiveSpy = withOpenOrders(0);
+    vi.mocked(adminRepository.countCheckoutsWithProduct).mockResolvedValueOnce(1);
+
+    await expect(adminService.archiveProduct('prod-1')).rejects.toMatchObject({
+      statusCode: 409,
+      message: expect.stringContaining('paying'),
+    });
+    expect(archiveSpy).not.toHaveBeenCalled();
+  });
+
+  it('starts the two weeks when archiving through the status picker, and clears them on restore', async () => {
+    vi.spyOn(productRepository, 'findById').mockResolvedValueOnce({ id: 'prod-1', isActive: true } as any);
+    vi.spyOn(adminRepository, 'countOpenProductOrders').mockResolvedValueOnce(0);
+    const updateSpy = vi.spyOn(adminRepository, 'updateProduct').mockResolvedValue({} as any);
+    await adminService.updateProduct('prod-1', { isActive: false } as any);
+    expect(updateSpy.mock.calls[0][2]).toBeInstanceOf(Date);
+
+    vi.spyOn(productRepository, 'findById').mockResolvedValueOnce({ id: 'prod-1', isActive: false } as any);
+    await adminService.updateProduct('prod-1', { isActive: true } as any);
+    expect(updateSpy.mock.calls[1][2]).toBeNull();
+
+    vi.spyOn(productRepository, 'findById').mockResolvedValueOnce({ id: 'prod-1', isActive: false } as any);
+    await adminService.updateProduct('prod-1', { price: 10 } as any);
+    expect(updateSpy.mock.calls[2][2]).toBeUndefined();
   });
 
   it('applies the open-order rule when archiving through the status picker too', async () => {
@@ -52,6 +84,9 @@ describe('adminService.archiveProduct', () => {
 });
 
 describe('open orders, for product removal', () => {
+  beforeEach(() => {
+    vi.spyOn(adminRepository, 'countCheckoutsWithProduct').mockResolvedValue(0);
+  });
   afterEach(() => {
     vi.restoreAllMocks();
   });
@@ -189,5 +224,103 @@ describe('adminService.getOrders status filter', () => {
       ['SHIPPED'],
       undefined,
     ]);
+  });
+});
+
+describe('adminService.deleteProductPermanently', () => {
+  const now = new Date('2026-11-30T12:00:00Z');
+  const daysAgo = (days: number) => new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+
+  beforeEach(() => {
+    vi.spyOn(adminRepository, 'countOpenProductOrders').mockResolvedValue(0);
+    vi.spyOn(adminRepository, 'countCheckoutsWithProduct').mockResolvedValue(0);
+    vi.spyOn(adminRepository, 'isImageInUse').mockResolvedValue(false);
+    vi.mocked(s3.deleteFromS3).mockReset().mockResolvedValue(undefined);
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  const product = (over: Record<string, unknown> = {}) =>
+    vi.spyOn(productRepository, 'findById').mockResolvedValueOnce({
+      id: 'prod-1',
+      title: 'Jade Tree',
+      isActive: false,
+      archivedAt: daysAgo(15),
+      images: ['/api/images/uploads/a.jpg', '/images/static.jpg'],
+      makerAvatar: null,
+      ...over,
+    } as any);
+
+  it('refuses a product that is not archived', async () => {
+    product({ isActive: true, archivedAt: null });
+    const deleteSpy = vi.spyOn(adminRepository, 'deleteArchivedProduct');
+    await expect(adminService.deleteProductPermanently('prod-1', now)).rejects.toMatchObject({ statusCode: 409 });
+    expect(deleteSpy).not.toHaveBeenCalled();
+  });
+
+  it('refuses within two weeks of archiving, and says from when', async () => {
+    product({ archivedAt: daysAgo(13) });
+    const deleteSpy = vi.spyOn(adminRepository, 'deleteArchivedProduct');
+    await expect(adminService.deleteProductPermanently('prod-1', now)).rejects.toMatchObject({
+      statusCode: 409,
+      message: expect.stringContaining('can be deleted from'),
+    });
+    expect(deleteSpy).not.toHaveBeenCalled();
+  });
+
+  it('still refuses after two weeks if an order is open', async () => {
+    product();
+    vi.mocked(adminRepository.countOpenProductOrders).mockResolvedValueOnce(1);
+    const deleteSpy = vi.spyOn(adminRepository, 'deleteArchivedProduct');
+    await expect(adminService.deleteProductPermanently('prod-1', now)).rejects.toMatchObject({
+      message: expect.stringContaining('deleted once'),
+    });
+    expect(deleteSpy).not.toHaveBeenCalled();
+  });
+
+  it('deletes after two weeks, only if still archived since before the cut-off', async () => {
+    product();
+    const deleteSpy = vi.spyOn(adminRepository, 'deleteArchivedProduct').mockResolvedValueOnce(true);
+    await expect(adminService.deleteProductPermanently('prod-1', now)).resolves.toMatchObject({ result: 'deleted' });
+    expect(deleteSpy).toHaveBeenCalledWith('prod-1', daysAgo(14));
+  });
+
+  it('reports a restore that raced the delete', async () => {
+    product();
+    vi.spyOn(adminRepository, 'deleteArchivedProduct').mockResolvedValueOnce(false);
+    await expect(adminService.deleteProductPermanently('prod-1', now)).rejects.toMatchObject({ statusCode: 409 });
+    expect(s3.deleteFromS3).not.toHaveBeenCalled();
+  });
+
+  it('removes only its own uploaded photos that nothing else shows', async () => {
+    product({ images: ['/api/images/uploads/a.jpg', '/api/images/uploads/b.jpg', '/images/static.jpg'] });
+    vi.spyOn(adminRepository, 'deleteArchivedProduct').mockResolvedValueOnce(true);
+    // b.jpg is the photo on a past order.
+    vi.mocked(adminRepository.isImageInUse).mockImplementation(async (url) => url.endsWith('b.jpg'));
+
+    await adminService.deleteProductPermanently('prod-1', now);
+
+    expect(s3.deleteFromS3).toHaveBeenCalledTimes(1);
+    expect(s3.deleteFromS3).toHaveBeenCalledWith('uploads/a.jpg');
+  });
+
+  it('still succeeds when a photo cannot be removed', async () => {
+    product();
+    vi.spyOn(adminRepository, 'deleteArchivedProduct').mockResolvedValueOnce(true);
+    vi.mocked(s3.deleteFromS3).mockRejectedValueOnce(new Error('storage down'));
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    await expect(adminService.deleteProductPermanently('prod-1', now)).resolves.toMatchObject({ result: 'deleted' });
+  });
+});
+
+describe('objectKeyFromUrl', () => {
+  it('only gives keys for our own image folders', () => {
+    expect(s3.objectKeyFromUrl('/api/images/uploads/mfs_1.jpg')).toBe('uploads/mfs_1.jpg');
+    expect(s3.objectKeyFromUrl('/api/images/products/jade%20tree.webp')).toBe('products/jade tree.webp');
+    expect(s3.objectKeyFromUrl('/images/miracle.jpeg')).toBeNull();
+    expect(s3.objectKeyFromUrl('/api/images/private/x.jpg')).toBeNull();
+    expect(s3.objectKeyFromUrl('/api/images/uploads/../private/x.jpg')).toBeNull();
+    expect(s3.objectKeyFromUrl('https://example.com/api/images/uploads/a.jpg')).toBeNull();
   });
 });

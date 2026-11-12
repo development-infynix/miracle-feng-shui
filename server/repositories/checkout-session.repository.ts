@@ -3,7 +3,7 @@ import { generateOrderAccessToken, generateOrderNumber } from '../utils/orderRef
 import { Prisma } from '@/app/generated/prisma/client';
 
 // A late payment can still arrive for a while after the customer opens the payment window.
-const KEEP_SESSION_MS = 7 * 24 * 60 * 60 * 1000;
+export const KEEP_SESSION_MS = 7 * 24 * 60 * 60 * 1000;
 
 export interface CheckoutItem {
   productId: string;
@@ -93,6 +93,13 @@ export const checkoutSessionRepository = {
         if (!session) return null;
 
         const items = session.items as unknown as CheckoutItem[];
+        // The money is taken, so the order is written even if a product was deleted while the customer paid.
+        // That line keeps its own title, price and photo and just has no product to link to.
+        const existingProducts = await tx.product.findMany({
+          where: { id: { in: items.map((item) => item.productId) } },
+          select: { id: true },
+        });
+        const stillExists = new Set(existingProducts.map((p) => p.id));
         const order = await tx.order.create({
           data: {
             orderNumber: session.orderNumber,
@@ -110,7 +117,7 @@ export const checkoutSessionRepository = {
             statusEvents: { create: { toStatus: 'PAID', actor: 'SYSTEM', note: 'Payment confirmed' } },
             items: {
               create: items.map((item) => ({
-                productId: item.productId,
+                productId: stillExists.has(item.productId) ? item.productId : null,
                 title: item.title,
                 price: item.price,
                 quantity: item.quantity,
@@ -123,6 +130,7 @@ export const checkoutSessionRepository = {
         });
 
         for (const item of items) {
+          if (!stillExists.has(item.productId)) continue;
           const { count } = await tx.product.updateMany({
             where: { id: item.productId, stock: { gte: item.quantity } },
             data: { stock: { decrement: item.quantity } },

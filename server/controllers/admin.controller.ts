@@ -57,8 +57,13 @@ export const adminController = {
   },
 
   async archiveProduct(_req: NextRequest, params: { id: string }) {
-    // Products are never deleted: DELETE archives, unless the product is in an open order.
+    // DELETE archives, unless the product is in an open order. Deleting for good is deleteProductPermanently.
     const result = await adminService.archiveProduct(params.id);
+    return apiResponse.ok(result);
+  },
+
+  async deleteProductPermanently(_req: NextRequest, params: { id: string }) {
+    const result = await adminService.deleteProductPermanently(params.id);
     return apiResponse.ok(result);
   },
 

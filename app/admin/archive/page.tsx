@@ -11,7 +11,7 @@ export const metadata = { title: 'Archive | Admin' };
 const TABS: ArchiveTab[] = ['orders', 'products', 'reviews'];
 
 // Archived orders and products, and hidden reviews: out of the day-to-day lists and the store,
-// kept for their history, restorable. Nothing here is ever deleted.
+// kept for their history, restorable. Archived products can be deleted for good after two weeks.
 export default async function AdminArchivePage({ searchParams }: { searchParams: Promise<{ tab?: string; page?: string }> }) {
   const sp = await searchParams;
   const tab = TABS.find((t) => t === sp?.tab) ?? 'orders';
