@@ -18,6 +18,8 @@ export default function ProductCard({ product, onView }: ProductCardProps) {
   const prod = product;
   const [imageFailed, setImageFailed] = useState(false);
   const imageSrc = !imageFailed && prod.images[0] ? prod.images[0] : FALLBACK_IMAGE;
+  // Archived and paused products can't be bought, so they're greyed out. The View button stays usable.
+  const greyed = prod.isActive === false || prod.isPaused === true;
 
   return (
     <div className="bg-white rounded-lg border border-gray-100 shadow-2xs overflow-hidden flex flex-col">
@@ -28,7 +30,7 @@ export default function ProductCard({ product, onView }: ProductCardProps) {
           fill
           sizes={ADMIN_CARD_IMAGE_SIZES}
           unoptimized={!canResizeImage(imageSrc)}
-          className={`object-cover ${prod.isActive === false ? 'opacity-50 grayscale' : ''}`}
+          className={`object-cover ${greyed ? 'opacity-50 grayscale' : ''}`}
           onError={() => setImageFailed(true)}
         />
         {prod.isActive === false ? (
@@ -44,13 +46,13 @@ export default function ProductCard({ product, onView }: ProductCardProps) {
       </div>
       <div className="p-3 flex flex-col gap-1 flex-1">
         <div className="min-w-0">
-          <span className="font-semibold text-gray-900 block truncate text-sm" title={prod.name}>{prod.name}</span>
+          <span className={`font-semibold block truncate text-sm ${greyed ? 'text-gray-500' : 'text-gray-900'}`} title={prod.name}>{prod.name}</span>
           <span className="text-[10.5px] text-gray-400 block truncate">{prod.category}</span>
         </div>
       </div>
       <div className="flex items-center justify-between gap-2 px-3 py-2 border-t border-gray-100 bg-gray-50">
         <div className="min-w-0">
-          <span className="font-bold text-gray-900 text-sm">₹{prod.price.toLocaleString('en-IN')}</span>
+          <span className={`font-bold text-sm ${greyed ? 'text-gray-500' : 'text-gray-900'}`}>₹{prod.price.toLocaleString('en-IN')}</span>
           {prod.originalPrice ? (
             <span className="text-[9.5px] text-gray-400 line-through ml-1.5">₹{prod.originalPrice.toLocaleString('en-IN')}</span>
           ) : null}
