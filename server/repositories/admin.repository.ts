@@ -185,6 +185,8 @@ export const adminRepository = {
         discount: true,
         stock: true,
         isActive: true,
+        // The product grid greys out and badges paused products.
+        isPaused: true,
         archivedAt: true,
         category: {
           select: { id: true, name: true, slug: true },
