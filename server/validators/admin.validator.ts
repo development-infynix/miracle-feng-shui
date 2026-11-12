@@ -7,6 +7,8 @@ export const adminProductQuerySchema = z.object({
   category: z.string().optional(),
   status: z.enum(['all', 'active', 'inactive']).default('all'),
   lowStock: z.stringbool().optional(),
+  /** The Status filter on the Products page. "active" means for sale (not paused). */
+  tag: z.enum(['active', 'paused', 'freeShipping', 'bestseller']).optional(),
 });
 
 export type AdminProductQueryInput = z.infer<typeof adminProductQuerySchema>;

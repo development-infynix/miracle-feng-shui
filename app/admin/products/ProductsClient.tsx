@@ -14,6 +14,18 @@ import ProductCard from './components/ProductCard';
 import ViewProductDrawer from './components/ViewProductDrawer';
 import EditProductDrawer from './components/EditProductDrawer';
 import CancellationSettingToggle from './components/CancellationSettingToggle';
+import type { AdminProductQueryInput } from '@/server/validators/admin.validator';
+
+type StatusTag = NonNullable<AdminProductQueryInput['tag']>;
+
+/** The Status tab of the filter. "Active" means for sale: archived products are on the Archive page. */
+const STATUS_FILTERS: { id: StatusTag; label: string }[] = [
+  { id: 'active', label: 'Active' },
+  { id: 'paused', label: 'Paused' },
+  { id: 'freeShipping', label: 'Free shipping' },
+  { id: 'bestseller', label: 'Bestseller' },
+];
+const statusLabel = (tag: StatusTag) => STATUS_FILTERS.find((f) => f.id === tag)?.label ?? tag;
 
 
 
@@ -22,6 +34,8 @@ interface ProductsClientProps {
   total: number;
   search?: string;
   category?: string;
+  /** The Status filter in the URL, if any. */
+  tag?: StatusTag;
   page: number;
   pageSize: number;
   totalPages: number;
@@ -35,6 +49,7 @@ export default function ProductsClient({
   page,
   search: searchProp,
   category: serverCategory,
+  tag: serverTag,
   totalPages,
   categories: serverCategories,
   stockStats,
@@ -66,36 +81,41 @@ export default function ProductsClient({
 
   const [searchQuery, setSearchQuery] = useState(searchProp || '');
   const [selectedCategory, setSelectedCategory] = useState(serverCategory || 'All');
+  const [selectedTag, setSelectedTag] = useState<StatusTag | null>(serverTag ?? null);
   const urlSearch = searchProp || '';
   const urlCategory = serverCategory || 'All';
+  const urlTag = serverTag ?? null;
 
   // The URL is the source of truth, so a sidebar link or the back button also updates the controls.
   useEffect(() => {
     setSearchQuery(urlSearch);
     setSelectedCategory(urlCategory);
-  }, [urlSearch, urlCategory]);
+    setSelectedTag(urlTag);
+  }, [urlSearch, urlCategory, urlTag]);
 
-  const productsUrl = (nextPage: number, nextSearch: string, nextCategory: string) => {
+  const productsUrl = (nextPage: number, nextSearch: string, nextCategory: string, nextTag: StatusTag | null = urlTag) => {
     const params = new URLSearchParams({ page: String(nextPage) });
     if (nextSearch) params.set('q', nextSearch);
     if (nextCategory !== 'All') params.set('category', nextCategory);
+    if (nextTag) params.set('tag', nextTag);
     return '/admin/products?' + params.toString();
   };
 
   // Only navigate when the controls differ from the URL, so a page load keeps its page number.
   useEffect(() => {
     const term = searchQuery.trim();
-    if (term === urlSearch && selectedCategory === urlCategory) return;
+    if (term === urlSearch && selectedCategory === urlCategory && selectedTag === urlTag) return;
     const t = setTimeout(() => {
       setIsNavigating(true);
-      router.replace(productsUrl(1, term, selectedCategory));
+      router.replace(productsUrl(1, term, selectedCategory, selectedTag));
     }, 400);
     return () => clearTimeout(t);
-  }, [searchQuery, selectedCategory, urlSearch, urlCategory, router]);
+  }, [searchQuery, selectedCategory, selectedTag, urlSearch, urlCategory, urlTag, router]);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [categoryMenuOpen, setCategoryMenuOpen] = useState(false);
+  const [filterTab, setFilterTab] = useState<'categories' | 'status'>('categories');
   const [infoOpen, setInfoOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [viewLoading, setViewLoading] = useState(false);
@@ -497,32 +517,85 @@ export default function ProductsClient({
           </div>
         )}
 
+        {selectedTag && (
+          <div className="inline-flex h-9 max-w-[14rem] items-center gap-2 rounded-lg border border-gray-300 bg-white pl-3 pr-1 text-xs font-semibold text-gray-800">
+            <span className="truncate">{statusLabel(selectedTag)}</span>
+            <button
+              type="button"
+              onClick={() => setSelectedTag(null)}
+              aria-label={`Clear status filter: ${statusLabel(selectedTag)}`}
+              title="Clear status filter"
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-900 cursor-pointer"
+            >
+              <i className="fa-solid fa-xmark text-xs" />
+            </button>
+          </div>
+        )}
+
         <div className="relative">
           <button
             type="button"
             onClick={() => { setCategoryMenuOpen((v) => !v); setInfoOpen(false); }}
-            title="Filter by category"
-            className="w-9 h-9 rounded-lg bg-[#040404] text-white hover:bg-black cursor-pointer flex items-center justify-center shadow-2xs"
+            title="Filter by category or status"
+            aria-expanded={categoryMenuOpen}
+            className="relative w-9 h-9 rounded-lg bg-[#040404] text-white hover:bg-black cursor-pointer flex items-center justify-center shadow-2xs"
           >
             <IoFunnelSharp className="text-sm" />
+            {(selectedCategory !== 'All' || selectedTag) && (
+              <span aria-hidden="true" className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-emerald-500" />
+            )}
           </button>
           {categoryMenuOpen && (
-            <div className="absolute right-0 top-full mt-2 z-[1000] w-44 rounded-lg border border-gray-200 bg-white shadow-xl overflow-y-auto max-h-60 [scrollbar-width:thin] [scrollbar-color:#d6d3d1_transparent]">
-              {availableCategories.map((cat) => (
-                <button
-                  key={cat}
-                  type="button"
-                  onClick={() => {
-                    setSelectedCategory(cat);
-                    setCategoryMenuOpen(false);
-                  }}
-                  className={`w-full px-4 py-2 text-left text-xs font-semibold flex items-center gap-2 cursor-pointer hover:bg-gray-100 ${
-                    selectedCategory === cat ? 'bg-gray-100 text-black' : 'text-gray-700'
-                  } ${cat === 'All' ? 'border-b border-gray-100' : ''}`}
-                >
-                  <span>{cat === 'All' ? 'All Categories' : cat}</span>
-                </button>
-              ))}
+            <div className="absolute right-0 top-full mt-2 z-[1000] w-52 rounded-lg border border-gray-200 bg-white shadow-xl overflow-hidden">
+              <div role="tablist" aria-label="Filter by" className="flex border-b border-gray-200">
+                {(['categories', 'status'] as const).map((id) => (
+                  <button
+                    key={id}
+                    type="button"
+                    role="tab"
+                    aria-selected={filterTab === id}
+                    onClick={() => setFilterTab(id)}
+                    className={`-mb-px flex-1 cursor-pointer border-b-2 px-3 py-2 text-xs font-semibold transition-colors ${
+                      filterTab === id ? 'border-gray-900 text-gray-900' : 'border-transparent text-gray-500 hover:text-gray-800'
+                    }`}
+                  >
+                    {id === 'categories' ? 'Categories' : 'Status'}
+                  </button>
+                ))}
+              </div>
+              <div role="tabpanel" className="max-h-60 overflow-y-auto [scrollbar-width:thin] [scrollbar-color:#d6d3d1_transparent]">
+                {filterTab === 'categories'
+                  ? availableCategories.map((cat) => (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => {
+                          setSelectedCategory(cat);
+                          setCategoryMenuOpen(false);
+                        }}
+                        className={`w-full px-4 py-2 text-left text-xs font-semibold flex items-center gap-2 cursor-pointer hover:bg-gray-100 ${
+                          selectedCategory === cat ? 'bg-gray-100 text-black' : 'text-gray-700'
+                        } ${cat === 'All' ? 'border-b border-gray-100' : ''}`}
+                      >
+                        <span>{cat === 'All' ? 'All Categories' : cat}</span>
+                      </button>
+                    ))
+                  : [{ id: null, label: 'All Statuses' } as const, ...STATUS_FILTERS].map((option) => (
+                      <button
+                        key={option.id ?? 'all'}
+                        type="button"
+                        onClick={() => {
+                          setSelectedTag(option.id);
+                          setCategoryMenuOpen(false);
+                        }}
+                        className={`w-full px-4 py-2 text-left text-xs font-semibold flex items-center gap-2 cursor-pointer hover:bg-gray-100 ${
+                          selectedTag === option.id ? 'bg-gray-100 text-black' : 'text-gray-700'
+                        } ${option.id === null ? 'border-b border-gray-100' : ''}`}
+                      >
+                        <span>{option.label}</span>
+                      </button>
+                    ))}
+              </div>
             </div>
           )}
         </div>
