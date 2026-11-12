@@ -142,6 +142,11 @@ export const adminRepository = {
       where.stock = { lte: 5 };
     }
 
+    if (query.tag === 'active') where.isPaused = false;
+    else if (query.tag === 'paused') where.isPaused = true;
+    else if (query.tag === 'freeShipping') where.freeShipping = true;
+    else if (query.tag === 'bestseller') where.bestseller = true;
+
     if (query.category && query.category !== 'All') {
       where.category = {
         OR: [

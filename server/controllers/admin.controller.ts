@@ -31,6 +31,7 @@ export const adminController = {
       category: searchParams.get('category') || undefined,
       status: searchParams.get('status') || undefined,
       lowStock: searchParams.get('lowStock') || undefined,
+      tag: searchParams.get('tag') || undefined,
     });
 
     const data = await adminService.getProducts(query);
