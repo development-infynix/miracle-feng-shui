@@ -300,6 +300,11 @@ export const adminRepository = {
       ? await resolveCategoryId(categoryIdentifier)
       : undefined;
 
+    // Archiving through the status picker takes it out of every cart, like the Archive button.
+    if (archivedAt instanceof Date) {
+      await prisma.cartItem.deleteMany({ where: { productId: id } });
+    }
+
     return prisma.product.update({
       where: { id },
       data: {
@@ -341,10 +346,12 @@ export const adminRepository = {
 
   /** Hides the product from the store and moves it to the Archive page, where it can be restored or, later, deleted. */
   async archiveProduct(id: string) {
-    return prisma.product.update({
-      where: { id },
-      data: { isActive: false, archivedAt: new Date() },
-    });
+    // It also leaves every customer's cart: an archived product can't be bought.
+    const [product] = await prisma.$transaction([
+      prisma.product.update({ where: { id }, data: { isActive: false, archivedAt: new Date() } }),
+      prisma.cartItem.deleteMany({ where: { productId: id } }),
+    ]);
+    return product;
   },
 
   /** Archived orders appear only when `archived` is true, and then only those. */

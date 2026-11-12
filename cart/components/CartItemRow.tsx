@@ -103,7 +103,7 @@ export default function CartItemRow({ item, removing = false, onQuantityChange, 
             </p>
           ) : paused ? (
             <p className="mt-1 text-[13px] font-medium text-[#8F1610]">
-              {t('cart.paused_note', 'Currently unavailable. Remove it to continue to checkout.')}
+              {t('cart.paused_note', "Paused for now. It stays in your cart but won't be included at checkout.")}
             </p>
           ) : outOfStock ? (
             <p className="mt-1 text-[13px] font-medium text-[#8F1610]">
@@ -135,7 +135,7 @@ export default function CartItemRow({ item, removing = false, onQuantityChange, 
           <button
             type="button"
             aria-label={t('product.decrease', 'Decrease quantity')}
-            disabled={quantity <= 1}
+            disabled={paused || quantity <= 1}
             onClick={() => onQuantityChange(quantity - 1)}
             className={stepButton}
           >
@@ -147,7 +147,7 @@ export default function CartItemRow({ item, removing = false, onQuantityChange, 
           <button
             type="button"
             aria-label={t('product.increase', 'Increase quantity')}
-            disabled={stock !== undefined && quantity >= stock}
+            disabled={paused || (stock !== undefined && quantity >= stock)}
             onClick={() => onQuantityChange(quantity + 1)}
             className={stepButton}
           >

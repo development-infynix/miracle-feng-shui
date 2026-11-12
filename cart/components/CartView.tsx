@@ -10,7 +10,7 @@ import { useSiteHeaderHeight } from '@/lib/useSiteHeaderHeight';
 import CartItemRow from './CartItemRow';
 import CheckoutDrawer from './CheckoutDrawer';
 import { CartCheckoutBar, CartSummary } from './CartSummary';
-import { isCartItemBlocked } from './cartStock';
+import { isCheckoutBlocked } from './cartStock';
 
 const NOTICE_MS = 6000;
 // Keep the delete spinner up this long so quick removes don't just flash.
@@ -77,7 +77,8 @@ export default function CartView() {
   };
 
   const guest = status === 'unauthenticated' && !userLoggedIn;
-  const blocked = items.some(isCartItemBlocked);
+  // Paused items don't block checkout; it just leaves them out. Only paused items left means nothing to order.
+  const blocked = isCheckoutBlocked(items);
   const hasItems = items.length > 0;
 
   // The fixed checkout bar would otherwise cover the bottom of the footer on phones.

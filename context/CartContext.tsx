@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { Product } from '@/lib/placeholder-data';
+import { isCartItemInCheckout } from '@/cart/components/cartStock';
 
 export type CartItem = {
   id: string; // unique item id combining product id and variations
@@ -37,6 +38,8 @@ interface CartContextType {
   toggleGift: (itemId: string) => void;
   saveForLater: (itemId: string) => boolean;
   clearCart: () => void;
+  /** After an order: drops what was bought, keeping the paused items the order left out. */
+  clearCheckedOut: () => void;
   /** The saved cart hasn't arrived yet, so an empty list doesn't mean an empty cart. */
   cartLoading: boolean;
   /** Reloads the cart from the server, for current prices and stock. */
@@ -475,13 +478,21 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }, [status, userLoggedIn]);
 
+  // The server already removed what was bought; this shows that straight away, then confirms with the server.
+  const clearCheckedOut = useCallback(() => {
+    setItems((prev) => prev.filter((item) => !isCartItemInCheckout(item)));
+    void refreshCart();
+  }, [refreshCart]);
+
   const cartLoading = status === 'loading' || ((status === 'authenticated' || userLoggedIn) && !cartSynced);
-  const count = items.reduce((sum, item) => sum + item.quantity, 0);
-  const subtotal = items.reduce(
+  // Count and totals cover what checkout will order: paused products stay in the cart but aren't included.
+  const checkoutItems = items.filter(isCartItemInCheckout);
+  const count = checkoutItems.reduce((sum, item) => sum + item.quantity, 0);
+  const subtotal = checkoutItems.reduce(
     (sum, item) => sum + item.product.price * item.quantity,
     0
   );
-  const savings = items.reduce((sum, item) => {
+  const savings = checkoutItems.reduce((sum, item) => {
     if (item.product.originalPrice && item.product.originalPrice > item.product.price) {
       return (
         sum +
@@ -501,6 +512,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         toggleGift,
         saveForLater,
         clearCart,
+        clearCheckedOut,
         cartLoading,
         refreshCart,
         count,

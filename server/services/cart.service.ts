@@ -13,10 +13,12 @@ export const cartService = {
     const formattedItems = cart.items.map((item) => {
       const formattedProd = productService.formatProduct(item.product);
       const itemTotal = item.product.price * item.quantity;
-      subtotal += itemTotal;
-
-      if (item.product.comparePrice && item.product.comparePrice > item.product.price) {
-        savings += (item.product.comparePrice - item.product.price) * item.quantity;
+      // A paused product stays in the cart but checkout leaves it out, so the totals do too.
+      if (!item.product.isPaused) {
+        subtotal += itemTotal;
+        if (item.product.comparePrice && item.product.comparePrice > item.product.price) {
+          savings += (item.product.comparePrice - item.product.price) * item.quantity;
+        }
       }
 
       return {
@@ -35,7 +37,7 @@ export const cartService = {
       id: cart.id,
       userId: cart.userId,
       items: formattedItems,
-      count: formattedItems.reduce((acc, curr) => acc + curr.quantity, 0),
+      count: formattedItems.filter((i) => !i.product.isPaused).reduce((acc, curr) => acc + curr.quantity, 0),
       subtotal,
       savings,
     };
@@ -68,7 +70,7 @@ export const cartService = {
     }
 
     if (item.product.isPaused) {
-      throw ApiError.badRequest('This product is currently unavailable. Remove it to continue to checkout.');
+      throw ApiError.badRequest("This product is paused for now, so its quantity can't be changed.");
     }
 
     if (item.product.stock < quantity) {

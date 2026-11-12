@@ -89,13 +89,8 @@ export const paymentService = {
 
     for (const item of cart.items) {
       const product = await productRepository.findById(item.productId);
-      if (!product || !product.isActive) {
-        throw ApiError.badRequest(`"${item.product.title}" is no longer available. Remove it from your cart to continue.`);
-      }
-
-      if (product.isPaused) {
-        throw ApiError.badRequest(`"${product.title}" is currently unavailable. Remove it from your cart to continue.`);
-      }
+      // Archived products have left the cart already; paused ones stay in it but aren't ordered.
+      if (!product || !product.isActive || product.isPaused) continue;
 
       if (product.stock < item.quantity) {
         throw ApiError.badRequest(
@@ -113,6 +108,10 @@ export const paymentService = {
         selectedVariations: item.selectedVariations,
         personalizationText: item.personalizationText ?? undefined,
       });
+    }
+
+    if (orderItemsData.length === 0) {
+      throw ApiError.badRequest('Nothing in your cart can be ordered right now.');
     }
 
     const orderNumber = await newOrderNumber();
