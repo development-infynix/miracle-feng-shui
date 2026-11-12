@@ -29,7 +29,10 @@ export const SUPPORT_EMAIL = 'care@miraclefengshui.com';
 
 interface OrderItem {
   id: string;
-  productId: string;
+  /** Null once the product is deleted for good. */
+  productId: string | null;
+  /** False once the product is archived or deleted: the line keeps its photo and title but links nowhere. */
+  available?: boolean;
   title?: string;
   name?: string;
   productName?: string;
@@ -246,34 +249,53 @@ function OrderCard({
       <ul className="list-none divide-y divide-[#E1E3DF] px-4 sm:px-6">
         {order.items.map((item, index) => {
           const title = item.title || item.name || item.productName || '';
-          const productRef = item.productId || item.slug;
+          // An archived or deleted product has nothing to open, so its line shows without links.
+          const productRef = item.available === false ? null : item.productId || item.slug;
+          const photoClass = 'block overflow-hidden rounded-lg bg-[#F5F5F1]';
+          const photo = (
+            <img
+              src={item.image || FALLBACK_IMAGE}
+              alt=""
+              className="aspect-square w-full object-cover"
+              onError={(e) => {
+                const image = e.currentTarget;
+                if (!image.src.endsWith(FALLBACK_IMAGE)) image.src = FALLBACK_IMAGE;
+              }}
+            />
+          );
           return (
             <li key={item.id || index} className="grid grid-cols-[64px_minmax(0,1fr)] items-center gap-3 py-4 sm:grid-cols-[72px_minmax(0,1fr)_auto] sm:gap-4">
-              <ProductLink product={productRef} aria-hidden="true" tabIndex={-1} className="block overflow-hidden rounded-lg bg-[#F5F5F1]">
-                <img
-                  src={item.image || FALLBACK_IMAGE}
-                  alt=""
-                  className="aspect-square w-full object-cover"
-                  onError={(e) => {
-                    const image = e.currentTarget;
-                    if (!image.src.endsWith(FALLBACK_IMAGE)) image.src = FALLBACK_IMAGE;
-                  }}
-                />
-              </ProductLink>
-              <div className="min-w-0">
-                <ProductLink product={productRef} className={`group block w-fit rounded-sm ${focusRing}`}>
-                  <span className="line-clamp-2 text-[15px] font-semibold leading-snug text-[#222222] transition-colors group-hover:underline">
-                    {title}
-                  </span>
+              {productRef ? (
+                <ProductLink product={productRef} aria-hidden="true" tabIndex={-1} className={photoClass}>
+                  {photo}
                 </ProductLink>
+              ) : (
+                <div className={photoClass}>{photo}</div>
+              )}
+              <div className="min-w-0">
+                {productRef ? (
+                  <ProductLink product={productRef} className={`group block w-fit rounded-sm ${focusRing}`}>
+                    <span className="line-clamp-2 text-[15px] font-semibold leading-snug text-[#222222] transition-colors group-hover:underline">
+                      {title}
+                    </span>
+                  </ProductLink>
+                ) : (
+                  <span className="line-clamp-2 text-[15px] font-semibold leading-snug text-[#222222]">{title}</span>
+                )}
                 <p className="mt-0.5 text-[13px] tabular-nums text-[#595959]">
                   {formatPrice(item.price * (item.quantity || 1))} · {t('profile.qty', 'Qty')} {item.quantity || 1}
                 </p>
               </div>
-              <ProductLink product={productRef} className={`${smallButton} col-span-2 sm:col-span-1`}>
-                <span className={smallLabel}>{t('cart.view_item', 'View item')}</span>
-                <i aria-hidden="true" className="fa-solid fa-angles-right text-[13px] text-[#222222] transition-colors group-hover:underline" />
-              </ProductLink>
+              {productRef ? (
+                <ProductLink product={productRef} className={`${smallButton} col-span-2 sm:col-span-1`}>
+                  <span className={smallLabel}>{t('cart.view_item', 'View item')}</span>
+                  <i aria-hidden="true" className="fa-solid fa-angles-right text-[13px] text-[#222222] transition-colors group-hover:underline" />
+                </ProductLink>
+              ) : (
+                <p className="col-span-2 text-[13px] text-[#595959] sm:col-span-1">
+                  {t('profile.item_unavailable', 'No longer available')}
+                </p>
+              )}
             </li>
           );
         })}

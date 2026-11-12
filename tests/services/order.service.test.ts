@@ -154,3 +154,23 @@ describe('OrderService', () => {
     expect(createSpy).not.toHaveBeenCalled();
   });
 });
+
+describe('order lines whose product is gone', () => {
+  const line = (over: Record<string, unknown>) => ({ id: 'i1', title: 'Jade Tree', price: 500, quantity: 1, image: '/x.jpg', ...over });
+  const format = (items: unknown[]) =>
+    orderService.formatOrder({
+      id: 'o1', orderNumber: 'MFS-1', userId: 'u1', status: 'DELIVERED', paymentMethod: 'RAZORPAY', paymentStatus: 'PAID',
+      total: 500, createdAt: new Date('2026-11-01T00:00:00Z'), cancellationAllowed: true, refunds: [], shippingAddress: {}, items,
+    }).items;
+
+  it('marks a line available only while its product is in the store', () => {
+    const [active, archived, deleted] = format([
+      line({ productId: 'p1', product: { id: 'p1', title: 'Jade Tree', isActive: true, images: [] } }),
+      line({ productId: 'p2', product: { id: 'p2', title: 'Jade Tree', isActive: false, images: [] } }),
+      line({ productId: null, product: null }),
+    ]);
+    expect(active.available).toBe(true);
+    expect(archived.available).toBe(false);
+    expect(deleted).toMatchObject({ available: false, productId: null, title: 'Jade Tree', price: 500 });
+  });
+});
