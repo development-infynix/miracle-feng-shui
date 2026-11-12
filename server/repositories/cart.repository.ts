@@ -6,6 +6,8 @@ import { AddToCartInput } from '../validators/cart.validator';
 export const cartRepository = {
   async findOrCreateCart(userId: string, tx?: Prisma.TransactionClient) {
     const client = tx || prisma;
+    // An archived product leaves every cart. Archiving already removes it; this catches one added at the same moment.
+    await client.cartItem.deleteMany({ where: { cart: { userId }, product: { isActive: false } } });
     let cart = await client.cart.findUnique({
       where: { userId },
       include: {

@@ -131,7 +131,7 @@ describe('OrderService', () => {
     expect(order.paymentMethod).toBe('Cash on Delivery');
   });
 
-  it('refuses to place an order for a paused product, and writes nothing', async () => {
+  it('places nothing when the cart holds only a paused product', async () => {
     vi.spyOn(cartRepository, 'findOrCreateCart').mockResolvedValueOnce({
       id: 'cart-1',
       userId: 'user-1',
@@ -150,7 +150,7 @@ describe('OrderService', () => {
         },
         paymentMethod: 'COD',
       })
-    ).rejects.toThrow('currently unavailable');
+    ).rejects.toThrow('Nothing in your cart can be ordered');
     expect(createSpy).not.toHaveBeenCalled();
   });
 });

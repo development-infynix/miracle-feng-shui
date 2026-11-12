@@ -11,7 +11,7 @@ import { createAddress, listAddresses, updateAddress, type AddressInput, type Sa
 import { COD_ENABLED } from '@/lib/payment-options';
 import { translateProductTitle } from '@/lib/translations';
 import AddressDetailsDrawer from '@/profile/components/AddressDetailsDrawer';
-import { isCartItemBlocked, isCartItemPaused, isCartItemUnavailable } from './cartStock';
+import { isCartItemBlocked, isCartItemInCheckout, isCartItemPaused, isCartItemUnavailable, isCheckoutBlocked } from './cartStock';
 import { openRazorpay, type RazorpaySuccess } from './razorpayCheckout';
 import { useStoreSettings } from '@/lib/useStoreSettings';
 
@@ -73,7 +73,7 @@ interface CheckoutDrawerProps {
 export default function CheckoutDrawer({ open, onClose }: CheckoutDrawerProps) {
   const router = useRouter();
   const { data: session } = useSession();
-  const { items, subtotal, count, clearCart, refreshCart } = useCart();
+  const { items, subtotal, count, clearCheckedOut, refreshCart } = useCart();
   const { currency, formatPrice, language, t } = useLocale();
   // Shown with the terms, before the customer pays.
   const noCancellation = useStoreSettings()?.cancellationAllowed === false;
@@ -123,7 +123,7 @@ export default function CheckoutDrawer({ open, onClose }: CheckoutDrawerProps) {
   }, [open, attempt, refreshCart]);
 
   const selected = addresses?.find((address) => address.id === selectedId) ?? null;
-  const blocked = items.some(isCartItemBlocked);
+  const blocked = isCheckoutBlocked(items);
   const canSubmit = Boolean(selected) && !blocked && items.length > 0 && !processing;
   const chargedInOtherCurrency = currency !== 'INR';
 
@@ -159,7 +159,8 @@ export default function CheckoutDrawer({ open, onClose }: CheckoutDrawerProps) {
   };
 
   const finishOrder = (order: { accessToken?: string | null; orderNumber?: string; id?: string; orderId?: string }) => {
-    clearCart();
+    // Paused items weren't ordered, so they stay in the cart.
+    clearCheckedOut();
     // The link carries the unguessable token, so the order number doesn't end up in history or shared links.
     if (order.accessToken) {
       router.push(`/order-confirmation?order=${encodeURIComponent(order.accessToken)}`);
@@ -378,7 +379,7 @@ export default function CheckoutDrawer({ open, onClose }: CheckoutDrawerProps) {
             <section aria-labelledby="checkout-summary" className="border-t border-ink/15 pt-4">
               <h3 id="checkout-summary"><span className={sectionTitle}>{t('cart.order_summary', 'Order Summary')}</span></h3>
               <ul className="mt-2 list-none space-y-2.5">
-                {items.map((item) => (
+                {items.filter(isCartItemInCheckout).map((item) => (
                   <li key={item.id} className="grid grid-cols-[48px_minmax(0,1fr)_auto] items-center gap-3">
                     <img
                       src={item.product.images[0] || FALLBACK_IMAGE}

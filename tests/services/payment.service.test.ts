@@ -153,20 +153,33 @@ describe('PaymentService', () => {
       );
     });
 
-    it('refuses a product that has been hidden', async () => {
+    it('starts no payment when nothing in the cart can be ordered', async () => {
       vi.spyOn(productRepository, 'findById').mockResolvedValue({ id: 'p1', isActive: false } as any);
 
-      await expect(paymentService.createRazorpayOrder('user-1', input)).rejects.toThrow('no longer available');
+      await expect(paymentService.createRazorpayOrder('user-1', input)).rejects.toThrow('Nothing in your cart can be ordered');
       expect(createRazorpayOrder).not.toHaveBeenCalled();
     });
 
-    it('refuses a paused product, which is still shown but cannot be bought', async () => {
-      vi.spyOn(productRepository, 'findById').mockResolvedValue({
-        id: 'p1', title: 'Bell', price: 100, stock: 5, isActive: true, isPaused: true, images: [],
+    it('leaves a paused product out and charges for the rest', async () => {
+      createRazorpayOrder.mockResolvedValue({ id: 'order_real' });
+      vi.spyOn(cartRepository, 'findOrCreateCart').mockResolvedValue({
+        items: [
+          { productId: 'p1', quantity: 2, product: { title: 'Bell' } },
+          { productId: 'p2', quantity: 1, product: { title: 'Lamp' } },
+        ],
       } as any);
+      vi.spyOn(productRepository, 'findById').mockImplementation(async (id: string) =>
+        (id === 'p1'
+          ? { id: 'p1', title: 'Bell', price: 100, stock: 5, isActive: true, isPaused: false, images: [] }
+          : { id: 'p2', title: 'Lamp', price: 900, stock: 5, isActive: true, isPaused: true, images: [] }) as any
+      );
 
-      await expect(paymentService.createRazorpayOrder('user-1', input)).rejects.toThrow('currently unavailable');
-      expect(createRazorpayOrder).not.toHaveBeenCalled();
+      await paymentService.createRazorpayOrder('user-1', input);
+
+      expect(createRazorpayOrder.mock.calls[0][0]).toMatchObject({ amount: 20000 });
+      expect(checkoutSessionRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({ total: 200, items: [expect.objectContaining({ productId: 'p1' })] })
+      );
     });
   });
 

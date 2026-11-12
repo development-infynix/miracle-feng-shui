@@ -93,8 +93,9 @@ export const orderRepository = {
             data: { stock: { decrement: item.quantity } },
           });
         }
+        // Only what was bought: paused products the order left out stay in the cart.
         await tx.cartItem.deleteMany({
-          where: { cart: { userId: data.userId } },
+          where: { cart: { userId: data.userId }, productId: { in: data.items.map((item) => item.productId) } },
         });
       }
 
