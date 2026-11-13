@@ -37,6 +37,27 @@ async function postJson(url: string, body: unknown) {
   return json.data;
 }
 
+// Waits between attempts to confirm a payment: about 15 seconds in all before the customer is told.
+const VERIFY_RETRY_DELAYS_MS = [1500, 2500, 4000, 6000];
+
+/**
+ * Confirms a payment Razorpay has taken. A failed attempt (a network drop, a timeout) is tried again:
+ * asking twice is safe, and once the order is written (by this or by Razorpay's webhook) the server
+ * just hands it back.
+ */
+async function verifyPayment(response: unknown) {
+  let lastError: unknown;
+  for (const delay of [0, ...VERIFY_RETRY_DELAYS_MS]) {
+    if (delay) await new Promise((resolve) => setTimeout(resolve, delay));
+    try {
+      return await postJson('/api/payments/verify', response);
+    } catch (err) {
+      lastError = err;
+    }
+  }
+  throw lastError;
+}
+
 /** A selectable row. It's a native radio, so arrow keys and screen readers work as expected. */
 function ChoiceRow({ name, checked, disabled, onChange, children, action }: {
   name: string;
@@ -87,6 +108,16 @@ export default function CheckoutDrawer({ open, onClose }: CheckoutDrawerProps) {
   const [error, setError] = useState('');
   // Blocks a second order from a double tap, before the button has re-rendered as disabled.
   const submitting = useRef(false);
+  // Razorpay has taken the money: from here the customer is only ever told it went through, or to check their orders.
+  const paymentTaken = useRef(false);
+  // After the order page opens, nothing here should show a message.
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
 
   const [addressDrawerOpen, setAddressDrawerOpen] = useState(false);
   const [editingAddress, setEditingAddress] = useState<SavedAddress | null>(null);
@@ -200,15 +231,20 @@ export default function CheckoutDrawer({ open, onClose }: CheckoutDrawerProps) {
       },
       theme: { color: '#431769' },
       handler: (response: RazorpaySuccess) => {
-        postJson('/api/payments/verify', response)
-          .then(finishOrder)
-          .catch((err) => {
-            console.error('Payment verification failed:', err);
-            stopProcessing(t('checkout.verify_failed', "We couldn't confirm your payment yet. Please don't pay again. Check your orders in a few minutes, or contact us if it doesn't appear as paid."));
-          });
+        paymentTaken.current = true;
+        // Two handlers, not .catch: a hiccup while opening the order page mustn't read as a failed payment.
+        verifyPayment(response).then(finishOrder, (err) => {
+          console.error('Payment verification failed:', err);
+          if (!mounted.current) return;
+          stopProcessing(t('checkout.verify_failed', "We couldn't confirm your payment yet. Please don't pay again. Check your orders in a few minutes, or contact us if it doesn't appear as paid."));
+        });
       },
       modal: {
-        ondismiss: () => stopProcessing(t('checkout.payment_not_completed', "Your payment wasn't completed, and you haven't been charged. You can try again.")),
+        // Razorpay can close its window after taking the payment; that isn't a cancelled payment.
+        ondismiss: () => {
+          if (paymentTaken.current) return;
+          stopProcessing(t('checkout.payment_not_completed', "Your payment wasn't completed, and you haven't been charged. You can try again."));
+        },
       },
     });
 
@@ -220,6 +256,7 @@ export default function CheckoutDrawer({ open, onClose }: CheckoutDrawerProps) {
   const placeOrder = async () => {
     if (submitting.current || !selected) return;
     submitting.current = true;
+    paymentTaken.current = false;
     setProcessing(true);
     setError('');
 

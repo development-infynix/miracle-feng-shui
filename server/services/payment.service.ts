@@ -177,6 +177,13 @@ export const paymentService = {
       throw ApiError.forbidden('This payment does not belong to this account');
     }
 
+    // The webhook already confirmed this payment and wrote the order: hand it back, so a retry
+    // from the browser always reaches the order instead of failing on a check it no longer needs.
+    const written = await orderRepository.findByRazorpayOrderId(input.razorpay_order_id);
+    if (written) {
+      return orderService.formatOrder(await orderRepository.findById(written.id));
+    }
+
     const secret = process.env.RAZORPAY_KEY_SECRET;
     if (!secret) throw ApiError.internal('Online payment is not configured');
     const text = `${input.razorpay_order_id}|${input.razorpay_payment_id}`;

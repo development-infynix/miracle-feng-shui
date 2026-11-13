@@ -49,9 +49,26 @@ describe('PaymentService', () => {
       vi.spyOn(checkoutSessionRepository, 'findSession').mockResolvedValue({ razorpayOrderId: 'order_1', total: 5000 });
       fetchPayment.mockReset().mockResolvedValue({ status: 'captured', amount: 500000, currency: 'INR' });
       vi.spyOn(checkoutSessionRepository, 'completePayment').mockResolvedValue({ orderId: 'o1', created: true });
+      vi.spyOn(orderRepository, 'findByRazorpayOrderId').mockResolvedValue(null);
       vi.spyOn(orderRepository, 'findById').mockResolvedValue(paidOrder);
       vi.spyOn(emailService, 'sendOrderConfirmationEmail').mockResolvedValue({ success: true });
       vi.spyOn(notificationService, 'notify').mockImplementation(() => {});
+    });
+
+    it('hands back the order the webhook already wrote, even if the browser check would fail', async () => {
+      vi.spyOn(orderRepository, 'findByRazorpayOrderId').mockResolvedValue({ id: 'o1' } as any);
+
+      const verified = await verify('user-1', 'stale_or_wrong_signature');
+
+      expect(verified.orderNumber).toBe('MFS-1');
+      expect(fetchPayment).not.toHaveBeenCalled();
+      expect(checkoutSessionRepository.completePayment).not.toHaveBeenCalled();
+      expect(emailService.sendOrderConfirmationEmail).not.toHaveBeenCalled();
+    });
+
+    it("never hands another customer's written order back", async () => {
+      vi.spyOn(orderRepository, 'findByRazorpayOrderId').mockResolvedValue({ id: 'o1' } as any);
+      await expect(verify('user-2')).rejects.toThrow('does not belong');
     });
 
     it('writes the paid order, emails the customer and notifies them', async () => {
