@@ -15,7 +15,7 @@ SMTP_PORT=587
 SMTP_USER=<brevo login email>
 SMTP_PASS=<smtp key>
 SMTP_SECURE=false
-EMAIL_FROM="Miracle Feng Shui <care@yourdomain.com>"
+EMAIL_FROM="Miracle Feng Shui <care@yourdomain.com>"  # always fetched from .env; never hardcode sender
 ```
 
 ## 3. Integration (SMTP, no code changes)
