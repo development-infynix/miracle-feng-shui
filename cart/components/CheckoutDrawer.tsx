@@ -110,6 +110,9 @@ export default function CheckoutDrawer({ open, onClose }: CheckoutDrawerProps) {
   const submitting = useRef(false);
   // Razorpay has taken the money: from here the customer is only ever told it went through, or to check their orders.
   const paymentTaken = useRef(false);
+  // The payment couldn't be confirmed in time. It may well have gone through, so the button leads to
+  // the customer's orders instead of offering to pay again.
+  const [paymentUnconfirmed, setPaymentUnconfirmed] = useState(false);
   // After the order page opens, nothing here should show a message.
   const mounted = useRef(true);
   useEffect(() => {
@@ -236,6 +239,7 @@ export default function CheckoutDrawer({ open, onClose }: CheckoutDrawerProps) {
         verifyPayment(response).then(finishOrder, (err) => {
           console.error('Payment verification failed:', err);
           if (!mounted.current) return;
+          setPaymentUnconfirmed(true);
           stopProcessing(t('checkout.verify_failed', "We couldn't confirm your payment yet. Please don't pay again. Check your orders in a few minutes, or contact us if it doesn't appear as paid."));
         });
       },
@@ -288,6 +292,7 @@ export default function CheckoutDrawer({ open, onClose }: CheckoutDrawerProps) {
 
   let submitLabel = payment === 'cod' ? t('checkout.place_order_cod', 'Place order') : t('checkout.pay_now', 'Pay now');
   if (processing) submitLabel = t('checkout.processing', 'Processing…');
+  else if (paymentUnconfirmed) submitLabel = t('confirmation.view_orders', 'View my orders');
 
   return (
     <>
@@ -500,8 +505,8 @@ export default function CheckoutDrawer({ open, onClose }: CheckoutDrawerProps) {
               </p>
               <button
                 type="button"
-                disabled={!canSubmit}
-                onClick={() => void placeOrder()}
+                disabled={paymentUnconfirmed ? processing : !canSubmit}
+                onClick={() => (paymentUnconfirmed ? router.push('/profile?tab=orders') : void placeOrder())}
                 className={`h-12 shrink-0 cursor-pointer bg-ink-fill px-8 transition-colors hover:shadow-[0_8px_22px_rgba(231,169,59,0.45)] disabled:cursor-not-allowed disabled:opacity-50 ${focusRing}`}
               >
                 <span aria-live="polite" className="font-geist text-[15px] font-semibold text-white">{submitLabel}</span>

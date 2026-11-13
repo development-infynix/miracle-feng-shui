@@ -31,6 +31,16 @@ export const checkoutSessionRepository = {
     });
   },
 
+  /** This customer's checkouts started since `since` that haven't become orders, newest first. */
+  async findRecentForUser(userId: string, since: Date, take = 3) {
+    return prisma.checkoutSession.findMany({
+      where: { userId, createdAt: { gte: since } },
+      orderBy: { createdAt: 'desc' },
+      take,
+      select: { razorpayOrderId: true },
+    });
+  },
+
   async deleteExpired() {
     return prisma.checkoutSession.deleteMany({
       where: { createdAt: { lt: new Date(Date.now() - KEEP_SESSION_MS) } },

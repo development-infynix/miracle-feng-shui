@@ -12,7 +12,10 @@ import { settingsService } from '@/server/services/settings.service';
 
 const createRazorpayOrder = vi.hoisted(() => vi.fn());
 const fetchPayment = vi.hoisted(() => vi.fn());
-vi.mock('@/lib/razorpay', () => ({ razorpay: { orders: { create: createRazorpayOrder }, payments: { fetch: fetchPayment } } }));
+const fetchOrderPayments = vi.hoisted(() => vi.fn());
+vi.mock('@/lib/razorpay', () => ({
+  razorpay: { orders: { create: createRazorpayOrder, fetchPayments: fetchOrderPayments }, payments: { fetch: fetchPayment } },
+}));
 
 const sign = (text: string, secret: string) => crypto.createHmac('sha256', secret).update(text).digest('hex');
 
@@ -137,6 +140,49 @@ describe('PaymentService', () => {
       vi.spyOn(checkoutSessionRepository, 'deleteExpired').mockResolvedValue({ count: 0 });
       vi.spyOn(checkoutSessionRepository, 'create').mockResolvedValue({} as any);
       vi.spyOn(settingsService, 'isCancellationAllowed').mockResolvedValue(true);
+      vi.spyOn(checkoutSessionRepository, 'findRecentForUser').mockResolvedValue([]);
+      fetchOrderPayments.mockReset().mockResolvedValue({ items: [] });
+    });
+
+    describe('when an earlier payment was taken but never confirmed', () => {
+      beforeEach(() => {
+        vi.spyOn(checkoutSessionRepository, 'findRecentForUser').mockResolvedValue([{ razorpayOrderId: 'order_old' }]);
+        vi.spyOn(checkoutSessionRepository, 'findSession').mockResolvedValue({ razorpayOrderId: 'order_old', total: 5000 });
+        fetchPayment.mockReset().mockResolvedValue({ status: 'captured', amount: 500000, currency: 'INR' });
+        vi.spyOn(orderRepository, 'findById').mockResolvedValue(paidOrder);
+        vi.spyOn(emailService, 'sendOrderConfirmationEmail').mockResolvedValue({ success: true });
+        vi.spyOn(notificationService, 'notify').mockImplementation(() => {});
+      });
+
+      it('writes that order and refuses to take a second payment', async () => {
+        fetchOrderPayments.mockResolvedValue({ items: [{ id: 'pay_old', status: 'captured' }] });
+        const complete = vi.spyOn(checkoutSessionRepository, 'completePayment').mockResolvedValue({ orderId: 'o1', created: true });
+
+        await expect(paymentService.createRazorpayOrder('user-1', input)).rejects.toMatchObject({
+          statusCode: 409,
+          message: expect.stringContaining('earlier payment went through'),
+        });
+        expect(complete).toHaveBeenCalledWith('order_old', 'pay_old');
+        expect(emailService.sendOrderConfirmationEmail).toHaveBeenCalledTimes(1);
+        expect(createRazorpayOrder).not.toHaveBeenCalled();
+      });
+
+      it('carries on when the earlier checkout was never paid', async () => {
+        fetchOrderPayments.mockResolvedValue({ items: [{ id: 'pay_old', status: 'failed' }] });
+        createRazorpayOrder.mockResolvedValue({ id: 'order_real' });
+        const complete = vi.spyOn(checkoutSessionRepository, 'completePayment');
+
+        await expect(paymentService.createRazorpayOrder('user-1', input)).resolves.toMatchObject({ razorpayOrderId: 'order_real' });
+        expect(complete).not.toHaveBeenCalled();
+      });
+
+      it("doesn't block checkout when Razorpay can't be asked", async () => {
+        fetchOrderPayments.mockRejectedValue(new Error('timeout'));
+        vi.spyOn(console, 'error').mockImplementation(() => {});
+        createRazorpayOrder.mockResolvedValue({ id: 'order_real' });
+
+        await expect(paymentService.createRazorpayOrder('user-1', input)).resolves.toMatchObject({ razorpayOrderId: 'order_real' });
+      });
     });
 
     it('records the store’s cancellation setting on the checkout, for the order to keep', async () => {

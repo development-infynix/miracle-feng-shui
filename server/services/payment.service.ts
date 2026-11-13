@@ -66,6 +66,34 @@ async function sendPaidOrderEmail(orderId: string) {
   return formatted;
 }
 
+// How far back to look for a payment the customer made that the store hasn't written yet.
+const UNCONFIRMED_PAYMENT_WINDOW_MS = 30 * 60 * 1000;
+
+/**
+ * Writes a payment this customer finished at Razorpay that the store hasn't written yet: the browser
+ * couldn't confirm it and the webhook hasn't arrived. Same checks and result as the webhook.
+ * Returns the order's id, or null when there's nothing like that. If Razorpay can't be asked, it
+ * returns null rather than block checkout.
+ */
+async function settleUnconfirmedPayment(userId: string) {
+  if (!razorpay) return null;
+  const since = new Date(Date.now() - UNCONFIRMED_PAYMENT_WINDOW_MS);
+  for (const { razorpayOrderId } of await checkoutSessionRepository.findRecentForUser(userId, since)) {
+    try {
+      const { items } = await razorpay.orders.fetchPayments(razorpayOrderId);
+      const paid = items.find((p: { status: string }) => p.status === 'captured' || p.status === 'authorized');
+      if (!paid || !(await paymentAmountMatches(razorpayOrderId, paid.id))) continue;
+      const result = await checkoutSessionRepository.completePayment(razorpayOrderId, paid.id);
+      if (!result) continue;
+      if (result.created) await sendPaidOrderEmail(result.orderId);
+      return result.orderId;
+    } catch (err) {
+      console.error(`[PaymentService] Couldn't check earlier checkout ${razorpayOrderId}:`, err instanceof Error ? err.message : err);
+    }
+  }
+  return null;
+}
+
 async function newOrderNumber() {
   try {
     return await checkoutSessionRepository.newOrderNumber();
@@ -76,6 +104,12 @@ async function newOrderNumber() {
 
 export const paymentService = {
   async createRazorpayOrder(userId: string, input: CreatePaymentOrderInput) {
+    // Never take a second payment for something already paid for: if the last payment went through
+    // but wasn't confirmed, write that order now and stop here.
+    if (await settleUnconfirmedPayment(userId)) {
+      throw ApiError.conflict('Your earlier payment went through and your order is placed. Check your orders before paying again.');
+    }
+
     const [cart, user] = await Promise.all([
       cartRepository.findOrCreateCart(userId),
       userRepository.findById(userId),
